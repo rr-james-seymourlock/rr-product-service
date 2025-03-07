@@ -1,0 +1,25 @@
+{
+  "name": "DICK'S Sporting Goods",
+  "id": 2440,
+  "domain": "dickssportinggoods.com",
+  "testCases": [
+    {
+      "url": "https://www.dickssportinggoods.com/p/nike-mens-air-zoom-pegasus-39-running-shoes-22nikmpgs39blkwhtrnf/22nikmpgs39blkwhtrnf",
+      "expectedSkus": [
+        "22nikmpgs39blkwhtrnf"
+      ]
+    },
+    {
+      "url": "https://www.dickssportinggoods.com/p/wilson-nfl-super-grip-football-16wilunflspgrpftbftb/16wilunflspgrpftbftb",
+      "expectedSkus": [
+        "16wilunflspgrpftbftb"
+      ]
+    },
+    {
+      "url": "https://www.dickssportinggoods.com/p/yeti-20-oz-rambler-tumbler-16yetunwrmlr20ztxtrv/16yetunwrmlr20ztxtrv",
+      "expectedSkus": [
+        "16yetunwrmlr20ztxtrv"
+      ]
+    }
+  ]
+}

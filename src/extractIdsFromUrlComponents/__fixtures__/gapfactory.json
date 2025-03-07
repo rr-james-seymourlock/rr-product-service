@@ -1,0 +1,31 @@
+{
+  "name": "Gap Factory",
+  "id": 13943,
+  "domain": "gapfactory.com",
+  "testCases": [
+    {
+      "url": "https://www.gapfactory.com/browse/product.do?pid=6822420110003",
+      "expectedSkus": ["6822420110003"]
+    },
+    {
+      "url": "https://www.gapfactory.com/browse/product.do?pid=5224880010003",
+      "expectedSkus": ["5224880010003"]
+    },
+    {
+      "url": "https://www.gapfactory.com/browse/product.do?pid=5222700310003",
+      "expectedSkus": ["5222700310003"]
+    },
+    {
+      "url": "https://www.gapfactory.com/browse/product.do?pid=5224790110003",
+      "expectedSkus": ["5224790110003"]
+    },
+    {
+      "url": "https://www.gapfactory.com/browse/product.do?pid=7736560013102",
+      "expectedSkus": ["7736560013102"]
+    },
+    {
+      "url": "https://www.gapfactory.com/browse/product.do?pid=5223120310003",
+      "expectedSkus": ["5223120310003"]
+    }
+  ]
+}

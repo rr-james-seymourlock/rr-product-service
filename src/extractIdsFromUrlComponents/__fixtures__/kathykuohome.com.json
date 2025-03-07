@@ -1,0 +1,19 @@
+{
+  "name": "Kathy Kuo Home",
+  "id": 16522,
+  "domain": "kathykuohome.com",
+  "testCases": [
+    {
+      "url": "https://www.kathykuohome.com/Product/Detail/44819-Sunset-West-Provence-French-Beige-Cushion-Metal-Outdoor-Club-Arm-Chair",
+      "expectedSkus": [
+        "44819"
+      ]
+    },
+    {
+      "url": "https://www.kathykuohome.com/Product/Detail/53329-Simon-Pearce-Modern-Rechargeable-Stainless-Steel-LED-Light-Large",
+      "expectedSkus": [
+        "53329"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "name": "1 Stop Lighting",
+  "id": 15159,
+  "domain": "1stoplighting.com",
+  "testCases": [
+    {
+      "url": "https://www.1stoplighting.com/lighting/18-1044-11028-0-494440/Crystorama_Calypso---Eight-Light-Chandelier-in-Traditional-and-Contemporary-Style---40-Inches-Wide-by-25-75-Inches-High_278-VG.htm?nsoid=3131860",
+      "expectedSkus": [
+        "278-vg"
+      ]
+    },
+    {
+      "url": "https://www.1stoplighting.com/lighting/18-2046-2202-0-883097/ET2-Lighting_Deuce-4W-1-LED-Pendant-5-5-Inches-wide-by-7-75-inches-high_E10040-138PC.htm?nsoid=3361475",
+      "expectedSkus": [
+        "e10040-138pc"
+      ]
+    }
+  ]
+}

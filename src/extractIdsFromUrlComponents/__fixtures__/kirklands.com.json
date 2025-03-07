@@ -1,0 +1,25 @@
+{
+  "name": "Kirkland's",
+  "id": 8981,
+  "domain": "kirklands.com",
+  "testCases": [
+    {
+      "url": "https://www.kirklands.com/product/Art-Wall-Decor/Wall-Art/Canvas-Art/Blue-Abstract-Framed-Canvas-Art-Print/pc/2283/c/2293/sc/2671/262251.uts",
+      "expectedSkus": [
+        "262251"
+      ]
+    },
+    {
+      "url": "https://www.kirklands.com/product/Furniture/Living-Room-Furniture/Accent-Chairs/Gray-Button-Tufted-Accent-Chair/pc/2285/c/2794/sc/2795/269873.uts",
+      "expectedSkus": [
+        "269873"
+      ]
+    },
+    {
+      "url": "https://www.kirklands.com/product/Home-Decor/Decorative-Accessories/Table-Decor/Galvanized-Metal-Lantern/pc/2284/c/2287/sc/2298/256789.uts",
+      "expectedSkus": [
+        "256789"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "name": "Ann Taylor",
+  "id": 9141,
+  "domain": "anntaylor.com",
+  "testCases": [
+    {
+      "url": "https://www.anntaylor.com/petites/petite-suits/cat550044/grp_544911_0352.html",
+      "expectedSkus": [
+        "544911",
+        "544911_0352"
+      ]
+    },
+    {
+      "url": "https://www.anntaylor.com/petites/petite-suits/cat550044/grp_610144_8818.html?priceSort=DES",
+      "expectedSkus": [
+        "610144",
+        "610144_8818"
+      ]
+    }
+  ]
+}

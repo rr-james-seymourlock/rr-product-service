@@ -1,0 +1,25 @@
+{
+  "name": "Magnetic Me",
+  "id": 20571,
+  "domain": "magneticme.com",
+  "testCases": [
+    {
+      "url": "https://magneticme.com/products/mf24mf01ft_famtr",
+      "expectedSkus": [
+        "mf24mf01ft-famtr"
+      ]
+    },
+    {
+      "url": "https://magneticme.com/products/mf34mf01aa_ameli",
+      "expectedSkus": [
+        "mf34mf01aa-ameli"
+      ]
+    },
+    {
+      "url": "https://magneticme.com/products/sf14of01di_dino",
+      "expectedSkus": [
+        "sf14of01di-dino"
+      ]
+    }
+  ]
+}

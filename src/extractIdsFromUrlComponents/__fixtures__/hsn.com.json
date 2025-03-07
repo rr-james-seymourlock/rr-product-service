@@ -1,0 +1,25 @@
+{
+  "name": "HSN",
+  "id": 8971,
+  "domain": "hsn.com",
+  "testCases": [
+    {
+      "url": "https://www.hsn.com/products/slinky-brand-printed-dolman-sleeve-top/20583627",
+      "expectedSkus": [
+        "20583627"
+      ]
+    },
+    {
+      "url": "https://www.hsn.com/products/curtis-stone-dura-pan-nonstick-10-piece-cookware-set/20479513",
+      "expectedSkus": [
+        "20479513"
+      ]
+    },
+    {
+      "url": "https://www.hsn.com/products/joy-mangano-better-beauty-case-duo/20567891",
+      "expectedSkus": [
+        "20567891"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "name": "COS",
+  "id": 16829,
+  "domain": "cos.com",
+  "testCases": [
+    {
+      "url": "https://www.cos.com/en_usd/women/womenswear/knitwear/product.cable-knit-wool-funnel-neck-sweater-white.1256002001.html",
+      "expectedSkus": [
+        "1256002001"
+      ]
+    },
+    {
+      "url": "https://www.cos.com/en_usd/women/womenswear/trousers/product.pleated-barrel-leg-cotton-pants-brown.1232460001.html",
+      "expectedSkus": [
+        "1232460001"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "name": "Funko",
+  "id": 16000,
+  "domain": "funko.com",
+  "testCases": [
+    {
+      "url": "https://funko.com/owen-blue-ornament/3HCM2315.html?brand=funko",
+      "expectedSkus": [
+        "3HCM2315"
+      ]
+    },
+    {
+      "url": "https://funko.com/pop-vito-corleone-with-towel-silencer/75938.html?brand=funko",
+      "expectedSkus": [
+        "75938"
+      ]
+    }
+  ]
+}

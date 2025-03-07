@@ -1,0 +1,25 @@
+{
+  "name": "Children's Place",
+  "id": 8933,
+  "domain": "childrensplace.com",
+  "testCases": [
+    {
+      "url": "https://www.childrensplace.com/us/p/Baby-And-Toddler-Girls-Long-Raglan-Sleeve-World-s-Best-Daughter-Snug-Fit-Cotton-Pajamas-3050877-3254",
+      "expectedSkus": [
+        "3050877-3254"
+      ]
+    },
+    {
+      "url": "https://www.childrensplace.com/us/p/Boys-Long-Sleeve-Football-Helmet-Graphic-Tee-3049518-1215",
+      "expectedSkus": [
+        "3049518-1215"
+      ]
+    },
+    {
+      "url": "https://www.childrensplace.com/us/p/Girls-Basic-Bootcut-Jeans-3044063-33CC",
+      "expectedSkus": [
+        "3044063-33CC"
+      ]
+    }
+  ]
+}

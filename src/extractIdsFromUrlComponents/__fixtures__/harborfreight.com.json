@@ -1,0 +1,25 @@
+{
+  "name": "Harbor Freight",
+  "id": 8962,
+  "domain": "harborfreight.com",
+  "testCases": [
+    {
+      "url": "https://www.harborfreight.com/18v-cordless-12-in-drill-driver-kit-56825.html",
+      "expectedSkus": [
+        "56825"
+      ]
+    },
+    {
+      "url": "https://www.harborfreight.com/4-12-in-sliding-compound-miter-saw-61307.html",
+      "expectedSkus": [
+        "61307"
+      ]
+    },
+    {
+      "url": "https://www.harborfreight.com/130-piece-tool-kit-with-case-63248.html",
+      "expectedSkus": [
+        "63248"
+      ]
+    }
+  ]
+}

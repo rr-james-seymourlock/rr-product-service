@@ -1,0 +1,25 @@
+{
+  "name": "HearthSong",
+  "id": 8966,
+  "domain": "hearthsong.com",
+  "testCases": [
+    {
+      "url": "https://www.hearthsong.com/p/giant-inflatable-color-burst-ball-731034",
+      "expectedSkus": [
+        "731034"
+      ]
+    },
+    {
+      "url": "https://www.hearthsong.com/p/rainbow-fairy-wings-732156",
+      "expectedSkus": [
+        "732156"
+      ]
+    },
+    {
+      "url": "https://www.hearthsong.com/p/light-up-terrain-twister-733890",
+      "expectedSkus": [
+        "733890"
+      ]
+    }
+  ]
+}

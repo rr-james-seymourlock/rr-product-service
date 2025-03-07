@@ -1,0 +1,29 @@
+service: rr-product-service
+frameworkVersion: "3"
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: us-east-1
+
+functions:
+  postProduct:
+    handler: src/handler.postProduct
+    events:
+      - http:
+          path: product
+          method: post
+
+plugins:
+  - serverless-esbuild
+  - serverless-offline
+
+custom:
+  esbuild:
+    bundle: true
+    minify: false
+    sourcemap: true
+    target: esnext
+    format: esm # Output as ESM
+    platform: node
+    concurrency: 10

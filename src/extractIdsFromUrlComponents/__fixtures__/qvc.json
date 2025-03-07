@@ -1,0 +1,59 @@
+{
+  "name": "QVC",
+  "id": 8378,
+  "domain": "qvc.com",
+  "testCases": [
+    {
+      "url": "https://www.qvc.com/shark-carpetxpert-upright-carpet-cleaner-w-stainstriker.product.V56864.html?sc=CRT",
+      "expectedSkus": ["V56864"]
+    },
+    {
+      "url": "https://www.qvc.com/kringle-express-set-of-2-plush-60x70-holiday-plaid-throws.product.H474467.html?sc=CRT",
+      "expectedSkus": ["H474467"]
+    },
+    {
+      "url": "https://www.qvc.com/kringle-express-100-piece-gift-bags-%26-tags-set.product.H465821.html?sc=CRT",
+      "expectedSkus": ["H465821"]
+    },
+    {
+      "url": "https://www.qvc.com/kringle-express-6-lit-shatterproof-ornament-garland.product.H465817.html?sc=CRT", 
+      "expectedSkus": ["H465817"]
+    },
+    {
+      "url": "https://www.qvc.com/lancome-tresor-eau-de-parfum%2C-17-fl-oz.product.A450734.html?sc=CRT",
+      "expectedSkus": ["A450734"]
+    },
+    {
+      "url": "https://www.qvc.com/revitalign-orthotic-textured-mules---siesta-canvas.product.A618846.html?sc=CRT",
+      "expectedSkus": ["A618846"]
+    },
+    {
+      "url": "https://www.qvc.com/melissa-%26-doug-created-by-me---flower-fleece-quilt.product.T128047.html?sc=CRT",
+      "expectedSkus": ["T128047"]
+    },
+    {
+      "url": "https://www.qvc.com/susan-graver-soleil-halter-wrap-swim-dress.product.A636609.html?sc=CRT",
+      "expectedSkus": ["A636609"]
+    },
+    {
+      "url": "https://www.qvc.com/bareminerals-prime-time-original-pore-minimizing-primer-1-oz.product.A616096.html",
+      "expectedSkus": ["A616096"]
+    },
+    {
+      "url": "https://www.qvc.com/apple-ipad-109-256gb-gen-10-wi-fi-mouse-accs-%26-voucher.product.E323020.html?sc=CRT",
+      "expectedSkus": ["E323020"]
+    },
+    {
+      "url": "https://www.qvc.com/zuda-z-knit-regular-french-terry-dress.product.A634036.html?sc=CRT",
+      "expectedSkus": ["A634036"]
+    },
+    {
+      "url": "https://www.qvc.com/cuddl-duds-intimates-modal-seamless-front-hook-wirefree-bra.product.A604601.html?sc=CRT",
+      "expectedSkus": ["A604601"]
+    },
+    {
+      "url": "https://www.qvc.com/apple-ipad-109-64gb-gen-10-wifi-w-accessory-organizer-%26-acc.product.E318064.html?sc=CRT",
+      "expectedSkus": ["E318064"]
+    }
+  ]
+}

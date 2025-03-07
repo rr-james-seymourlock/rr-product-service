@@ -1,0 +1,25 @@
+{
+  "name": "Houzz",
+  "id": 8970,
+  "domain": "houzz.com",
+  "testCases": [
+    {
+      "url": "https://www.houzz.com/products/madison-park-quebec-quilted-coverlet-set-prvw-vr~145632891",
+      "expectedSkus": [
+        "145632891"
+      ]
+    },
+    {
+      "url": "https://www.houzz.com/products/safavieh-courtyard-indoor-outdoor-area-rug-prvw-vr~158963247",
+      "expectedSkus": [
+        "158963247"
+      ]
+    },
+    {
+      "url": "https://www.houzz.com/products/modway-empress-upholstered-fabric-sofa-prvw-vr~134567890",
+      "expectedSkus": [
+        "134567890"
+      ]
+    }
+  ]
+}

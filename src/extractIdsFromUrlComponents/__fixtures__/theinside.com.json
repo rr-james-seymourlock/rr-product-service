@@ -1,0 +1,19 @@
+{
+  "name": "The Inside",
+  "id": 22077,
+  "domain": "theinside.com",
+  "testCases": [
+    {
+      "url": "https://www.theinside.com/products/classic-bed-king-walnut-square-tapered-leg-celadon-performance-plush-velvet-walnut-square-tapered-leg-legs-63678",
+      "expectedSkus": [
+        "63678"
+      ]
+    },
+    {
+      "url": "https://www.theinside.com/products/english-roll-arm-chair-walnut-cornflower-classic-ticking-stripe-walnut-turned-wood-leg-legs-95120",
+      "expectedSkus": [
+        "95120"
+      ]
+    }
+  ]
+}

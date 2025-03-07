@@ -1,0 +1,1 @@
+export { parseUrlComponents } from './parseUrlComponents.js'

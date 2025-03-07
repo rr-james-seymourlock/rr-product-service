@@ -1,0 +1,25 @@
+{
+  "name": "Harry & David",
+  "id": 8963,
+  "domain": "harryanddavid.com",
+  "testCases": [
+    {
+      "url": "https://www.harryanddavid.com/h/fruit-gift/signature-gifts/30124",
+      "expectedSkus": [
+        "30124"
+      ]
+    },
+    {
+      "url": "https://www.harryanddavid.com/h/chocolates-sweets-candy/chocolate-covered-strawberries/31253",
+      "expectedSkus": [
+        "31253"
+      ]
+    },
+    {
+      "url": "https://www.harryanddavid.com/h/gift-baskets-tower-boxes/gift-towers/29321",
+      "expectedSkus": [
+        "29321"
+      ]
+    }
+  ]
+}

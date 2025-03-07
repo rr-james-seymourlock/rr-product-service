@@ -1,0 +1,25 @@
+{
+  "name": "Wayfair",
+  "id": 2880,
+  "domain": "wayfair.com",
+  "testCases": [
+    {
+      "url": "https://www.wayfair.com/furniture/pdp/wade-logan-avers-upholstered-side-chair-w005560141.html",
+      "expectedSkus": [
+        "W005560141"
+      ]
+    },
+    {
+      "url": "https://www.wayfair.com/rugs/pdp/mercury-row-hillsby-oriental-orange-area-rug-w004847534.html",
+      "expectedSkus": [
+        "W004847534"
+      ]
+    },
+    {
+      "url": "https://www.wayfair.com/lighting/pdp/wade-logan-johanne-1-light-dimmable-led-flush-mount-w005379158.html",
+      "expectedSkus": [
+        "W005379158"
+      ]
+    }
+  ]
+}

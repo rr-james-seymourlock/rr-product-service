@@ -1,0 +1,27 @@
+{
+  "name": "Nordstrom",
+  "id": 2423,
+  "domain": "nordstrom.com",
+  "testCases": [
+    {
+      "url": "https://www.nordstrom.com/s/11111111",
+      "expectedSkus": ["11111111"]
+    },
+    {
+      "url": "https://www.nordstrom.com/s/daniela-villegas-meerkat-earrings/22222222",
+      "expectedSkus": ["22222222"]
+    },
+    {
+      "url": "https://www.nordstrom.com/s/slim-fit-stretch-wool-trousers/33333333?origin=category-personalizedsort&breadcrumb=Home%2FSale%2FWomen%2FClothing&color=662",
+      "expectedSkus": ["33333333"]
+    },
+    {
+      "url": "https://www.nordstrom.com/s/100000-daniela-000000-villegas-meerkat-earrings/44444444",
+      "expectedSkus": ["44444444"]
+    },
+    {
+      "url": "https://www.nordstrom.com/s/55555555/",
+      "expectedSkus": ["55555555"]
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "name": "Bed Bath & Beyond",
+  "id": 2444,
+  "domain": "bedbathandbeyond.com",
+  "testCases": [
+    {
+      "url": "https://www.bedbathandbeyond.com/store/product/ninja-foodi-9-in-1-deluxe-xl-pressure-cooker/5503515",
+      "expectedSkus": [
+        "5503515"
+      ]
+    },
+    {
+      "url": "https://www.bedbathandbeyond.com/store/product/ugg-classic-sherpa-throw-blanket/5589632",
+      "expectedSkus": [
+        "5589632"
+      ]
+    },
+    {
+      "url": "https://www.bedbathandbeyond.com/store/product/simplehuman-58-liter-rectangular-step-trash-can/5473291",
+      "expectedSkus": [
+        "5473291"
+      ]
+    }
+  ]
+}

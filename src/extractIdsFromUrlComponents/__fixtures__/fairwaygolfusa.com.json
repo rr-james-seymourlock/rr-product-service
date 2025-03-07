@@ -1,0 +1,13 @@
+{
+  "name": "Fairway Golf USA",
+  "id": 16274,
+  "domain": "fairwaygolfusa.com",
+  "testCases": [
+    {
+      "url": "https://www.fairwaygolfusa.com/category/select/pid/4122",
+      "expectedSkus": [
+        "4122"
+      ]
+    }
+  ]
+}

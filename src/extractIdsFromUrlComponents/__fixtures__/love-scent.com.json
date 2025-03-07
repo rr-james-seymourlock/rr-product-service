@@ -1,0 +1,19 @@
+{
+  "name": "Love Scent",
+  "id": 9205,
+  "domain": "love-scent.com",
+  "testCases": [
+    {
+      "url": "https://love-scent.com/chikara-alpha-unscented-p-180.html",
+      "expectedSkus": [
+        "sku-180"
+      ]
+    },
+    {
+      "url": "https://love-scent.com/super-primal-for-him-p-149.html",
+      "expectedSkus": [
+        "sku-149"
+      ]
+    }
+  ]
+}

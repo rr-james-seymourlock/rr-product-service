@@ -1,0 +1,25 @@
+{
+  "name": "Haggar",
+  "id": 10904,
+  "domain": "haggar.com",
+  "testCases": [
+    {
+      "url": "https://www.haggar.com/premium-no-iron-khaki/classic-fit-pleated-front-hidden-expandable-waistband/35856.html",
+      "expectedSkus": [
+        "35856"
+      ]
+    },
+    {
+      "url": "https://www.haggar.com/life-khaki-long-sleeve-poplin-shirt/regular-fit/72760.html",
+      "expectedSkus": [
+        "72760"
+      ]
+    },
+    {
+      "url": "https://www.haggar.com/long-sleeve-pique-shirt---multi-dot/regular-fit/69658.html",
+      "expectedSkus": [
+        "69658"
+      ]
+    }
+  ]
+}

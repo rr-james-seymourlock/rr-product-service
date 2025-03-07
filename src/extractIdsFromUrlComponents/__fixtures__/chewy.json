@@ -1,0 +1,11 @@
+{
+  "name": "Chewy",
+  "id": 16788,
+  "domain": "chewy.com",
+  "testCases": [
+    {
+      "url": "https://www.chewy.com/kong-squeakstix-dog-toy-large/dp/236380",
+      "expectedSkus": ["236380"]
+    }
+  ]
+}

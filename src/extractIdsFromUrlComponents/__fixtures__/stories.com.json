@@ -1,0 +1,19 @@
+{
+  "name": "& Other Stories",
+  "id": 18125,
+  "domain": "stories.com",
+  "testCases": [
+    {
+      "url": "https://www.stories.com/en_usd/clothing/dresses/midi-dresses/product.midi-mock-neck-mesh-dress-blue.1058826023.html",
+      "expectedSkus": [
+        "1058826023"
+      ]
+    },
+    {
+      "url": "https://www.stories.com/en_usd/clothing/blouses-shirts/shirts/product.floral-embroidery-shirt-green.1231106002.html",
+      "expectedSkus": [
+        "1231106002"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "name": "Kate Spade",
+  "id": 8980,
+  "domain": "katespade.com",
+  "testCases": [
+    {
+      "url": "https://www.katespade.com/products/knott-medium-satchel/K7652.html",
+      "expectedSkus": [
+        "K7652"
+      ]
+    },
+    {
+      "url": "https://www.katespade.com/products/spencer-continental-wallet/PWR00015.html",
+      "expectedSkus": [
+        "PWR00015"
+      ]
+    },
+    {
+      "url": "https://www.katespade.com/products/margaux-medium-satchel/K1869.html",
+      "expectedSkus": [
+        "K1869"
+      ]
+    }
+  ]
+}

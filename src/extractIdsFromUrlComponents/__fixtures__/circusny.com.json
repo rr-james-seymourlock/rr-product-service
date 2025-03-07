@@ -1,0 +1,25 @@
+{
+  "name": "Circus NY",
+  "id": 19196,
+  "domain": "circusny.com",
+  "testCases": [
+    {
+      "url": "https://www.circusny.com/product/womens-bailey-jewel-platform-heel-3029158/black-ec0233632",
+      "expectedSkus": [
+        "ec0233632"
+      ]
+    },
+    {
+      "url": "https://www.circusny.com/product/womens-fleur-kitten-heel-3030103/black-ec0202074",
+      "expectedSkus": [
+        "ec0202074"
+      ]
+    },
+    {
+      "url": "https://www.circusny.com/product/womens-susie-platform-loafer-3028096/black-gloss-ec0236923",
+      "expectedSkus": [
+        "ec0236923"
+      ]
+    }
+  ]
+}

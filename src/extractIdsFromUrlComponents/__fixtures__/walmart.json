@@ -1,0 +1,35 @@
+{
+    "name": "Walmart",
+    "id": 2946,
+    "domain": "walmart.com",
+    "testCases": [
+      {
+        "url": "https://www.walmart.com/ip/seort/5700106754",
+        "expectedSkus": ["5700106754"]
+      },
+      {
+        "url": "https://www.walmart.com/ip/2023-Xbox-Series-X-Bundle-1TB-SSD-Black-Flagship-Xbox-Console-and-Wireless-Controller-with-Assassin-s-Creed-Unity-Full-Game/571386296?classType=REGULAR&adsRedirect=true",
+        "expectedSkus":["571386296"]
+      },
+      {
+        "url": "https://www.walmart.com/ip/4-5-HELLO-KITTY-INFLATABLE/5532567782?athcpid=5532567782&athpgid=AthenaContentPage_1386088&athcgid=null&athznid=ItemCarousel_05f94315-607d-4ca1-b375-9d626cf8f9cb_items&athieid=v0&athstid=CS020&athguid=WW7u6DS9XOC_QRLqEpjXj7raOWT5JgmO8Nxd&athancid=null&athena=true&athbdg=L1600",
+        "expectedSkus": ["5532567782"]
+      },
+      {
+        "url": "https://www.walmart.com/ip/Contixo-F19-Drone-1080P-Camera-Adults-Kids-RC-Foldable-Quadcopter-Four-Way-Obstacle-Avoidance-Follow-Me-Waypoint-Fly-Altitude-Hold-Headless-Mode/439326620?athAsset=eyJhdGhjcGlkIjoiNDM5MzI2NjIwIiwiYXRoc3RpZCI6IkNTMDk4IiwiYXRocG9zYiI6IjIiLCJhdGhhbmNpZCI6Ikl0ZW1DYXJvdXNlbCIsImF0aHJrIjowLjB9&athena=true&adsRedirect=true",
+        "expectedSkus": ["439326620"]
+      },
+      {
+        "url": "https://www.walmart.com/ip/Kraft-Light-Mayo-with-1-2-the-Fat-Calories-of-Regular-Mayonnaise-30-fl-oz-Jar/703466796",
+        "expectedSkus": ["703466796"]
+      },
+      {
+        "url": "https://www.walmart.com/ip/Equate-70-Isopropyl-Alcohol-Liquid-16-fl-oz/808000689",
+        "expectedSkus": ["808000689"]
+      },
+      {
+        "url": "https://www.walmart.com/ip/Equate-777777777-Isopropyl-Alcohol-Liquid-16-fl-oz/808000689?hello=12345678",
+        "expectedSkus": ["808000689"]
+      }
+    ]
+  }

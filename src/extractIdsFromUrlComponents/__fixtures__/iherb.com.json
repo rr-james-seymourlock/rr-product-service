@@ -1,0 +1,25 @@
+{
+  "name": "iHerb",
+  "id": 8972,
+  "domain": "iherb.com",
+  "testCases": [
+    {
+      "url": "https://www.iherb.com/pr/now-foods-vitamin-d-3-5-000-iu-240-softgels/10421",
+      "expectedSkus": [
+        "10421"
+      ]
+    },
+    {
+      "url": "https://www.iherb.com/pr/california-gold-nutrition-vitamin-c-gummies-natural-orange-flavor-90-gummies/69569",
+      "expectedSkus": [
+        "69569"
+      ]
+    },
+    {
+      "url": "https://www.iherb.com/pr/life-extension-super-omega-3-epa-dha-240-softgels/84738",
+      "expectedSkus": [
+        "84738"
+      ]
+    }
+  ]
+}

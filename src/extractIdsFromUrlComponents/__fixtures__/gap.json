@@ -1,0 +1,35 @@
+{
+  "name": "Gap",
+  "id": 3864,
+  "domain": "gap.com",
+  "testCases": [
+    {
+      "url": "https://www.gap.com/browse/product.do?pid=8852670020003",
+      "expectedSkus": ["8852670020003"]
+    },
+    {
+      "url": "https://www.gap.com/browse/product.do?pid=4849850023105",
+      "expectedSkus": ["4849850023105"]
+    },
+    {
+      "url": "https://www.gap.com/browse/product.do?pid=5247760120001",
+      "expectedSkus": ["5247760120001"]
+    },
+    {
+      "url": "https://www.gap.com/browse/product.do?pid=5240130020001",
+      "expectedSkus": ["5240130020001"]
+    },
+    {
+      "url": "https://www.gap.com/browse/product.do?pid=5239970020001",
+      "expectedSkus": ["5239970020001"]
+    },
+    {
+      "url": "https://www.gap.com/browse/product.do?pid=5247760320001",
+      "expectedSkus": ["5247760320001"]
+    },
+    {
+      "url": "https://www.gap.com/browse/product.do?pid=5247760520001",
+      "expectedSkus": ["5247760520001"]
+    }
+  ]
+}

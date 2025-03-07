@@ -1,0 +1,47 @@
+{
+    "name": "Nike",
+    "id": 9528,
+    "domain": "nike.com",
+    "testCases": [
+      {
+        "url": "https://www.nike.com/t/dunk-low-retro-premium-mens-shoes-x85Qd0DS/FB8895-001",
+        "expectedSkus": ["FB8895-001"]
+      },
+      {
+        "url": "https://www.nike.com/t/dri-fit-womens-t-shirt-dM375qq5/DX0687-010",
+        "expectedSkus": ["DX0687-010"]
+      },
+      {
+        "url": "https://www.nike.com/t/dri-fit-womens-t-shirt-dM375qq5/DX0687-100",
+        "expectedSkus": ["DX0687-100"]
+      },
+      {
+        "url": "https://www.nike.com/t/dri-fit-womens-t-shirt-dM375qq5/DX0687-011?query=params",
+        "expectedSkus": ["DX0687-011"]
+      },
+      {
+        "url": "https://www.nike.com/t/dri-fit-womens-t-shirt-dM375qq5/DX0687-405",
+        "expectedSkus": ["DX0687-405"]
+      },
+      {
+        "url": "https://www.nike.com/t/dri-fit-womens-t-shirt-dM375qq5/DX0687-657",
+        "expectedSkus": ["DX0687-657"]
+      },
+      {
+        "url": "https://www.nike.com/t/sportswear-club-womens-long-sleeve-t-shirt-tSGlC0dg/HF0780-010",
+        "expectedSkus": ["HF0780-010"]
+      },
+      {
+        "url": "https://www.nike.com/t/swoosh-mens-golf-long-sleeve-t-shirt-PSlPjN/M12333GO24-34T",
+        "expectedSkus": ["M12333GO24-34T"]
+      },
+      {
+        "url": "https://www.nike.com/t/swoosh-mens-golf-long-sleeve-t-shirt-PSlPjN/M12333GO24-06G?query=params",
+        "expectedSkus": ["M12333GO24-06G"]
+      },
+      {
+        "url": "https://www.nike.com/t/swoosh-mens-golf-t-shirt-fNQ62x/M11332GO24-34T$=2",
+        "expectedSkus": ["M11332GO24-34T"]
+      }
+    ]
+  }

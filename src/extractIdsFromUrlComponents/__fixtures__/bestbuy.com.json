@@ -1,0 +1,25 @@
+{
+  "name": "Best Buy",
+  "id": 2428,
+  "domain": "bestbuy.com",
+  "testCases": [
+    {
+      "url": "https://www.bestbuy.com/site/samsung-65-class-s95c-oled-4k-uhd-smart-tizen-tv/6537363.p",
+      "expectedSkus": [
+        "6537363"
+      ]
+    },
+    {
+      "url": "https://www.bestbuy.com/site/apple-airpods-pro-2nd-generation-with-magsafe-case-usb-c-white/6525425.p",
+      "expectedSkus": [
+        "6525425"
+      ]
+    },
+    {
+      "url": "https://www.bestbuy.com/site/sony-playstation-5-console/6523167.p",
+      "expectedSkus": [
+        "6523167"
+      ]
+    }
+  ]
+}

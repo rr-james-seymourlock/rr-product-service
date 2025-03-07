@@ -1,0 +1,25 @@
+{
+  "name": "Overstock",
+  "id": 2447,
+  "domain": "overstock.com",
+  "testCases": [
+    {
+      "url": "https://www.overstock.com/Home-Garden/Safavieh-Madison-Belle-Vintage-Boho-Oriental-Rug/29741254/product.html",
+      "expectedSkus": [
+        "29741254"
+      ]
+    },
+    {
+      "url": "https://www.overstock.com/Home-Garden/Carson-Carrington-Solid-Wood-Spindle-Bed/31567890/product.html",
+      "expectedSkus": [
+        "31567890"
+      ]
+    },
+    {
+      "url": "https://www.overstock.com/Home-Garden/Simple-Living-Farmhouse-Dining-Set/30627543/product.html",
+      "expectedSkus": [
+        "30627543"
+      ]
+    }
+  ]
+}

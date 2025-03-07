@@ -1,0 +1,23 @@
+{
+  "name": "Old Navy",
+  "id": 3726,
+  "domain": "oldnavy.gap.com",
+  "testCases": [
+    {
+      "url": "https://oldnavy.gap.com/browse/product.do?pid=5646820220004",
+      "expectedSkus": ["5646820220004"]
+    },
+    {
+      "url": "https://oldnavy.gap.com/browse/product.do?pid=5120120120003",
+      "expectedSkus": ["5120120120003"]
+    },
+    {
+      "url": "https://oldnavy.gap.com/browse/product.do?pid=5120120320003",
+      "expectedSkus": ["5120120320003"]
+    },
+    {
+      "url": "https://oldnavy.gap.com/browse/product.do?pid=5120120020003",
+      "expectedSkus": ["5120120020003"]
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "name": "champssports",
+  "id": 9609,
+  "domain": "champssports.com",
+  "testCases": [
+    {
+      "url": "https://www.champssports.com/product/adidas-originals-nmd-r1-womens/GV9439.html",
+      "expectedSkus": [
+        "GV9439"
+      ]
+    },
+    {
+      "url": "https://www.champssports.com/product/nike-air-max-90-boys-grade-school/D6864127.html",
+      "expectedSkus": [
+        "D6864127"
+      ]
+    }
+  ]
+}

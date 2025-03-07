@@ -1,0 +1,103 @@
+{
+  "name": "Target",
+  "id": 5246,
+  "domain": "target.com",
+  "testCases": [
+    {
+      "url": "https://www.target.com/p/9-5--34--small-artificial-nest-fern-plant-in-ceramic-pot---hilton-carter-for-target--no-aasa/-/A-86947790",
+      "expectedSkus": ["86947790"]
+    },
+    {
+      "url": "https://www.target.com/p/beats-studio-buds-true-wireless-noise-cancelling-bluetooth-earbuds---white--no-aasa/-/A-83388339/",
+      "expectedSkus": ["83388339"]
+    },
+    {
+      "url": "https://www.target.com/p/apple-lightning-to-usb-cable--1m---no-aasa/-/A-91119788?query=param",
+      "expectedSkus": ["91119788"]
+    },
+    {
+      "url": "https://www.target.com/p/lands--end-women-s-high-rise-metallic-coated-denim--straight-leg-jeans---10---frosted-canvas--no-aasa/-/A-1000937371",
+      "expectedSkus": ["1000937371"]
+    },
+    {
+      "url": "https://www.target.com/p/i-should-have-known-that--trivia-game--no-aasa/-/A-90370326",
+      "expectedSkus": ["90370326"]
+    },
+    {
+      "url": "https://www.target.com/p/do-you-really-know-your-family--board-game--no-aasa/-/A-88008144",
+      "expectedSkus": ["88008144"]
+    },
+    {
+      "url": "https://www.target.com/p/pressman-rummikub-bonus-edition-game--no-aasa/-/A-10266319",
+      "expectedSkus": ["10266319"]
+    },
+    {
+      "url": "https://www.target.com/p/kids--grinch-christmas-2pc-snug-fit-pajama-set---white-6--no-aasa/-/A-91219346",
+      "expectedSkus": ["91219346"]
+    },
+    {
+      "url": "https://www.target.com/p/s-mores-spread-with-graham-cracker-crumbles---13oz---favorite-day---no-aasa/-/A-87860621",
+      "expectedSkus": ["87860621"]
+    },
+    {
+      "url": "https://www.target.com/p/multipet-6--christmas-lamb-chop-with-santa-hat-dog-toy--no-aasa/-/A-88647035",
+      "expectedSkus": ["88647035"]
+    },
+    {
+      "url": "https://www.target.com/p/sour-punch-santa-straws---3-2oz--no-aasa/-/A-88897777",
+      "expectedSkus": ["88897777"]
+    },
+    {
+      "url": "https://www.target.com/p/chapstick-sugar-cookie--cotton-candy--hot-chocolate-and-cake-batter-kids--lip-balm---4ct--no-aasa/-/A-88669362",
+      "expectedSkus": ["88669362"]
+    },
+    {
+      "url": "https://www.target.com/p/airheads-xtremes-christmas-belts---2oz--no-aasa/-/A-88905082",
+      "expectedSkus": ["88905082"]
+    },
+    {
+      "url": "https://www.target.com/p/mission-street-taco-flour-tortillas---11oz-12ct--no-aasa/-/A-51633181",
+      "expectedSkus": ["51633181"]
+    },
+    {
+      "url": "https://www.target.com/p/mission-burrito-size-flour-tortillas---20oz-8ct--no-aasa/-/A-13101055",
+      "expectedSkus": ["13101055"]
+    },
+    {
+      "url": "https://www.target.com/p/sunchips-original-whole-grain-chips---7oz--no-aasa/-/A-14618736",
+      "expectedSkus": ["14618736"]
+    },
+    {
+      "url": "https://www.target.com/p/doritos-cool-ranch-tortilla-chips---9-25oz--no-aasa/-/A-12992579",
+      "expectedSkus": ["12992579"]
+    },
+    {
+      "url": "https://www.target.com/p/lay-s-oven-baked-original-potato-crisps---6-25oz--no-aasa/-/A-14898251",
+      "expectedSkus": ["14898251"]
+    },
+    {
+      "url": "https://www.target.com/p/harvest-snaps-green-pea-snack-crisps-lightly-salted---3-3oz--no-aasa/-/A-26390107",
+      "expectedSkus": ["26390107"]
+    },
+    {
+      "url": "https://www.target.com/p/alani-cosmic-stardust-energy-drink---6pk-12-fl-oz-cans--no-aasa/-/A-83994976",
+      "expectedSkus": ["83994976"]
+    },
+    {
+      "url": "https://www.target.com/p/starbucks-peppermint-mocha-coffee-creamer---28-fl-oz--no-aasa/-/A-91895890",
+      "expectedSkus": ["91895890"]
+    },
+    {
+      "url": "https://www.target.com/p/starbucks-discoveries-vanilla-sweet-cream-cold-brew-coffee---40-fl-oz--no-aasa/-/A-81521265",
+      "expectedSkus": ["81521265"]
+    },
+    {
+      "url": "https://www.target.com/p/tostitos-salsa-con-queso--23oz--no-aasa/-/A-13319565",
+      "expectedSkus": ["13319565"]
+    },
+    {
+      "url": "https://www.target.com/p/triscuit-reduced-fat-crackers---family-size---11-5oz--no-aasa/-/A-12959480",
+      "expectedSkus": ["12959480"]
+    }
+  ]
+}

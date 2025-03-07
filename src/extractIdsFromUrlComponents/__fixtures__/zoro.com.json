@@ -1,0 +1,25 @@
+{
+  "name": "Zoro",
+  "id": 12539,
+  "domain": "zoro.com",
+  "testCases": [
+    {
+      "url": "https://www.zoro.com/i/G3453135/",
+      "expectedSkus": [
+        "G3453135"
+      ]
+    },
+    {
+      "url": "https://www.zoro.com/i/G105386983/",
+      "expectedSkus": [
+        "G105386983"
+      ]
+    },
+    {
+      "url": "https://www.zoro.com/i/G505387009/",
+      "expectedSkus": [
+        "G505387009"
+      ]
+    }
+  ]
+}
