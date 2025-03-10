@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 import normalizeUrl from 'normalize-url';
-import { config } from './config.js';
+import { config } from './config';
 
 export interface URLComponents extends Pick<URL, 'href' | 'hostname' | 'pathname' | 'search'> {
   domain: string;

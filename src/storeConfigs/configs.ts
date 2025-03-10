@@ -1,5 +1,5 @@
 import { buildRegExp, capture, repeat, digit, word, wordBoundary, choiceOf, endOfString } from 'ts-regex-builder';
-import type { StoreConfigInterface } from './storeConfigManager.js';
+import type { StoreConfigInterface } from './storeConfigManager';
 
 export const storeConfigs: StoreConfigInterface[] = [
   {

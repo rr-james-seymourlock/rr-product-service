@@ -8,7 +8,7 @@ provider:
 
 functions:
   postProduct:
-    handler: src/handler.postProduct
+    handler: src/handlers/products/postProduct.handler
     events:
       - http:
           path: product
@@ -26,4 +26,8 @@ custom:
     target: esnext
     format: esm # Output as ESM
     platform: node
+    mainFields: ['module', 'main']
+    conditions: ['module', 'import', 'require']
+    alias:
+      '@': './src'
     concurrency: 10

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { parseDomain } from '../parseUrlComponents.js';
+import { parseDomain } from '../parseUrlComponents';
 
 describe('parseDomain', () => {
   let consoleErrorSpy: any;

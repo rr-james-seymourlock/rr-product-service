@@ -1,1 +1,1 @@
-export { parseUrlComponents } from './parseUrlComponents.js'
+export { parseUrlComponents, type URLComponents } from './parseUrlComponents'

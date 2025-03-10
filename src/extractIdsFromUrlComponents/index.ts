@@ -1,1 +1,1 @@
-export { extractIdsFromUrlComponents } from './extractIdsFromUrlComponents.js';
+export { extractIdsFromUrlComponents } from './extractIdsFromUrlComponents';

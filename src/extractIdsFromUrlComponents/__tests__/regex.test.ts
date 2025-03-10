@@ -1,7 +1,7 @@
-const safeRegex = require('safe-regex')
+import safeRegex from 'safe-regex';
 import { describe, it, expect } from 'vitest'
-import { config } from "../config.js";
-import { COMPILED_PATTERNS } from '../../storeConfigs/storeConfigManager.js'
+import { config } from "../config";
+import { COMPILED_PATTERNS } from '@/storeConfigs'
 
 // Collect all patterns from searchPatterns, pathnamePatterns, and store configs
 const regexPatterns = [

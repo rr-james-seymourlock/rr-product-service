@@ -1,6 +1,6 @@
-import { getStoreConfig } from "../storeConfigs/storeConfigManager.js";
-import type { URLComponents } from "../parseUrlComponents/parseUrlComponents.js";
-import { config } from "./config.js";
+import { getStoreConfig } from "@/storeConfigs";
+import type { URLComponents } from "@/parseUrlComponents";
+import { config } from "./config";
 
 interface PatternExtractorInput {
   source: string;

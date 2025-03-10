@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest'
-import { assertProductIdsMatch, END_OF_STRING_CHARS } from './testUtils.js';
-import { parseUrlComponents } from '../../parseUrlComponents/parseUrlComponents.js';
-import { extractIdsFromUrlComponents } from '../extractIdsFromUrlComponents.js';
-import { config } from '../config.js';
+import { assertProductIdsMatch, END_OF_STRING_CHARS } from './testUtils';
+import { parseUrlComponents } from '@/parseUrlComponents';
+import { extractIdsFromUrlComponents } from '@/extractIdsFromUrlComponents';
+import { config } from '../config';
 
 describe('Path extraction patterns', () => {
   it('should extract p type ids in paths', () => {

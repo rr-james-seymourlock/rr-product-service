@@ -3,7 +3,7 @@
  * domain mapping, and URL pattern matching for multi-store environments.
  */
 
-import { storeConfigs } from './configs.js';
+import { storeConfigs } from './configs';
 
 export interface StoreConfigInterface {
   readonly id: string;

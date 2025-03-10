@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
-import { extractIdsFromUrlComponents, patternExtractor } from '../extractIdsFromUrlComponents.js'
+import { extractIdsFromUrlComponents } from '@/extractIdsFromUrlComponents'
 
-vi.mock('../../storeConfigs/storeConfigManager.js')
+vi.mock('@/storeConfigs/storeConfigManager')
 
 describe('extractIdsFromUrlComponents', () => {
   it('should return empty array for missing pathname input', () => {
