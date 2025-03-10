@@ -6,6 +6,7 @@ export interface URLComponents extends Pick<URL, 'href' | 'hostname' | 'pathname
   domain: string;
   key?: string;
   original?: string;
+  encodedHref?: string;
 }
 
 export const parseDomain = (hostname: string): string => {
@@ -55,15 +56,16 @@ export const parseUrlComponents = (url: string): URLComponents => {
     // Create a unique key per URL for use in Redis and for dynmoDB keys
     const baseKey = `${domain}${pathname}${search}`;
     const key = createUrlKey(baseKey);
-
+    const encodedHref = encodeURIComponent(href);
     return {
       href,
+      encodedHref,
       hostname,
       pathname,
       search,
       domain,
       key,
-      original: url
+      original: url,
     };
   } catch (error) {
     throw new Error(`Failed to parse URL components for "${url}": ${error instanceof Error ? error.message : 'Unknown error'}`);
