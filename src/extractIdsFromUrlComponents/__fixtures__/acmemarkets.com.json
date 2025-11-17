@@ -5,9 +5,7 @@
   "testCases": [
     {
       "url": "https://www.acmemarkets.com/shop/product-details.108010020.html",
-      "expectedSkus": [
-        "108010020"
-      ]
+      "expectedSkus": ["108010020"]
     }
   ]
 }

@@ -1,23 +1,23 @@
 {
-    "name": "Zappos",
-    "id": 2524,
-    "domain": "zappos.com",
-    "testCases": [
-      {
-        "url": "https://www.zappos.com/p/asin/B01DXRSGFM",
-        "expectedSkus": ["B01DXRSGFM"]
-      },
-      {
-        "url": "https://www.zappos.com/p/asin/B08PMRCSJP",
-        "expectedSkus": ["B08PMRCSJP"]
-      },
-      {
-        "url": "https://www.zappos.com/p/asin/B0CNWPJ99T",
-        "expectedSkus": ["B0CNWPJ99T"]
-      },
-      {
-        "url": "https://www.zappos.com/p/asin/B0D8W656GY",
-        "expectedSkus": ["B0D8W656GY"]
-      }
-    ]
-  }
+  "name": "Zappos",
+  "id": 2524,
+  "domain": "zappos.com",
+  "testCases": [
+    {
+      "url": "https://www.zappos.com/p/asin/B01DXRSGFM",
+      "expectedSkus": ["B01DXRSGFM"]
+    },
+    {
+      "url": "https://www.zappos.com/p/asin/B08PMRCSJP",
+      "expectedSkus": ["B08PMRCSJP"]
+    },
+    {
+      "url": "https://www.zappos.com/p/asin/B0CNWPJ99T",
+      "expectedSkus": ["B0CNWPJ99T"]
+    },
+    {
+      "url": "https://www.zappos.com/p/asin/B0D8W656GY",
+      "expectedSkus": ["B0D8W656GY"]
+    }
+  ]
+}

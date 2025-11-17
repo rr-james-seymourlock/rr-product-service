@@ -46,19 +46,11 @@ const NORMALIZATION_RULES: Options = {
     'affid',
     'aff_id',
     'affiliate',
-    'cjevent'
+    'cjevent',
+  ],
+};
 
-  ]
-}
-
-const MULTI_PART_TLDS = new Set([
-  'co.uk',
-  'co.jp',
-  'com.br',
-  'com.au',
-  'co.nz',
-  'org.uk'
-]);
+const MULTI_PART_TLDS = new Set(['co.uk', 'co.jp', 'com.br', 'com.au', 'co.nz', 'org.uk']);
 
 const PRESERVED_SUBDOMAINS = new Set([
   'oldnavy',
@@ -66,7 +58,7 @@ const PRESERVED_SUBDOMAINS = new Set([
   'athleta',
   'bananarepublicfactory',
   'gapfactory',
-  'gap'
+  'gap',
 ]);
 
 const PATHNAME_EXTENSIONS = /\.(html?|php|asp|jsp|xml)$/;
@@ -75,5 +67,5 @@ export const config = {
   NORMALIZATION_RULES,
   MULTI_PART_TLDS,
   PRESERVED_SUBDOMAINS,
-  PATHNAME_EXTENSIONS
-}
+  PATHNAME_EXTENSIONS,
+};

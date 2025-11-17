@@ -5,9 +5,7 @@
   "testCases": [
     {
       "url": "https://www.dancewearsolutions.com/14278.aspx",
-      "expectedSkus": [
-        "14278"
-      ]
+      "expectedSkus": ["14278"]
     }
   ]
 }

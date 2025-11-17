@@ -3,9 +3,9 @@ import pluginJs from '@eslint/js';
 import tseslint from 'typescript-eslint';
 import regexpPlugin from 'eslint-plugin-regexp';
 import unicornPlugin from 'eslint-plugin-unicorn';
+import type { Linter } from 'eslint';
 
-/** @type {import('eslint').Linter.Config[]} */
-export default [
+const config: Linter.Config[] = [
   // Ignore patterns
   {
     ignores: [
@@ -21,6 +21,9 @@ export default [
       '.env.local',
       'src/**/*.test.{js,mjs,cjs,ts}',
       'src/**/example.{js,ts}',
+      // Config files (linted by their respective tools)
+      '*.config.{ts,mts,cts}',
+      'eslint.config.mts',
     ],
   },
 
@@ -52,10 +55,8 @@ export default [
       },
       parser: tseslint.parser,
       parserOptions: {
-        project: './tsconfig.json',
+        projectService: true,
         tsconfigRootDir: import.meta.dirname,
-        ecmaVersion: 'latest',
-        sourceType: 'module',
       },
     },
     plugins: {
@@ -96,3 +97,5 @@ export default [
     },
   },
 ];
+
+export default config;

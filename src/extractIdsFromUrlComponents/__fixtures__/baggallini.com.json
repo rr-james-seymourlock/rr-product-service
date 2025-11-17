@@ -5,9 +5,7 @@
   "testCases": [
     {
       "url": "https://www.baggallini.com/calais-crossbody-bag/CAL532-BGR-B1091-NS.html",
-      "expectedSkus": [
-        "CAL532-BGR-B1091-NS"
-      ]
+      "expectedSkus": ["CAL532-BGR-B1091-NS"]
     }
   ]
 }

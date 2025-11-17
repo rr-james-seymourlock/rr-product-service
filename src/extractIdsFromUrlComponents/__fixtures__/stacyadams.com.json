@@ -5,15 +5,11 @@
   "testCases": [
     {
       "url": "https://www.stacyadams.com/shop/style/21416-240.html",
-      "expectedSkus": [
-        "21416-240"
-      ]
+      "expectedSkus": ["21416-240"]
     },
     {
       "url": "https://www.stacyadams.com/shop/style/SA1003-471.html",
-      "expectedSkus": [
-        "SA1003-471"
-      ]
+      "expectedSkus": ["SA1003-471"]
     }
   ]
 }

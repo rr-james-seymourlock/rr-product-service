@@ -1,6 +1,25 @@
 {
   "recommendations": [
+    // Core tooling
     "dbaeumer.vscode-eslint",
-    "esbenp.prettier-vscode"
+    "esbenp.prettier-vscode",
+    "EditorConfig.EditorConfig",
+
+    // TypeScript enhancements
+    "yoavbls.pretty-ts-errors",
+    "usernamehw.errorlens",
+
+    // Testing
+    "vitest.explorer",
+
+    // Code quality
+    "streetsidesoftware.code-spell-checker",
+
+    // Git
+    "eamodio.gitlens"
+  ],
+  "unwantedRecommendations": [
+    // Prefer Vitest over Jest
+    "Orta.vscode-jest"
   ]
 }

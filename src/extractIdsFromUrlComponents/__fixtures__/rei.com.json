@@ -5,21 +5,15 @@
   "testCases": [
     {
       "url": "https://www.rei.com/product/168484/patagonia-better-sweater-fleece-jacket-mens",
-      "expectedSkus": [
-        "168484"
-      ]
+      "expectedSkus": ["168484"]
     },
     {
       "url": "https://www.rei.com/product/185579/nemo-aurora-2-tent-with-footprint",
-      "expectedSkus": [
-        "185579"
-      ]
+      "expectedSkus": ["185579"]
     },
     {
       "url": "https://www.rei.com/product/136767/osprey-farpoint-40-travel-pack-mens",
-      "expectedSkus": [
-        "136767"
-      ]
+      "expectedSkus": ["136767"]
     }
   ]
 }

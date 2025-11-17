@@ -5,15 +5,11 @@
   "testCases": [
     {
       "url": "https://love-scent.com/chikara-alpha-unscented-p-180.html",
-      "expectedSkus": [
-        "sku-180"
-      ]
+      "expectedSkus": ["sku-180"]
     },
     {
       "url": "https://love-scent.com/super-primal-for-him-p-149.html",
-      "expectedSkus": [
-        "sku-149"
-      ]
+      "expectedSkus": ["sku-149"]
     }
   ]
 }

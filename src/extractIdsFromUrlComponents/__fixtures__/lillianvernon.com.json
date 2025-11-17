@@ -5,15 +5,11 @@
   "testCases": [
     {
       "url": "https://www.lillianvernon.com/goods/personalized-plush-zoo-animals-play-set-z010127.html",
-      "expectedSkus": [
-        "z010127"
-      ]
+      "expectedSkus": ["z010127"]
     },
     {
       "url": "https://www.lillianvernon.com/goods/personalized-plush-zoo-animals-play-set-z010127.html",
-      "expectedSkus": [
-        "z010127"
-      ]
+      "expectedSkus": ["z010127"]
     }
   ]
 }

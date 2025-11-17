@@ -1,35 +1,35 @@
 {
-    "name": "Banana Republic Factory",
-    "id": 15061,
-    "domain": "bananarepublic.gapfactory.com",
-    "testCases": [
-      {
-        "url": "https://bananarepublicfactory.gapfactory.com/browse/product.do?pid=5090700210005",
-        "expectedSkus": ["5090700210005"]
-      },
-      {
-        "url": "https://bananarepublicfactory.gapfactory.com/browse/product.do?pid=5910650210005",
-        "expectedSkus": ["5910650210005"]
-      },
-      {
-        "url": "https://bananarepublicfactory.gapfactory.com/browse/product.do?pid=5911000110005",
-        "expectedSkus": ["5911000110005"]
-      },
-      {
-        "url": "https://bananarepublicfactory.gapfactory.com/browse/product.do?pid=6651920010005",
-        "expectedSkus": ["6651920010005"]
-      },
-      {
-        "url": "https://bananarepublicfactory.gapfactory.com/browse/product.do?pid=4801830510005",
-        "expectedSkus": ["4801830510005"]
-      },
-      {
-        "url": "https://bananarepublicfactory.gapfactory.com/browse/product.do?pid=4802630310005",
-        "expectedSkus": ["4802630310005"]
-      },
-      {
-        "url": "https://bananarepublicfactory.gapfactory.com/browse/product.do?pid=4802630410005",
-        "expectedSkus": ["4802630410005"]
-      }
-    ]
-  }
+  "name": "Banana Republic Factory",
+  "id": 15061,
+  "domain": "bananarepublic.gapfactory.com",
+  "testCases": [
+    {
+      "url": "https://bananarepublicfactory.gapfactory.com/browse/product.do?pid=5090700210005",
+      "expectedSkus": ["5090700210005"]
+    },
+    {
+      "url": "https://bananarepublicfactory.gapfactory.com/browse/product.do?pid=5910650210005",
+      "expectedSkus": ["5910650210005"]
+    },
+    {
+      "url": "https://bananarepublicfactory.gapfactory.com/browse/product.do?pid=5911000110005",
+      "expectedSkus": ["5911000110005"]
+    },
+    {
+      "url": "https://bananarepublicfactory.gapfactory.com/browse/product.do?pid=6651920010005",
+      "expectedSkus": ["6651920010005"]
+    },
+    {
+      "url": "https://bananarepublicfactory.gapfactory.com/browse/product.do?pid=4801830510005",
+      "expectedSkus": ["4801830510005"]
+    },
+    {
+      "url": "https://bananarepublicfactory.gapfactory.com/browse/product.do?pid=4802630310005",
+      "expectedSkus": ["4802630310005"]
+    },
+    {
+      "url": "https://bananarepublicfactory.gapfactory.com/browse/product.do?pid=4802630410005",
+      "expectedSkus": ["4802630410005"]
+    }
+  ]
+}

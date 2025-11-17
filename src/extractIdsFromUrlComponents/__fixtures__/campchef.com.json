@@ -5,9 +5,7 @@
   "testCases": [
     {
       "url": "https://www.campchef.com/accessories-finder-pellet-grills/af-wwpro-24-storage/woodwind-pro-24-cover/CC-PC24WWSB.html",
-      "expectedSkus": [
-        "CC-PC24WWSB"
-      ]
+      "expectedSkus": ["CC-PC24WWSB"]
     }
   ]
 }

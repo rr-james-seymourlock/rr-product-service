@@ -5,21 +5,15 @@
   "testCases": [
     {
       "url": "https://www.charlestyrwhitt.com/us/button-down-collar-non-iron-twill-overcheck-shirt---green/CSN0442GRN.html",
-      "expectedSkus": [
-        "CSN0442GRN"
-      ]
+      "expectedSkus": ["CSN0442GRN"]
     },
     {
       "url": "https://www.charlestyrwhitt.com/us/spread-collar-non-iron-twill-shirt---ivory/FON2405VRY.html",
-      "expectedSkus": [
-        "FON2405VRY"
-      ]
+      "expectedSkus": ["FON2405VRY"]
     },
     {
       "url": "https://www.charlestyrwhitt.com/us/non-iron-twill-shirt---ivory-white/FON0409NWH.html",
-      "expectedSkus": [
-        "FON0409NWH"
-      ]
+      "expectedSkus": ["FON0409NWH"]
     }
   ]
 }

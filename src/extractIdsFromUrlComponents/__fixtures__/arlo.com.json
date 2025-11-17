@@ -5,9 +5,7 @@
   "testCases": [
     {
       "url": "https://www.arlo.com/en-us/accessories/AYS1000-10000S.html",
-      "expectedSkus": [
-        "AYS1000-10000S"
-      ]
+      "expectedSkus": ["AYS1000-10000S"]
     }
   ]
 }

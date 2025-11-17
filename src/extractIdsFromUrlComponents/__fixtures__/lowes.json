@@ -5,33 +5,23 @@
   "testCases": [
     {
       "url": "https://www.lowes.com/pd/Werner-NXT-6-ft-Fiberglass-Type-1A-300-lbs-Capacity-Step-Ladder/3048035",
-      "expectedSkus": [
-        "3048035"
-      ]
+      "expectedSkus": ["3048035"]
     },
     {
       "url": "https://www.lowes.com/pd/Whirlpool-7-cu-ft-Electric-Dryer-White-While-Supplies-Last/50354426",
-      "expectedSkus": [
-        "50354426"
-      ]
+      "expectedSkus": ["50354426"]
     },
     {
       "url": "https://www.lowes.com/pd/Whirlpool-Moisture-Sensing-7-cu-ft-Vented-Electric-Dryer-(White)/5013401629",
-      "expectedSkus": [
-        "5013401629"
-      ]
+      "expectedSkus": ["5013401629"]
     },
     {
       "url": "https://www.lowes.com/pd/GE-Profile-Series-27.9-cu-ft-Smart-French-Door-Refrigerator/5013401630",
-      "expectedSkus": [
-        "5013401630"
-      ]
+      "expectedSkus": ["5013401630"]
     },
     {
       "url": "https://www.lowes.com/pd/Samsung-Bespoke-4-Door-French-Door-Counter-Depth-Refrigerator/5013401631",
-      "expectedSkus": [
-        "5013401631"
-      ]
+      "expectedSkus": ["5013401631"]
     }
   ]
 }

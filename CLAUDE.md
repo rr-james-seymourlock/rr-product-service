@@ -47,6 +47,63 @@ npm run deploy            # Deploy to AWS (default stage)
 npm run deploy -- --stage prod  # Deploy to production
 ```
 
+## Developer Experience
+
+### Recommended VSCode Extensions
+
+This project includes VSCode workspace settings optimized for TypeScript development. Install recommended extensions:
+
+**Core Tooling:**
+
+- ESLint (`dbaeumer.vscode-eslint`) - Linting with auto-fix on save
+- Prettier (`esbenp.prettier-vscode`) - Code formatting
+- EditorConfig (`EditorConfig.EditorConfig`) - Consistent editor settings
+
+**TypeScript Enhancements:**
+
+- Pretty TypeScript Errors (`yoavbls.pretty-ts-errors`) - Readable error messages
+- Error Lens (`usernamehw.errorlens`) - Inline error/warning display
+
+**Testing:**
+
+- Vitest Explorer (`vitest.explorer`) - Test runner UI with inline results
+
+**Code Quality:**
+
+- Code Spell Checker (`streetsidesoftware.code-spell-checker`) - Spell checking
+
+**Git:**
+
+- GitLens (`eamodio.gitlens`) - Enhanced Git integration
+
+### IDE Features
+
+The workspace is configured for optimal DX:
+
+- **Format on save**: Prettier auto-formats all files
+- **ESLint auto-fix**: Lint errors fixed on save
+- **Import path**: Non-relative imports using `@/` alias
+- **TypeScript**: Workspace version with modern import updates
+- **Vitest integration**: Run tests directly from editor
+- **.editorconfig**: Cross-editor consistency (indent, line endings, etc.)
+
+## Configuration Files
+
+All configuration files use **modern formats** with type safety:
+
+- **`prettier.config.mjs`**: Code formatting rules (Prettier)
+  - Uses `.mjs` (ESM) with JSDoc type annotations
+- **`eslint.config.mts`**: Linting rules (ESLint v9 flat config)
+  - Uses `.mts` extension for TypeScript ESM support
+  - Configured with `projectService: true` for modern TypeScript integration
+- **`commitlint.config.ts`**: Commit message linting (Conventional Commits)
+- **`lint-staged.config.mjs`**: Pre-commit hook configuration
+  - Uses `.mjs` (ESM) with JSDoc type annotations
+- **`vitest.config.ts`**: Test framework configuration
+- **`tsconfig.json`**: TypeScript compiler options
+
+All config files use typed exports (TypeScript or JSDoc) for IDE autocomplete and compile-time validation.
+
 ## Architecture
 
 ### Core Processing Pipeline

@@ -1,6 +1,6 @@
-import { getStoreConfig } from "@/storeConfigs";
-import type { URLComponents } from "@/parseUrlComponents";
-import { config } from "./config";
+import { getStoreConfig } from '@/storeConfigs';
+import type { URLComponents } from '@/parseUrlComponents';
+import { config } from './config';
 
 interface PatternExtractorInput {
   source: string;
@@ -26,12 +26,18 @@ export const patternExtractor = ({ source, pattern }: PatternExtractorInput): Se
   try {
     while ((match = pattern.exec(source)) !== null) {
       if (Date.now() - startTime >= config.TIMEOUT_MS) {
-        console.warn(`Pattern extraction timed out after ${Date.now() - startTime}ms for source: ${source}`);
+        console.warn(
+          `Pattern extraction timed out after ${Date.now() - startTime}ms for source: ${source}`,
+        );
         break;
       }
 
-      if (match[1]) {matches.add(match[1]);}
-      if (match[2]) {matches.add(match[2]);}
+      if (match[1]) {
+        matches.add(match[1]);
+      }
+      if (match[2]) {
+        matches.add(match[2]);
+      }
 
       if (matches.size >= config.MAX_RESULTS) {
         if (process.env.NODE_ENV === 'development') {
@@ -41,19 +47,25 @@ export const patternExtractor = ({ source, pattern }: PatternExtractorInput): Se
       }
     }
   } catch (error) {
-    console.error(`Error extracting patterns from source "${source}": ${error instanceof Error ? error.message : 'Unknown error'}`);
+    console.error(
+      `Error extracting patterns from source "${source}": ${error instanceof Error ? error.message : 'Unknown error'}`,
+    );
   }
 
   return matches;
-}
+};
 
- 
-export const extractIdsFromUrlComponents = ({ urlComponents, storeId }: { urlComponents: URLComponents, storeId?: string }): ReadonlyArray<string> => {
+export const extractIdsFromUrlComponents = ({
+  urlComponents,
+  storeId,
+}: {
+  urlComponents: URLComponents;
+  storeId?: string;
+}): ReadonlyArray<string> => {
   const { domain, pathname, search, href } = urlComponents;
   const results = new Set<string>();
 
   try {
-
     const domainConfig = getStoreConfig({ domain: domain, id: storeId });
 
     // Check domain-specific path patterns first
@@ -88,13 +100,18 @@ export const extractIdsFromUrlComponents = ({ urlComponents, storeId }: { urlCom
 
     // Only run query patterns if URL contains query parameters
     if (search) {
-      for (const id of patternExtractor({ source: search, pattern: config.PATTERNS.searchPattern })) {
+      for (const id of patternExtractor({
+        source: search,
+        pattern: config.PATTERNS.searchPattern,
+      })) {
         results.add(id);
       }
     }
   } catch (error) {
-    console.error(`Error processing URL ${href}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    console.error(
+      `Error processing URL ${href}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+    );
   }
 
   return Object.freeze([...results].sort());
-}
+};

@@ -10,7 +10,9 @@ import { postProductSchema } from './postProduct.schema';
 
 export type PostProductRequest = z.infer<typeof postProductSchema>;
 
-const createProductHandler = async (event: APIGatewayProxyEvent & { body: PostProductRequest }): Promise<APIGatewayProxyResult> => {
+const createProductHandler = async (
+  event: APIGatewayProxyEvent & { body: PostProductRequest },
+): Promise<APIGatewayProxyResult> => {
   const { store, product } = event.body;
   const urlComponents = parseUrlComponents(product.url);
   const ids = extractIdsFromUrlComponents({ urlComponents, storeId: store.id });
@@ -23,7 +25,7 @@ const createProductHandler = async (event: APIGatewayProxyEvent & { body: PostPr
       product: product,
       urlComponents: urlComponents,
       ids: ids,
-    })
+    }),
   };
 };
 

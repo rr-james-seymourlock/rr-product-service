@@ -5,21 +5,15 @@
   "testCases": [
     {
       "url": "https://www.indigo.ca/en-ca/books/product/9780385683654",
-      "expectedSkus": [
-        "9780385683654"
-      ]
+      "expectedSkus": ["9780385683654"]
     },
     {
       "url": "https://www.indigo.ca/en-ca/books/product/9781501110368",
-      "expectedSkus": [
-        "9781501110368"
-      ]
+      "expectedSkus": ["9781501110368"]
     },
     {
       "url": "https://www.indigo.ca/en-ca/books/product/9780735211292",
-      "expectedSkus": [
-        "9780735211292"
-      ]
+      "expectedSkus": ["9780735211292"]
     }
   ]
 }

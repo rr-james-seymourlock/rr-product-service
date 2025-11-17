@@ -5,9 +5,7 @@
   "testCases": [
     {
       "url": "https://www.boohooman.com/relaxed-mid-length-knitted-brushed-stripe-short-in-sage/BMM77939-209-30.html",
-      "expectedSkus": [
-        "BMM77939-209-30"
-      ]
+      "expectedSkus": ["BMM77939-209-30"]
     }
   ]
 }

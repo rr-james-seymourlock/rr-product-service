@@ -5,17 +5,11 @@
   "testCases": [
     {
       "url": "https://www.rockyboots.com/rocky-1000-gram-insulated-hunting-boots-with-3m-thinsulate/RKS0309__M__120.html",
-      "expectedSkus": [
-        "RKS0309",
-        "RKS0309__M__120"
-      ]
+      "expectedSkus": ["RKS0309", "RKS0309__M__120"]
     },
     {
       "url": "https://www.rockyboots.com/rocky-prohunter/rocky-prohunter-youth-waterproof-camo-coverall/HW00138__RAXLR_.html",
-      "expectedSkus": [
-        "HW00138",
-        "HW00138__RAXLR_"
-      ]
+      "expectedSkus": ["HW00138", "HW00138__RAXLR_"]
     }
   ]
 }

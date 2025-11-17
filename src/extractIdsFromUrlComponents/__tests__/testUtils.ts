@@ -1,7 +1,7 @@
-import fs from 'node:fs'
-import path from 'node:path'
-import { expect } from 'vitest'
-import { extractIdsFromUrlComponents } from '@/extractIdsFromUrlComponents'
+import fs from 'node:fs';
+import path from 'node:path';
+import { expect } from 'vitest';
+import { extractIdsFromUrlComponents } from '@/extractIdsFromUrlComponents';
 import { parseUrlComponents } from '@/parseUrlComponents/parseUrlComponents';
 
 export const END_OF_STRING_CHARS = [
@@ -26,32 +26,33 @@ export const END_OF_STRING_CHARS = [
   ';jsessionid=x',
   '?lang=en',
   '/reviews',
-  '/details'
+  '/details',
 ];
 
-export const assertProductIdsMatch = ({ url, expectedSkus }: {
+export const assertProductIdsMatch = ({
+  url,
+  expectedSkus,
+}: {
   url: string;
   expectedSkus: string[];
 }): void => {
   if (!url) {
-    throw new Error('Invalid input: URL is required')
+    throw new Error('Invalid input: URL is required');
   }
 
   // Extract domain from URL
-  const urlComponents = parseUrlComponents(url)
+  const urlComponents = parseUrlComponents(url);
 
   // Extract and normalize product IDs
   const actualIds = [...extractIdsFromUrlComponents({ urlComponents })]
-    .map(sku => sku.toLowerCase())
-    .sort()
+    .map((sku) => sku.toLowerCase())
+    .sort();
 
   // Normalize expected SKUs
-  const expectedIds = expectedSkus
-    .map(sku => sku.toLowerCase())
-    .sort()
+  const expectedIds = expectedSkus.map((sku) => sku.toLowerCase()).sort();
 
-  expect(actualIds).toEqual(expectedIds)
-}
+  expect(actualIds).toEqual(expectedIds);
+};
 
 /* eslint-disable */
 const getStoreFixtureTestCases = (() => {
@@ -60,31 +61,32 @@ const getStoreFixtureTestCases = (() => {
   return () => {
     if (cachedFiles) return cachedFiles;
 
-    const fixturesDir = path.join(__dirname, '..', '__fixtures__')
+    const fixturesDir = path.join(__dirname, '..', '__fixtures__');
 
     try {
-      cachedFiles = fs.readdirSync(fixturesDir)
-        .filter(file => file.endsWith('.json'))
-        .map(file => {
+      cachedFiles = fs
+        .readdirSync(fixturesDir)
+        .filter((file) => file.endsWith('.json'))
+        .map((file) => {
           try {
             return {
               store: path.basename(file, '.json'),
-              data: JSON.parse(fs.readFileSync(path.join(fixturesDir, file), 'utf-8'))
-            }
+              data: JSON.parse(fs.readFileSync(path.join(fixturesDir, file), 'utf-8')),
+            };
           } catch (error) {
-            console.error(`Error reading fixture file ${file}:`, error)
-            return null
+            console.error(`Error reading fixture file ${file}:`, error);
+            return null;
           }
         })
-        .filter((file): file is NonNullable<typeof file> => file !== null)
+        .filter((file): file is NonNullable<typeof file> => file !== null);
 
-      return cachedFiles
+      return cachedFiles;
     } catch (error) {
-      console.error('Error reading fixtures directory:', error)
-      return []
+      console.error('Error reading fixtures directory:', error);
+      return [];
     }
-  }
-})()
+  };
+})();
 
 // Use the memoized function in your tests
-export const storeFixtureTestCases = getStoreFixtureTestCases()
+export const storeFixtureTestCases = getStoreFixtureTestCases();

@@ -5,10 +5,7 @@
   "testCases": [
     {
       "url": "https://www.famousfootwear.com/product/bearpaw-womens-helaina-winter-boot-1049655/black-59593",
-      "expectedSkus": [
-        "1049655",
-        "59593"
-      ]
+      "expectedSkus": ["1049655", "59593"]
     }
   ]
 }
