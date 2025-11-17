@@ -1,12 +1,10 @@
 import { z } from 'zod';
 
-const SchemaOrgBase = z
-  .object({
-    '@context': z.string().optional(),
-    '@type': z.union([z.string(), z.array(z.string())]).optional(),
-    name: z.string().optional(),
-  })
-  .passthrough();
+const SchemaOrgBase = z.looseObject({
+  '@context': z.string().optional(),
+  '@type': z.union([z.string(), z.array(z.string())]).optional(),
+  name: z.string().optional(),
+});
 
 export type MinimalSchemaOrg = z.infer<typeof SchemaOrgBase>;
 
@@ -14,7 +12,7 @@ export function isValidProductSchema(schema: unknown): boolean {
   const parsed = SchemaOrgBase.safeParse(schema);
   if (!parsed.success) {
     throw new Error(
-      JSON.stringify({ errors: ['Invalid input structure'], details: parsed.error.errors }),
+      JSON.stringify({ errors: ['Invalid input structure'], details: parsed.error.issues }),
     );
   }
   const object = parsed.data;

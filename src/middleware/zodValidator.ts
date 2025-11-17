@@ -13,7 +13,7 @@ export const createZodValidator = (schema: z.ZodType): middy.MiddlewareObj => {
         statusCode: 400,
         body: JSON.stringify({
           message: 'Validation error',
-          errors: zodError.format(),
+          errors: zodError.issues,
         }),
       };
     }
