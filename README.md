@@ -21,7 +21,7 @@ This service provides API endpoints for managing product data, including:
 
 ## Prerequisites
 
-- Node.js 20.19.3+ (managed via `.nvmrc` - use `nvm use` or `nvm install`)
+- Node.js 22.21.0+ (managed via `.nvmrc` - use `nvm use` or `nvm install`)
 - AWS CLI configured with appropriate credentials
 - OAK (Rakuten AWS auth)
 - Serverless Framework CLI (3.x)

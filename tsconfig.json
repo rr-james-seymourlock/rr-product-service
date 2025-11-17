@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
     /* Language and Environment */
-    "target": "ES2021",
-    "lib": ["ES2021"],
+    "target": "ES2023",
+    "lib": ["ES2023"],
 
     /* Modules */
     "module": "ES2020",

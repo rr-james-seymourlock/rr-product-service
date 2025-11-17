@@ -1,9 +1,9 @@
 service: rr-product-service
-frameworkVersion: "3"
+frameworkVersion: '3'
 
 provider:
   name: aws
-  runtime: nodejs20.x
+  runtime: nodejs22.x
   region: us-east-1
 
 functions:

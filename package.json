@@ -27,7 +27,7 @@
   "license": "ISC",
   "description": "",
   "engines": {
-    "node": ">=20.19.3",
+    "node": ">=22.21.0",
     "npm": ">=10.0.0"
   },
   "devDependencies": {
