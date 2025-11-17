@@ -1,18 +1,18 @@
 import safeRegex from 'safe-regex';
-import { describe, it, expect } from 'vitest'
-import { config } from "../config";
-import { COMPILED_PATTERNS } from '@/storeConfigs'
+import { describe, test, expect } from 'vitest';
+import { config } from '../config';
+import { COMPILED_PATTERNS } from '@/storeConfigs';
 
 // Collect all patterns from searchPatterns, pathnamePatterns, and store configs
 const regexPatterns = [
   ...config.PATTERNS.pathnamePatterns,
   config.PATTERNS.searchPattern,
-  ...Array.from(COMPILED_PATTERNS.values()).flat()
+  ...Array.from(COMPILED_PATTERNS.values()).flat(),
 ];
 
 describe('Regex formatting rules', () => {
-  it('should only use lowercase characters in regex patterns', () => {
-    regexPatterns.forEach(pattern => {
+  test('should only use lowercase characters in regex patterns', () => {
+    regexPatterns.forEach((pattern) => {
       const patternString = pattern.toString();
       const cleanPattern = patternString.slice(1, patternString.lastIndexOf('/'));
 
@@ -26,8 +26,8 @@ describe('Regex formatting rules', () => {
     });
   });
 
-  it('should not use case-insensitive flag in regex patterns', () => {
-    regexPatterns.forEach(pattern => {
+  test('should not use case-insensitive flag in regex patterns', () => {
+    regexPatterns.forEach((pattern) => {
       const patternString = pattern.toString();
       const flags = patternString.slice(patternString.lastIndexOf('/') + 1);
 
@@ -41,8 +41,8 @@ describe('Regex formatting rules', () => {
     });
   });
 
-  it('should use global flag in all regex patterns', () => {
-    regexPatterns.forEach(pattern => {
+  test('should use global flag in all regex patterns', () => {
+    regexPatterns.forEach((pattern) => {
       const patternString = pattern.toString();
       const flags = patternString.slice(patternString.lastIndexOf('/') + 1);
 
@@ -55,13 +55,13 @@ describe('Regex formatting rules', () => {
       expect(hasGlobalFlag).toBeTruthy();
     });
   });
-})
+});
 
 describe('Regex pattern security & performance', () => {
-  it('should only use safe regex patterns', () => {
+  test('should only use safe regex patterns', () => {
     const unsafePatterns: string[] = [];
 
-    regexPatterns.forEach(pattern => {
+    regexPatterns.forEach((pattern) => {
       const isSafe = safeRegex(pattern);
       if (!isSafe) {
         unsafePatterns.push(pattern.toString());
@@ -70,7 +70,7 @@ describe('Regex pattern security & performance', () => {
 
     if (unsafePatterns.length > 0) {
       console.log('Found unsafe regex patterns:');
-      unsafePatterns.forEach(pattern => {
+      unsafePatterns.forEach((pattern) => {
         console.log(`  - ${pattern}`);
       });
     }
@@ -78,8 +78,8 @@ describe('Regex pattern security & performance', () => {
     expect(unsafePatterns).toEqual([]);
   });
 
-  it('should not have excessive backtracking', () => {
-    regexPatterns.forEach(pattern => {
+  test('should not have excessive backtracking', () => {
+    regexPatterns.forEach((pattern) => {
       const patternString = pattern.toString();
       // Check for nested quantifiers which can cause catastrophic backtracking
       const hasNestedQuantifiers = /[+*?]{2,}|\{.+\}[+*?]|[+*?]\{.+\}/.test(patternString);
@@ -92,8 +92,8 @@ describe('Regex pattern security & performance', () => {
     });
   });
 
-  it('should not have unnecessarily large character classes', () => {
-    regexPatterns.forEach(pattern => {
+  test('should not have unnecessarily large character classes', () => {
+    regexPatterns.forEach((pattern) => {
       const patternString = pattern.toString();
       // Look for character classes with more than 20 characters
       const largeClassMatch = patternString.match(/\[([^\]]{20,})\]/);
@@ -107,7 +107,7 @@ describe('Regex pattern security & performance', () => {
     });
   });
 
-  it('should complete regex matching within 10ms', () => {
+  test('should complete regex matching within 10ms', () => {
     // 1ms threshold was validatd against a slow pattern
     const TIMEOUT_MS = 10;
     const testString = [
@@ -127,10 +127,10 @@ describe('Regex pattern security & performance', () => {
       '&sc=CRT&cm_sp=VIEWPOSITION-_-1-_-H474467&TZ=EST',
       '&sku=2591795&productId=pimprod2030073&skuId=2591795',
       '&?pfm=bdrecs-WebStore-ShoppingBag-Horizontal-b606-229&bdrecsId=8c64cda8-7622-4cb4-9007-f1cf4c3aa9ef',
-      '&dwvar_0400020980777_color=BLUSH'
+      '&dwvar_0400020980777_color=BLUSH',
     ].join('');
 
-    regexPatterns.forEach(pattern => {
+    regexPatterns.forEach((pattern) => {
       const startTime = performance.now();
       pattern.test(testString);
       const duration = performance.now() - startTime;
