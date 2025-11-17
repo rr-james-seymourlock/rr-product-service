@@ -17,33 +17,28 @@ export function isValidProductSchema(schema: unknown): boolean {
       JSON.stringify({ errors: ['Invalid input structure'], details: parsed.error.errors }),
     );
   }
-  const obj = parsed.data;
+  const object = parsed.data;
 
   // Check for @context
   const hasContext =
-    typeof obj === 'object' &&
-    (obj['@context'] === 'https://schema.org' || obj['@context'] === 'http://schema.org');
+    typeof object === 'object' &&
+    (object['@context'] === 'https://schema.org' || object['@context'] === 'http://schema.org');
 
   // Check for @type
-  const type = obj && obj['@type'];
-  const isProductType =
-    typeof type === 'string'
-      ? type === 'Product'
-      : Array.isArray(type)
-        ? type.includes('Product')
-        : false;
+  const type = object['@type'];
+  const isProductType = Array.isArray(type) ? type.includes('Product') : type === 'Product';
 
   // Optionally, check for required Product fields (e.g., name)
-  const hasName = typeof obj?.name === 'string' && obj.name.length > 0;
+  const hasName = typeof object.name === 'string' && object.name.length > 0;
 
   // Validate as Product
   const isValidProduct = hasContext && isProductType && hasName;
 
   if (!isValidProduct) {
     const errors = [
-      !hasContext ? 'Missing or invalid @context' : null,
-      !isProductType ? 'Missing or invalid @type (Product)' : null,
-      !hasName ? 'Missing or invalid name' : null,
+      !hasContext && 'Missing or invalid @context',
+      !isProductType && 'Missing or invalid @type (Product)',
+      !hasName && 'Missing or invalid name',
     ].filter(Boolean);
     throw new Error(JSON.stringify({ errors }));
   }

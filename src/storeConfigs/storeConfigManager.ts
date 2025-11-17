@@ -22,7 +22,7 @@ export interface StoreConfigInterface {
    * Optional transform function to modify the captured ID
    * @param id The ID to transform
    */
-  // eslint-disable-next-line
+
   readonly transformId?: (id: string) => string;
 }
 
@@ -93,7 +93,7 @@ export const getStoreConfig = (identifier: StoreIdentifier): StoreConfigInterfac
   // Domain lookup with single Map access
   if (identifier.domain !== undefined) {
     const storeId = STORE_NAME_CONFIG.get(identifier.domain);
-    return storeId !== undefined ? STORE_ID_CONFIG.get(storeId) : undefined;
+    return storeId === undefined ? undefined : STORE_ID_CONFIG.get(storeId);
   }
 
   return undefined;

@@ -1,5 +1,5 @@
 import { describe, test } from 'vitest';
-import { assertProductIdsMatch, storeFixtureTestCases } from './testUtils.js';
+import { assertProductIdsMatch, storeFixtureTestCases } from './testUtilities.js';
 
 describe.concurrent('Store __fixtures__ against storeConfigs and general extraction', () => {
   test.concurrent.each(

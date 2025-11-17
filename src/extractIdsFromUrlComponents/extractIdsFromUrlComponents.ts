@@ -1,6 +1,6 @@
-import { getStoreConfig } from '@/storeConfigs';
-import type { URLComponents } from '@/parseUrlComponents';
 import { config } from './config';
+import type { URLComponents } from '@/parseUrlComponents';
+import { getStoreConfig } from '@/storeConfigs';
 
 interface PatternExtractorInput {
   source: string;
@@ -8,7 +8,7 @@ interface PatternExtractorInput {
 }
 
 export const patternExtractor = ({ source, pattern }: PatternExtractorInput): Set<string> => {
-  if (process.env.NODE_ENV === 'development') {
+  if (process.env['NODE_ENV'] === 'development') {
     if (!(pattern instanceof RegExp)) {
       console.warn('Invalid input: pattern must be a RegExp object. Returning empty set.');
       return new Set();
@@ -40,7 +40,7 @@ export const patternExtractor = ({ source, pattern }: PatternExtractorInput): Se
       }
 
       if (matches.size >= config.MAX_RESULTS) {
-        if (process.env.NODE_ENV === 'development') {
+        if (process.env['NODE_ENV'] === 'development') {
           console.warn(`Reached maximum results limit of ${config.MAX_RESULTS}`);
         }
         break;
@@ -66,12 +66,12 @@ export const extractIdsFromUrlComponents = ({
   const results = new Set<string>();
 
   try {
-    const domainConfig = getStoreConfig({ domain: domain, id: storeId });
+    const domainConfig = getStoreConfig(storeId ? { domain, id: storeId } : { domain });
 
     // Check domain-specific path patterns first
     if (domainConfig?.pathnamePatterns && pathname) {
       for (const pattern of domainConfig.pathnamePatterns) {
-        for (const id of patternExtractor({ source: pathname, pattern: pattern })) {
+        for (const id of patternExtractor({ source: pathname, pattern })) {
           // Apply transform function if it exists, otherwise use the original ID
           const transformedId = domainConfig.transformId ? domainConfig.transformId(id) : id;
           results.add(transformedId);
@@ -83,7 +83,7 @@ export const extractIdsFromUrlComponents = ({
     if (results.size === 0 && pathname) {
       // Iterate through all pathname patterns
       for (const pattern of config.PATTERNS.pathnamePatterns) {
-        for (const id of patternExtractor({ source: pathname, pattern: pattern })) {
+        for (const id of patternExtractor({ source: pathname, pattern })) {
           results.add(id);
         }
       }
@@ -92,7 +92,7 @@ export const extractIdsFromUrlComponents = ({
     // Check domain-specific search patterns first
     if (domainConfig?.searchPatterns && search) {
       for (const pattern of domainConfig.searchPatterns) {
-        for (const id of patternExtractor({ source: search, pattern: pattern })) {
+        for (const id of patternExtractor({ source: search, pattern })) {
           results.add(id);
         }
       }

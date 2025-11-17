@@ -40,8 +40,8 @@ export const createUrlKey = (baseKey: string): string => {
       .update(baseKey)
       .digest('base64')
       .slice(0, 16)
-      .replace(/[+/=]/g, '_')
-      .replace(/\//g, '-');
+      .replaceAll(/[+/=]/g, '_')
+      .replaceAll('/', '-');
   } catch (error) {
     throw new Error(
       `Failed to create URL key for "${baseKey}": ${error instanceof Error ? error.message : 'Unknown error'}`,

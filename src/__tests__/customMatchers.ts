@@ -1,6 +1,6 @@
 import { expect } from 'vitest';
-import { parseUrlComponents } from '@/parseUrlComponents';
 import { extractIdsFromUrlComponents } from '@/extractIdsFromUrlComponents';
+import { parseUrlComponents } from '@/parseUrlComponents';
 
 /**
  * Custom Vitest matchers for product ID validation and URL parsing
@@ -11,7 +11,7 @@ expect.extend({
    * Valid IDs contain alphanumeric characters, hyphens, and underscores
    */
   toBeValidProductId(received: string) {
-    const isValid = /^[a-zA-Z0-9-_]+$/.test(received) && received.length > 0;
+    const isValid = /^[\w-]+$/.test(received) && received.length > 0;
     return {
       pass: isValid,
       message: () =>
@@ -29,7 +29,7 @@ expect.extend({
    */
   toExtractIds(url: string, expectedIds: string[]) {
     const urlComponents = parseUrlComponents(url);
-    const result = Array.from(extractIdsFromUrlComponents({ urlComponents })).sort();
+    const result = [...extractIdsFromUrlComponents({ urlComponents })].sort();
     const expected = [...expectedIds].sort();
     const pass = JSON.stringify(result) === JSON.stringify(expected);
 
@@ -49,7 +49,7 @@ expect.extend({
    */
   toExtractIdsForStore(url: string, storeId: string, expectedIds: string[]) {
     const urlComponents = parseUrlComponents(url);
-    const result = Array.from(extractIdsFromUrlComponents({ urlComponents, storeId })).sort();
+    const result = [...extractIdsFromUrlComponents({ urlComponents, storeId })].sort();
     const expected = [...expectedIds].sort();
     const pass = JSON.stringify(result) === JSON.stringify(expected);
 
@@ -102,7 +102,7 @@ expect.extend({
 });
 
 // Type declarations for TypeScript
-/* eslint-disable no-unused-vars */
+
 declare module 'vitest' {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   interface Assertion<T = any> {
@@ -120,4 +120,3 @@ declare module 'vitest' {
     toExtractDomain(domain: string): unknown;
   }
 }
-/* eslint-enable no-unused-vars */

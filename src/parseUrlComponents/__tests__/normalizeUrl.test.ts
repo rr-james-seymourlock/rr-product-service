@@ -133,14 +133,14 @@ describe('normalizeUrl andremoveQueryParameters', () => {
 
 describe('normalizeUrl TLD handling', () => {
   it('should handle multi-part TLDs correctly', () => {
-    const urls = [
+    const urls: Array<[string, string]> = [
       ['https://example.co.uk/path', 'https://example.co.uk/path'],
       ['https://www.example.co.uk/path', 'https://example.co.uk/path'],
       ['https://example.com.au/path', 'https://example.com.au/path'],
     ];
-    urls.forEach(([input, expected]) => {
+    for (const [input, expected] of urls) {
       expect(normalizeUrl(input, config.NORMALIZATION_RULES)).toBe(expected);
-    });
+    }
   });
 });
 
@@ -181,16 +181,16 @@ describe('normalizeUrl edge cases', () => {
   });
 
   it('should handle various international domain names', () => {
-    const idnTests = [
+    const idnTests: Array<[string, string]> = [
       ['https://www.münich.de/path', 'https://xn--mnich-kva.de/path'],
       ['https://www.ünicode.com/test', 'https://xn--nicode-2ya.com/test'],
       ['https://www.café.fr/path', 'https://xn--caf-dma.fr/path'],
       ['https://www.παράδειγμα.δοκιμή/path', 'https://xn--hxajbheg2az3al.xn--jxalpdlp/path'],
     ];
 
-    idnTests.forEach(([input, expected]) => {
+    for (const [input, expected] of idnTests) {
       expect(normalizeUrl(input, config.NORMALIZATION_RULES)).toBe(expected);
-    });
+    }
   });
 
   it('should handle mixed-script domains', () => {

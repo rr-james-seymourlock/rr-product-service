@@ -1,12 +1,9 @@
-import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
-import type { MockInstance } from 'vitest';
+import { beforeEach, afterEach, describe, expect, test, vi } from 'vitest';
 import { parseDomain } from '../parseUrlComponents';
 
 describe('parseDomain', () => {
-  let consoleErrorSpy: MockInstance;
-
   beforeEach(() => {
-    consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    vi.spyOn(console, 'error').mockImplementation(() => {});
   });
 
   afterEach(() => {
