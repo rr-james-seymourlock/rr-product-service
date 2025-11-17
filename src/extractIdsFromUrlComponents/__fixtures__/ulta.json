@@ -5,105 +5,63 @@
   "testCases": [
     {
       "url": "https://www.ulta.com/p/power-grip-primer-pimprod2030073?sku=2591795",
-      "expectedSkus": [
-        "pimprod2030073",
-        "2591795"
-      ]
+      "expectedSkus": ["pimprod2030073", "2591795"]
     },
     {
       "url": "https://www.ulta.com/p/light-defining-gel-soft-hold-no-crunch-styler-pimprod2025685?sku=2581844",
-      "expectedSkus": [
-        "pimprod2025685",
-        "2581844"
-      ]
+      "expectedSkus": ["pimprod2025685", "2581844"]
     },
     {
       "url": "https://www.ulta.com/p/curl-defining-styling-souffle-xlsImpprod17391103?sku=2567896",
-      "expectedSkus": [
-        "xlsImpprod17391103",
-        "2567896"
-      ]
+      "expectedSkus": ["xlsImpprod17391103", "2567896"]
     },
     {
       "url": "https://www.ulta.com/p/leave-in-decadence-moisturizing-leave-in-conditioner-pimprod2025897?sku=2581895",
-      "expectedSkus": [
-        "pimprod2025897",
-        "2581895"
-      ]
+      "expectedSkus": ["pimprod2025897", "2581895"]
     },
     {
       "url": "https://www.ulta.com/p/enviro-54-natural-hairspray-xlsImpprod4730043?sku=2554421",
-      "expectedSkus": [
-        "xlsImpprod4730043",
-        "2554421"
-      ]
+      "expectedSkus": ["xlsImpprod4730043", "2554421"]
     },
     {
       "url": "https://www.ulta.com/p/bouncy-strength-volume-foam-pimprod2021327?sku=2570252",
-      "expectedSkus": [
-        "pimprod2021327",
-        "2570252"
-      ]
+      "expectedSkus": ["pimprod2021327", "2570252"]
     },
     {
       "url": "https://www.ulta.com/p/limited-edition-airwrap-multi-styler-complete-long-in-strawberry-bronze-pimprod2047430?sku=2630148",
-      "expectedSkus": [
-        "pimprod2047430",
-        "2630148"
-      ]
+      "expectedSkus": ["pimprod2047430", "2630148"]
     },
     {
       "url": "https://www.ulta.com/p/brow-lift-applicator-pimprod2030060?sku=2591980",
-      "expectedSkus": [
-        "pimprod2030060",
-        "2591980"
-      ]
+      "expectedSkus": ["pimprod2030060", "2591980"]
     },
     {
       "url": "https://www.ulta.com/p/all-soft-holiday-kit-pimprod2048034?sku=2627383",
-      "expectedSkus": [
-        "pimprod2048034",
-        "2627383"
-      ]
+      "expectedSkus": ["pimprod2048034", "2627383"]
     },
     {
       "url": "https://www.ulta.com/p/power-grip-primer-4-niacinamide-pimprod2036637?sku=2604932",
-      "expectedSkus": [
-        "pimprod2036637",
-        "2604932"
-      ]
+      "expectedSkus": ["pimprod2036637", "2604932"]
     },
     {
       "url": "https://www.ulta.com/p/dramatically-different-moisturizing-lotion-face-xlsImpprod10791743?sku=2261902",
-      "expectedSkus": [
-        "xlsImpprod10791743",
-        "2261902"
-      ]
+      "expectedSkus": ["xlsImpprod10791743", "2261902"]
     },
     {
       "url": "https://www.ulta.com/p/tropic-glow-firming-sugar-scrub-pimprod2023606?sku=2577310",
-      "expectedSkus": [
-        "pimprod2023606",
-        "2577310"
-      ]
+      "expectedSkus": ["pimprod2023606", "2577310"]
     },
     {
       "url": "https://www.ulta.com/p/bond-maintenance-shampoo-no-4-xlsImpprod18731139",
-      "expectedSkus": [
-        "xlsImpprod18731139"
-      ]
+      "expectedSkus": ["xlsImpprod18731139"]
     },
     {
       "url": "https://www.ulta.com/p/airwrap-multi-styler-complete-long-pimprod2031806",
-      "expectedSkus": [
-        "pimprod2031806"
-      ]
+      "expectedSkus": ["pimprod2031806"]
     },
     {
       "url": "https://www.ulta.com/p/vanilla-bean-noel-super-smooth-body-lotion-pimprod2032742",
-      "expectedSkus": [
-        "pimprod2032742"
-      ]
+      "expectedSkus": ["pimprod2032742"]
     }
   ]
 }

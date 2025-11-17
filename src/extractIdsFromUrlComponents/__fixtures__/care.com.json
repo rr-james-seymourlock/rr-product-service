@@ -5,9 +5,7 @@
   "testCases": [
     {
       "url": "https://www.care.com/connect/bowmensports/series/107474-roanoke-pe-102-friday-spring-25",
-      "expectedSkus": [
-        "107474"
-      ]
+      "expectedSkus": ["107474"]
     }
   ]
 }

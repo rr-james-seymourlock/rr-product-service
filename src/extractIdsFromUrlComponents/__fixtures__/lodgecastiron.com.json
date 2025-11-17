@@ -5,21 +5,15 @@
   "testCases": [
     {
       "url": "https://secure.lodgecastiron.com/AT-12.html",
-      "expectedSkus": [
-        "at-12"
-      ]
+      "expectedSkus": ["at-12"]
     },
     {
       "url": "https://secure.lodgecastiron.com/BW6MFN.html",
-      "expectedSkus": [
-        "bw6mfn"
-      ]
+      "expectedSkus": ["bw6mfn"]
     },
     {
       "url": "https://secure.lodgecastiron.com/ATP2.html",
-      "expectedSkus": [
-        "atp2"
-      ]
+      "expectedSkus": ["atp2"]
     }
   ]
 }

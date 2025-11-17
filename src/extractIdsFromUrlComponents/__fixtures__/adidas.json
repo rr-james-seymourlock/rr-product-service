@@ -5,15 +5,11 @@
   "testCases": [
     {
       "url": "https://www.adidas.com/us/superstar-360-shoes-kids/JH6496.html?forceSelSize=JH6496_350",
-      "expectedSkus": [
-        "JH6496"
-      ]
+      "expectedSkus": ["JH6496"]
     },
     {
       "url": "https://www.adidas.com/us/gg-lace-bodysuit/JI5627.html?forceSelSize=JI5627_280",
-      "expectedSkus": [
-        "JI5627"
-      ]
+      "expectedSkus": ["JI5627"]
     }
   ]
 }

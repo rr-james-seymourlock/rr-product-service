@@ -1,11 +1,67 @@
 {
+  // Editor settings
   "editor.formatOnSave": true,
-  "eslint.useFlatConfig": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
   "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": "explicit"
+    "source.fixAll.eslint": "explicit",
+    "source.organizeImports": "never" // Let ESLint handle this
   },
+  "editor.rulers": [100],
+  "editor.tabSize": 2,
+  "files.eol": "\n",
+  "files.insertFinalNewline": true,
+  "files.trimTrailingWhitespace": true,
+
+  // TypeScript settings
   "typescript.tsdk": "node_modules/typescript/lib",
   "typescript.enablePromptUseWorkspaceTsdk": true,
   "typescript.preferences.importModuleSpecifier": "non-relative",
-  "javascript.preferences.importModuleSpecifier": "non-relative"
+  "javascript.preferences.importModuleSpecifier": "non-relative",
+  "typescript.updateImportsOnFileMove.enabled": "always",
+  "javascript.updateImportsOnFileMove.enabled": "always",
+
+  // ESLint settings
+  "eslint.useFlatConfig": true,
+  "eslint.validate": ["javascript", "typescript"],
+
+  // Prettier settings
+  "prettier.enable": true,
+  "prettier.requireConfig": true,
+
+  // Vitest settings
+  "vitest.enable": true,
+  "vitest.commandLine": "npm run test",
+
+  // File associations
+  "files.associations": {
+    "*.mjs": "javascript",
+    "*.mts": "typescript"
+  },
+
+  // Search exclusions
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/.serverless": true,
+    "**/.esbuild": true,
+    "**/coverage": true,
+    "**/.git": true,
+    "**/package-lock.json": true
+  },
+
+  // Spell checker
+  "cSpell.words": [
+    "commitlint",
+    "middlewares",
+    "punycode",
+    "Rakuten",
+    "serverless",
+    "vitest",
+    "zodValidator"
+  ],
+
+  // Git
+  "git.branchPrefix": "",
+  "git.confirmSync": false,
+  "git.autofetch": true
 }

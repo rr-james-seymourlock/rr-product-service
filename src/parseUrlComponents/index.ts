@@ -1,1 +1,1 @@
-export { parseUrlComponents, type URLComponents } from './parseUrlComponents'
+export { parseUrlComponents, type URLComponents } from './parseUrlComponents';

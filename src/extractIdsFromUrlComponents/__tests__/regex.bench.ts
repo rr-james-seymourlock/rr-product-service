@@ -15,7 +15,7 @@ import { COMPILED_PATTERNS } from '@/storeConfigs';
 const regexPatterns = [
   ...config.PATTERNS.pathnamePatterns,
   config.PATTERNS.searchPattern,
-  ...Array.from(COMPILED_PATTERNS.values()).flat(),
+  ...[...COMPILED_PATTERNS.values()].flat(),
 ];
 
 // Complex test string with various URL patterns
@@ -43,9 +43,9 @@ describe('Regex Pattern Performance Benchmarks', () => {
   bench(
     'all pathname patterns',
     () => {
-      config.PATTERNS.pathnamePatterns.forEach((pattern) => {
+      for (const pattern of config.PATTERNS.pathnamePatterns) {
         pattern.test(testString);
-      });
+      }
     },
     {
       time: 1000, // Run for 1 second
@@ -67,11 +67,9 @@ describe('Regex Pattern Performance Benchmarks', () => {
   bench(
     'all store-specific patterns',
     () => {
-      Array.from(COMPILED_PATTERNS.values())
-        .flat()
-        .forEach((pattern) => {
-          pattern.test(testString);
-        });
+      for (const pattern of [...COMPILED_PATTERNS.values()].flat()) {
+        pattern.test(testString);
+      }
     },
     {
       time: 1000,
@@ -82,9 +80,9 @@ describe('Regex Pattern Performance Benchmarks', () => {
   bench(
     'all patterns combined',
     () => {
-      regexPatterns.forEach((pattern) => {
+      for (const pattern of regexPatterns) {
         pattern.test(testString);
-      });
+      }
     },
     {
       time: 1000,
@@ -94,16 +92,19 @@ describe('Regex Pattern Performance Benchmarks', () => {
 
   // Benchmark individual critical patterns
   if (config.PATTERNS.pathnamePatterns.length > 0) {
-    bench(
-      'first pathname pattern (critical path)',
-      () => {
-        config.PATTERNS.pathnamePatterns[0].test(testString);
-      },
-      {
-        time: 500,
-        iterations: 1000,
-      },
-    );
+    const firstPattern = config.PATTERNS.pathnamePatterns[0];
+    if (firstPattern) {
+      bench(
+        'first pathname pattern (critical path)',
+        () => {
+          firstPattern.test(testString);
+        },
+        {
+          time: 500,
+          iterations: 1000,
+        },
+      );
+    }
   }
 
   // Benchmark with realistic URL string (shorter)
@@ -112,9 +113,9 @@ describe('Regex Pattern Performance Benchmarks', () => {
   bench(
     'all patterns against realistic URL',
     () => {
-      regexPatterns.forEach((pattern) => {
+      for (const pattern of regexPatterns) {
         pattern.test(realisticUrl);
-      });
+      }
     },
     {
       time: 1000,

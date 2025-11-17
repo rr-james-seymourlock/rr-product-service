@@ -16,7 +16,7 @@ const simpleProduct = {
 
 parseProductSchema(simpleProduct);
 
-const _productGroup = {
+const productGroup = {
   '@context': 'https://schema.org',
   '@type': 'ProductGroup',
   name: 'iPhone 15 Pro',
@@ -44,4 +44,6 @@ const _productGroup = {
   ],
 };
 
-parseProductSchema(simpleProduct);
+// Not yet supported - ProductGroup validation not implemented
+// parseProductSchema(productGroup);
+console.log('Product group example:', productGroup);

@@ -5,21 +5,15 @@
   "testCases": [
     {
       "url": "https://www.jcpenney.com/p/product/ppr5008175728",
-      "expectedSkus": [
-        "ppr5008175728"
-      ]
+      "expectedSkus": ["ppr5008175728"]
     },
     {
       "url": "https://www.jcpenney.com/p/product/ppr5007699873",
-      "expectedSkus": [
-        "ppr5007699873"
-      ]
+      "expectedSkus": ["ppr5007699873"]
     },
     {
       "url": "https://www.jcpenney.com/p/product/ppr5008234591",
-      "expectedSkus": [
-        "ppr5008234591"
-      ]
+      "expectedSkus": ["ppr5008234591"]
     }
   ]
 }

@@ -5,15 +5,11 @@
   "testCases": [
     {
       "url": "https://www.maidenform.com/products/dreamwire-push-up-underwire-bra/dm0066",
-      "expectedSkus": [
-        "dm0066"
-      ]
+      "expectedSkus": ["dm0066"]
     },
     {
       "url": "https://www.maidenform.com/products/all-over-lace-thong-dmeslt/dmeslt",
-      "expectedSkus": [
-        "dmeslt"
-      ]
+      "expectedSkus": ["dmeslt"]
     }
   ]
 }

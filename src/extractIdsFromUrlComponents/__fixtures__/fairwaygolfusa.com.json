@@ -5,9 +5,7 @@
   "testCases": [
     {
       "url": "https://www.fairwaygolfusa.com/category/select/pid/4122",
-      "expectedSkus": [
-        "4122"
-      ]
+      "expectedSkus": ["4122"]
     }
   ]
 }

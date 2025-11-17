@@ -18,11 +18,11 @@ export interface StoreConfigInterface {
   /** Optional list of regular expressions for URL pattern matching */
   readonly pathnamePatterns?: RegExp[];
   readonly searchPatterns?: RegExp[];
-  /** 
-   * Optional transform function to modify the captured ID 
+  /**
+   * Optional transform function to modify the captured ID
    * @param id The ID to transform
    */
-  // eslint-disable-next-line 
+
   readonly transformId?: (id: string) => string;
 }
 
@@ -37,10 +37,13 @@ interface StoreIdentifier {
  * @constant
  */
 export const STORE_ID_CONFIG: ReadonlyMap<string, StoreConfigInterface> = new Map(
-  storeConfigs.flatMap((config): ReadonlyArray<[string, StoreConfigInterface]> => [
-    [config.id, config] as [string, StoreConfigInterface],
-    ...(config.aliases?.map(alias => [alias.id, config] as [string, StoreConfigInterface]) ?? [])
-  ])
+  storeConfigs.flatMap(
+    (config): ReadonlyArray<[string, StoreConfigInterface]> => [
+      [config.id, config] as [string, StoreConfigInterface],
+      ...(config.aliases?.map((alias) => [alias.id, config] as [string, StoreConfigInterface]) ??
+        []),
+    ],
+  ),
 );
 
 /**
@@ -49,10 +52,10 @@ export const STORE_ID_CONFIG: ReadonlyMap<string, StoreConfigInterface> = new Ma
  * @constant
  */
 export const STORE_NAME_CONFIG: ReadonlyMap<string, string> = new Map(
-  storeConfigs.flatMap(config => [
+  storeConfigs.flatMap((config) => [
     [config.domain, config.id] as const,
-    ...(config.aliases?.map(alias => [alias.domain, alias.id] as const) ?? [])
-  ])
+    ...(config.aliases?.map((alias) => [alias.domain, alias.id] as const) ?? []),
+  ]),
 );
 
 /**
@@ -62,24 +65,21 @@ export const STORE_NAME_CONFIG: ReadonlyMap<string, string> = new Map(
  */
 export const COMPILED_PATTERNS: ReadonlyMap<string, ReadonlyArray<RegExp>> = new Map(
   storeConfigs
-    .filter(config => config.pathnamePatterns !== undefined)
-    .map(config => [
-      config.id,
-      config.pathnamePatterns
-    ] as [string, ReadonlyArray<RegExp>])
+    .filter((config) => config.pathnamePatterns !== undefined)
+    .map((config) => [config.id, config.pathnamePatterns] as [string, ReadonlyArray<RegExp>]),
 );
 
 /**
  * Retrieves store configuration based on either store ID or domain name.
  * Optimized for performance with a fast-path for ID lookups.
- * 
+ *
  * @param identifier - Object containing either a store ID or domain name
  * @returns The store configuration if found, undefined otherwise
- * 
+ *
  * @example
  * // Lookup by ID
  * const config1 = getStoreConfig({ id: '123' });
- * 
+ *
  * @example
  * // Lookup by domain
  * const config2 = getStoreConfig({ domain: 'example.com' });
@@ -93,7 +93,7 @@ export const getStoreConfig = (identifier: StoreIdentifier): StoreConfigInterfac
   // Domain lookup with single Map access
   if (identifier.domain !== undefined) {
     const storeId = STORE_NAME_CONFIG.get(identifier.domain);
-    return storeId !== undefined ? STORE_ID_CONFIG.get(storeId) : undefined;
+    return storeId === undefined ? undefined : STORE_ID_CONFIG.get(storeId);
   }
 
   return undefined;

@@ -5,16 +5,11 @@
   "testCases": [
     {
       "url": "https://www.bloomingdales.com/shop/product/yves-delorme-triomphe-pillowcase-king?ID=1832905&upc_ID=3205292&Quantity=3&seqNo=6&EXTRA_PARAMETER=BAG&pickInStore=false",
-      "expectedSkus": [
-        "1832905",
-        "3205292"
-      ]
+      "expectedSkus": ["1832905", "3205292"]
     },
     {
       "url": "https://www.bloomingdales.com/shop/product/ugg-classic-ii-mini-boots?ID=1753360&tdp=cm_app~zBCOM-NAVAPP~xcm_zone~zHP_ZONE_A~xcm_choiceId~zcidB38RUX-7a97dff9-a542-452b-a758-a58d091e89b1%40H23%40RECOMMENDED%2BFOR%2BYOU%243979%243954464~xcm_pos~zPos3~xcm_srcCatID~z16961",
-      "expectedSkus": [
-        "1753360"
-      ]
+      "expectedSkus": ["1753360"]
     }
   ]
 }

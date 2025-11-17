@@ -1,20 +1,20 @@
-import type { Product, WithContext } from 'schema-dts';
-import { isValidProductSchema } from './isValidProductSchema';
 import { extractSkusFromSchema } from './extractSkusFromSchema';
+import { isValidProductSchema } from './isValidProductSchema';
+import type { Product, WithContext } from 'schema-dts';
 
-export function parseProductSchema(schema: unknown) {
+export function parseProductSchema(schema: unknown): WithContext<Product> | undefined {
   const isValid = isValidProductSchema(schema);
   if (!isValid) {
-    return;
+    return undefined;
   }
 
-  const obj = schema as Product;
-  const productSchema = obj as WithContext<Product>;
+  const object = schema as Product;
+  const productSchema = object as WithContext<Product>;
 
   const product = {
     name: productSchema.name,
     brand:
-      typeof productSchema.brand === 'object' && productSchema.brand !== null
+      typeof productSchema.brand === 'object'
         ? (productSchema.brand as { name?: string }).name
         : productSchema.brand,
     model: productSchema.model,

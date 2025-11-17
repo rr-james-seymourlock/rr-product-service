@@ -5,6 +5,7 @@ A serverless microservice for product management built with TypeScript, AWS Lamb
 ## Overview
 
 This service provides API endpoints for managing product data, including:
+
 - Creating new products
 - Extracting product IDs from URLs
 - Validating product data
@@ -73,6 +74,7 @@ npm run deploy -- --stage prod  # Deploy to production stage
 ```
 
 ## Project Structure
+
 src/
 ├── handlers/ # Lambda handlers
 ├── middleware/ # Custom middleware
@@ -84,15 +86,15 @@ src/
 
 ## Available Commands
 
-| Command | Description |
-|---------|-------------|
-| `npm run build` | Package the service |
-| `npm run deploy` | Deploy to AWS |
-| `npm run offline` | Run locally |
-| `npm test` | Run tests |
-| `npm run lint` | Check for linting issues |
-| `npm run format` | Format code |
-| `npm run typecheck` | Check TypeScript types |
+| Command             | Description              |
+| ------------------- | ------------------------ |
+| `npm run build`     | Package the service      |
+| `npm run deploy`    | Deploy to AWS            |
+| `npm run offline`   | Run locally              |
+| `npm test`          | Run tests                |
+| `npm run lint`      | Check for linting issues |
+| `npm run format`    | Format code              |
+| `npm run typecheck` | Check TypeScript types   |
 
 ## Contributing
 

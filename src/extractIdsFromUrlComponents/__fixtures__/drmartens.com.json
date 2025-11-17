@@ -5,9 +5,7 @@
   "testCases": [
     {
       "url": "https://www.drmartens.com/us/en/wonder-balsam-shoe-protector-85ml/p/AC787000",
-      "expectedSkus": [
-        "AC787000"
-      ]
+      "expectedSkus": ["AC787000"]
     }
   ]
 }

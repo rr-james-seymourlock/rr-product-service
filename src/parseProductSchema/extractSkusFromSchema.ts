@@ -8,58 +8,68 @@ import type { Product } from 'schema-dts';
  */
 export function extractSkusFromSchema(schema: Product | Record<string, unknown>): string[] {
   const skus: string[] = [];
-  const seen = new Set<any>();
+  const seen = new Set<Record<string, unknown>>();
 
-  function recurse(obj: any) {
-    if (!obj || typeof obj !== 'object' || seen.has(obj)) {
+  function recurse(object: unknown): void {
+    if (!object || typeof object !== 'object' || seen.has(object as Record<string, unknown>)) {
       return;
     }
-    seen.add(obj);
+    seen.add(object as Record<string, unknown>);
+
+    const obj = object as Record<string, unknown>;
 
     // Direct SKU
-    if (typeof obj.sku === 'string') {
-      skus.push(obj.sku);
-    } else if (Array.isArray(obj.sku)) {
-      skus.push(...obj.sku.filter((s: string) => typeof s === 'string'));
+    if (typeof obj['sku'] === 'string') {
+      skus.push(obj['sku']);
+    } else if (Array.isArray(obj['sku'])) {
+      skus.push(...obj['sku'].filter((s: unknown) => typeof s === 'string'));
     }
 
     // Offers (can be Offer or array of Offers)
-    if (obj.offers) {
-      if (Array.isArray(obj.offers)) {
-        obj.offers.forEach(recurse);
+    if (obj['offers']) {
+      if (Array.isArray(obj['offers'])) {
+        for (const offer of obj['offers']) {
+          recurse(offer);
+        }
       } else {
-        recurse(obj.offers);
+        recurse(obj['offers']);
       }
     }
 
     // hasVariant (ProductGroup)
-    if (obj.hasVariant) {
-      if (Array.isArray(obj.hasVariant)) {
-        obj.hasVariant.forEach(recurse);
+    if (obj['hasVariant']) {
+      if (Array.isArray(obj['hasVariant'])) {
+        for (const variant of obj['hasVariant']) {
+          recurse(variant);
+        }
       } else {
-        recurse(obj.hasVariant);
+        recurse(obj['hasVariant']);
       }
     }
 
     // isVariantOf (ProductModel/Product)
-    if (obj.isVariantOf) {
-      if (Array.isArray(obj.isVariantOf)) {
-        obj.isVariantOf.forEach(recurse);
+    if (obj['isVariantOf']) {
+      if (Array.isArray(obj['isVariantOf'])) {
+        for (const variantOf of obj['isVariantOf']) {
+          recurse(variantOf);
+        }
       } else {
-        recurse(obj.isVariantOf);
+        recurse(obj['isVariantOf']);
       }
     }
 
     // model (ProductModel)
-    if (obj.model) {
-      if (Array.isArray(obj.model)) {
-        obj.model.forEach(recurse);
+    if (obj['model']) {
+      if (Array.isArray(obj['model'])) {
+        for (const model of obj['model']) {
+          recurse(model);
+        }
       } else {
-        recurse(obj.model);
+        recurse(obj['model']);
       }
     }
   }
 
   recurse(schema);
-  return Array.from(new Set(skus)); // deduplicate
+  return [...new Set(skus)]; // deduplicate
 }

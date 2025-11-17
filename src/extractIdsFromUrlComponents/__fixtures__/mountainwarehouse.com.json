@@ -5,15 +5,11 @@
   "testCases": [
     {
       "url": "https://www.mountainwarehouse.com/us/fell-kids-3-in-1-water-resistant-jacket-p13667.aspx",
-      "expectedSkus": [
-        "13667"
-      ]
+      "expectedSkus": ["13667"]
     },
     {
       "url": "https://www.mountainwarehouse.com/us/winter-trek-ii-womens-trousers-p17061.aspx",
-      "expectedSkus": [
-        "17061"
-      ]
+      "expectedSkus": ["17061"]
     }
   ]
 }

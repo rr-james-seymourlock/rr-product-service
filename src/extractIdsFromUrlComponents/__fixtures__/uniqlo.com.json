@@ -5,21 +5,15 @@
   "testCases": [
     {
       "url": "https://www.uniqlo.com/us/en/products/E450180-000/00",
-      "expectedSkus": [
-        "E450180-000"
-      ]
+      "expectedSkus": ["E450180-000"]
     },
     {
       "url": "https://www.uniqlo.com/us/en/products/E460915-000/00",
-      "expectedSkus": [
-        "E460915-000"
-      ]
+      "expectedSkus": ["E460915-000"]
     },
     {
       "url": "https://www.uniqlo.com/us/en/products/E461643-000/00",
-      "expectedSkus": [
-        "E461643-000"
-      ]
+      "expectedSkus": ["E461643-000"]
     }
   ]
 }

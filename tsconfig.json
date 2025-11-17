@@ -1,47 +1,63 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
+    /* Language and Environment */
+    "target": "ES2021",
+    "lib": ["ES2021"],
+
+    /* Modules */
     "module": "ES2020",
     "moduleResolution": "bundler",
-    "lib": [
-      "es2020"
-    ],
-    "strict": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "isolatedModules": true,
+    "moduleSuffixes": [".js", ""],
+
+    /* Type Checking - Strict Mode (all enabled) */
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "strictPropertyInitialization": true,
+    "noImplicitThis": true,
+    "useUnknownInCatchVariables": true,
+    "alwaysStrict": true,
+
+    /* Type Checking - Additional Checks */
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "exactOptionalPropertyTypes": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "allowUnusedLabels": false,
+    "allowUnreachableCode": false,
+
+    /* Emit */
     "noEmit": true,
     "sourceMap": true,
-    "isolatedModules": true, 
-    "noImplicitAny": true, 
-    "strictNullChecks": true,                            /* When type checking, take into account 'null' and 'undefined'. */
-    "strictFunctionTypes": true,                         /* When assigning functions, check to ensure parameters and the return values are subtype-compatible. */
-    "alwaysStrict": true,                                /* Ensure 'use strict' is always emitted. */
-    "noImplicitReturns": true,                           /* Enable error reporting for codepaths that do not explicitly return in a function. */
-    "noFallthroughCasesInSwitch": true,                  /* Enable error reporting for fallthrough cases in switch statements. */
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["src/*"]
-    },
-    "outDir": ".build",
-    "rootDir": "src",
     "declaration": true,
     "declarationDir": "./types",
-    "moduleSuffixes": [
-      ".js",
-      ""
-    ],
+    "outDir": ".build",
+
+    /* Interop Constraints */
+    "forceConsistentCasingInFileNames": true,
+    "verbatimModuleSyntax": true,
+
+    /* Skip Checks */
+    "skipLibCheck": true,
+
+    /* Path Mapping */
+    "baseUrl": ".",
+    "rootDir": "src",
+    "paths": {
+      "@/*": ["src/*"]
+    }
   },
-  "types": [
-    "vitest/globals",
-    "node"
-  ],
-  "include": [
-    "src/**/*"
-  ],
-  "exclude": [
-    "node_modules",
-    "build"
-  ]
+  "types": ["vitest/globals", "node"],
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "build", "dist", ".serverless", ".esbuild", "coverage"]
 }

@@ -5,15 +5,11 @@
   "testCases": [
     {
       "url": "https://www.costco.com/.product.1575686.html",
-      "expectedSkus": [
-        "1575686"
-      ]
+      "expectedSkus": ["1575686"]
     },
     {
       "url": "https://www.costco.com/.product.1888424.html",
-      "expectedSkus": [
-        "1888424"
-      ]
+      "expectedSkus": ["1888424"]
     }
   ]
 }

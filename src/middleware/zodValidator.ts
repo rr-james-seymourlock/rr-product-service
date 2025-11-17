@@ -1,8 +1,8 @@
-import middy from '@middy/core';
-import { z } from 'zod';
+import type middy from '@middy/core';
+import type { z } from 'zod';
 
-export const createZodValidator = (schema: z.ZodType) => {
-  const before = async (request: middy.Request) => {
+export const createZodValidator = (schema: z.ZodType): middy.MiddlewareObj => {
+  const before = (request: middy.Request): { statusCode: number; body: string } | undefined => {
     try {
       request.event.body = schema.parse(request.event.body);
       return undefined;

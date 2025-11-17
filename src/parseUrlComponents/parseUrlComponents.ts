@@ -18,7 +18,7 @@ export const parseDomain = (hostname: string): string => {
       : hostnameParts.slice(-2).join('.');
 
     const preservedSubdomain = hostnameParts.find((part): part is string =>
-      config.PRESERVED_SUBDOMAINS.has(part)
+      config.PRESERVED_SUBDOMAINS.has(part),
     );
 
     // Return early if no preserved subdomain or if it's already in the base domain
@@ -28,9 +28,11 @@ export const parseDomain = (hostname: string): string => {
 
     return `${preservedSubdomain}.${baseDomain}`;
   } catch (error) {
-    throw new Error(`Failed to parse domain for "${hostname}": ${error instanceof Error ? error.message : 'Unknown error'}`);
+    throw new Error(
+      `Failed to parse domain for "${hostname}": ${error instanceof Error ? error.message : 'Unknown error'}`,
+    );
   }
-}
+};
 
 export const createUrlKey = (baseKey: string): string => {
   try {
@@ -38,12 +40,14 @@ export const createUrlKey = (baseKey: string): string => {
       .update(baseKey)
       .digest('base64')
       .slice(0, 16)
-      .replace(/[+/=]/g, '_')
-      .replace(/\//g, '-');
+      .replaceAll(/[+/=]/g, '_')
+      .replaceAll('/', '-');
   } catch (error) {
-    throw new Error(`Failed to create URL key for "${baseKey}": ${error instanceof Error ? error.message : 'Unknown error'}`);
+    throw new Error(
+      `Failed to create URL key for "${baseKey}": ${error instanceof Error ? error.message : 'Unknown error'}`,
+    );
   }
-}
+};
 
 export const parseUrlComponents = (url: string): URLComponents => {
   try {
@@ -68,6 +72,8 @@ export const parseUrlComponents = (url: string): URLComponents => {
       original: url,
     };
   } catch (error) {
-    throw new Error(`Failed to parse URL components for "${url}": ${error instanceof Error ? error.message : 'Unknown error'}`);
+    throw new Error(
+      `Failed to parse URL components for "${url}": ${error instanceof Error ? error.message : 'Unknown error'}`,
+    );
   }
-}
+};

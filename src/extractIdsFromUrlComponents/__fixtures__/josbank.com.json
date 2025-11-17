@@ -5,21 +5,15 @@
   "testCases": [
     {
       "url": "https://www.josbank.com/p/1905-collection-tailored-fit-flat-front-dress-pants-2NPK",
-      "expectedSkus": [
-        "2NPK"
-      ]
+      "expectedSkus": ["2NPK"]
     },
     {
       "url": "https://www.josbank.com/p/reserve-collection-tailored-fit-suit-3BY7",
-      "expectedSkus": [
-        "3BY7"
-      ]
+      "expectedSkus": ["3BY7"]
     },
     {
       "url": "https://www.josbank.com/p/traveler-collection-traditional-fit-dress-shirt-4KL9",
-      "expectedSkus": [
-        "4KL9"
-      ]
+      "expectedSkus": ["4KL9"]
     }
   ]
 }

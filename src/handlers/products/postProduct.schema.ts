@@ -2,15 +2,15 @@ import { z } from 'zod';
 
 export const postProductSchema = z.object({
   store: z.object({
-    id: z.string().min(1, "Store ID is required"),
-    name: z.string().optional()
+    id: z.string().min(1, 'Store ID is required'),
+    name: z.string().optional(),
   }),
   product: z.object({
-    name: z.string().min(1, "Title is required"),
-    url: z.string().min(1, "URL is required"),
+    name: z.string().min(1, 'Title is required'),
+    url: z.string().min(1, 'URL is required'),
     canonicalUrl: z.string().optional(),
     description: z.string().optional(),
-    image: z.string().min(1, "Image is required"),
+    image: z.string().min(1, 'Image is required'),
     images: z.array(z.string()).optional(),
     price: z.string().optional(),
     priceCurrency: z.string().optional(),
@@ -31,5 +31,5 @@ export const postProductSchema = z.object({
     availability: z.string().optional(),
     ratingValue: z.string().optional(),
     ratingCount: z.string().optional(),
-  })
+  }),
 });

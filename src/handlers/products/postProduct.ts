@@ -1,17 +1,18 @@
-import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { z } from 'zod';
 import middy from '@middy/core';
-import jsonBodyParser from '@middy/http-json-body-parser';
 import httpErrorHandler from '@middy/http-error-handler';
+import jsonBodyParser from '@middy/http-json-body-parser';
+import { postProductSchema } from './postProduct.schema';
+import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
+import type { z } from 'zod';
+import { extractIdsFromUrlComponents } from '@/extractIdsFromUrlComponents';
 import { createZodValidator } from '@/middleware/zodValidator';
 import { parseUrlComponents } from '@/parseUrlComponents';
-import { extractIdsFromUrlComponents } from '@/extractIdsFromUrlComponents';
-import { postProductSchema } from './postProduct.schema';
 
 export type PostProductRequest = z.infer<typeof postProductSchema>;
 
-const createProductHandler = async (event: APIGatewayProxyEvent & { body: PostProductRequest }): Promise<APIGatewayProxyResult> => {
-  const { store, product } = event.body;
+const createProductHandler = (event: APIGatewayProxyEvent): APIGatewayProxyResult => {
+  // After validation middleware, body is PostProductRequest
+  const { store, product } = event.body as unknown as PostProductRequest;
   const urlComponents = parseUrlComponents(product.url);
   const ids = extractIdsFromUrlComponents({ urlComponents, storeId: store.id });
 
@@ -19,17 +20,16 @@ const createProductHandler = async (event: APIGatewayProxyEvent & { body: PostPr
     statusCode: 200,
     body: JSON.stringify({
       message: 'Product created successfully',
-      store: store,
-      product: product,
-      urlComponents: urlComponents,
-      ids: ids,
-    })
+      store,
+      product,
+      urlComponents,
+      ids: [...ids],
+    }),
   };
 };
 
 // Wrap with middy, using the imported validator
-export const handler = middy()
+export const handler = middy(createProductHandler)
   .use(jsonBodyParser())
   .use(createZodValidator(postProductSchema))
-  .use(httpErrorHandler())
-  .handler(createProductHandler);
+  .use(httpErrorHandler());
