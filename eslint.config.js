@@ -1,6 +1,6 @@
-import globals from "globals";
-import pluginJs from "@eslint/js";
-import tseslint from "typescript-eslint";
+import globals from 'globals';
+import pluginJs from '@eslint/js';
+import tseslint from 'typescript-eslint';
 import regexpPlugin from 'eslint-plugin-regexp';
 import unicornPlugin from 'eslint-plugin-unicorn';
 
@@ -9,53 +9,54 @@ export default [
   // Ignore patterns
   {
     ignores: [
-      "node_modules/**",
-      "dist/**",
-      ".serverless/**",
-      ".esbuild/**",
-      "coverage/**",
-      ".vscode/**",
-      ".git/**",
-      ".DS_Store",
-      ".env",
-      ".env.local",
-      "src/**/*.test.{js,mjs,cjs,ts}"
-    ]
+      'node_modules/**',
+      'dist/**',
+      '.serverless/**',
+      '.esbuild/**',
+      'coverage/**',
+      '.vscode/**',
+      '.git/**',
+      '.DS_Store',
+      '.env',
+      '.env.local',
+      'src/**/*.test.{js,mjs,cjs,ts}',
+      'src/**/example.{js,ts}',
+    ],
   },
-  
+
   // Base config for all JavaScript files
   pluginJs.configs.recommended,
-  
+
   // Config for JavaScript config files (not TypeScript source)
   {
-    files: ["*.js", "*.mjs", "*.cjs", ".*.js", ".*.mjs", ".*.cjs"],
+    files: ['*.js', '*.mjs', '*.cjs', '.*.js', '.*.mjs', '.*.cjs'],
     languageOptions: {
       globals: {
         ...globals.node,
-        ...globals.browser
+        ...globals.browser,
       },
       parserOptions: {
-        ecmaVersion: "latest",
-        sourceType: "module"
-      }
-    }
+        ecmaVersion: 'latest',
+        sourceType: 'module',
+      },
+    },
   },
-  
+
   // TypeScript-specific config (only for src files)
   {
-    files: ["src/**/*.ts"],
+    files: ['src/**/*.ts'],
     languageOptions: {
       globals: {
         ...globals.node,
-        ...globals.browser
+        ...globals.browser,
       },
       parser: tseslint.parser,
       parserOptions: {
-        project: "./tsconfig.json",
+        project: './tsconfig.json',
         tsconfigRootDir: import.meta.dirname,
-        ecmaVersion: "latest",
-        sourceType: "module"
-      }
+        ecmaVersion: 'latest',
+        sourceType: 'module',
+      },
     },
     plugins: {
       '@typescript-eslint': tseslint.plugin,
@@ -64,31 +65,34 @@ export default [
     },
     rules: {
       ...tseslint.configs.recommended[0].rules,
-      
+
       // TypeScript specific rules
       '@typescript-eslint/no-explicit-any': 'warn',
-      '@typescript-eslint/no-unused-vars': ['error', { 
-        argsIgnorePattern: '^_',
-        varsIgnorePattern: '^_',
-      }],
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+        },
+      ],
       '@typescript-eslint/no-floating-promises': 'error',
-      
+
       // General rules
-      'no-console': ['warn', { allow: ['warn', 'error', 'info'] }],
-      'eqeqeq': ['error', 'always'],
-      'curly': ['error', 'all'],
-      
+      'no-console': 'off',
+      eqeqeq: ['error', 'always'],
+      curly: ['error', 'all'],
+
       // Plugin rules
       'regexp/no-contradiction-with-assertion': 'error',
       // Add other regexp and unicorn rules as needed
-    }
+    },
   },
-  
+
   // Add globals for browser environment
-  { 
-    files: ["src/**/*.ts"],
-    languageOptions: { 
-      globals: globals.browser 
-    } 
-  }
+  {
+    files: ['src/**/*.ts'],
+    languageOptions: {
+      globals: globals.browser,
+    },
+  },
 ];
