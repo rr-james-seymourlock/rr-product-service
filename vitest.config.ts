@@ -9,13 +9,13 @@ export default defineConfig({
     globals: true,
     coverage: {
       reporter: ['text', 'json', 'html'],
-      exclude: ['**/node_modules/**', '**/__tests__/**']
+      exclude: ['**/node_modules/**', '**/__tests__/**'],
     },
   },
   resolve: {
     alias: {
-      '@': resolve(__dirname, './src')
-    }
+      '@': resolve(import.meta.dirname, './src'),
+    },
   },
   esbuild: {
     target: 'esnext',
