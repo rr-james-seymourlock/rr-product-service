@@ -26,6 +26,7 @@ npm run offline           # Start Serverless Offline for local Lambda testing
 npm test                  # Run all tests (Vitest)
 npm run test:watch        # Run tests in watch mode
 npm run test:coverage     # Generate coverage report
+npm run test:bench        # Run performance benchmarks
 npm run typecheck         # Type check without emitting files
 npm run lint              # Check for linting issues
 npm run lint:fix          # Auto-fix linting issues

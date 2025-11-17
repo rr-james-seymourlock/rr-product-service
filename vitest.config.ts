@@ -14,6 +14,12 @@ export default defineConfig({
     maxConcurrency: 10,
     isolate: true,
 
+    // Benchmark configuration
+    benchmark: {
+      include: ['**/__tests__/**/*.bench.ts'],
+      exclude: ['**/node_modules/**', '**/dist/**'],
+    },
+
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html', 'lcov'],

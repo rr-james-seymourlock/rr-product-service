@@ -108,7 +108,8 @@ describe('Regex pattern security & performance', () => {
   });
 
   test('should complete regex matching within 10ms', () => {
-    // 1ms threshold was validatd against a slow pattern
+    // Basic performance test to catch catastrophically slow patterns
+    // For detailed performance analysis, see regex.bench.ts (run with: npm run test:bench)
     const TIMEOUT_MS = 10;
     const testString = [
       'https://www.subdomain.domain.com',
