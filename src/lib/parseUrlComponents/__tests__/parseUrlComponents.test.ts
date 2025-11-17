@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import { ZodError } from 'zod';
 import { parseUrlComponents, parseDomain, createUrlKey } from '../parseUrlComponents';
 
 describe('parseUrlComponents', () => {
@@ -215,32 +216,28 @@ describe('parseUrlComponents', () => {
   });
 
   describe('error handling', () => {
-    it('should throw error for null input', () => {
-      expect(() => parseUrlComponents(null as unknown as string)).toThrow(
-        'Failed to parse URL components',
-      );
+    it('should throw ZodError for null input', () => {
+      expect(() => parseUrlComponents(null as unknown as string)).toThrow(ZodError);
     });
 
-    it('should throw error for undefined input', () => {
-      expect(() => parseUrlComponents(undefined as unknown as string)).toThrow(
-        'Failed to parse URL components',
-      );
+    it('should throw ZodError for undefined input', () => {
+      expect(() => parseUrlComponents(undefined as unknown as string)).toThrow(ZodError);
     });
 
-    it('should throw error for non-string input', () => {
-      expect(() => parseUrlComponents(123 as unknown as string)).toThrow();
-      expect(() => parseUrlComponents({} as unknown as string)).toThrow();
-      expect(() => parseUrlComponents([] as unknown as string)).toThrow();
+    it('should throw ZodError for non-string input', () => {
+      expect(() => parseUrlComponents(123 as unknown as string)).toThrow(ZodError);
+      expect(() => parseUrlComponents({} as unknown as string)).toThrow(ZodError);
+      expect(() => parseUrlComponents([] as unknown as string)).toThrow(ZodError);
     });
 
-    it('should include original URL in error message when normalization fails', () => {
-      // normalize-url is very forgiving, but new URL() will fail for truly invalid URLs
-      try {
-        parseUrlComponents(null as unknown as string);
-      } catch (error) {
-        expect(error).toBeInstanceOf(Error);
-        expect((error as Error).message).toContain('Failed to parse URL components');
-      }
+    it('should throw ZodError for empty string', () => {
+      expect(() => parseUrlComponents('')).toThrow(ZodError);
+    });
+
+    it('should throw ZodError for invalid protocols', () => {
+      expect(() => parseUrlComponents('javascript:alert(1)')).toThrow(ZodError);
+      expect(() => parseUrlComponents('data:text/html,test')).toThrow(ZodError);
+      expect(() => parseUrlComponents('file:///etc/passwd')).toThrow(ZodError);
     });
   });
 
@@ -361,22 +358,24 @@ describe('parseUrlComponents', () => {
 
 describe('parseDomain', () => {
   describe('error handling', () => {
-    it('should throw error for null hostname', () => {
-      expect(() => parseDomain(null as unknown as string)).toThrow();
+    it('should throw ZodError for null hostname', () => {
+      expect(() => parseDomain(null as unknown as string)).toThrow(ZodError);
     });
 
-    it('should throw error for undefined hostname', () => {
-      expect(() => parseDomain(undefined as unknown as string)).toThrow();
+    it('should throw ZodError for undefined hostname', () => {
+      expect(() => parseDomain(undefined as unknown as string)).toThrow(ZodError);
+    });
+
+    it('should throw ZodError for empty hostname', () => {
+      expect(() => parseDomain('')).toThrow(ZodError);
+    });
+
+    it('should throw ZodError for non-string hostname', () => {
+      expect(() => parseDomain(123 as unknown as string)).toThrow(ZodError);
     });
   });
 
   describe('edge cases', () => {
-    it('should handle empty hostname without throwing', () => {
-      // Empty string returns empty - doesn't throw
-      const result = parseDomain('');
-      expect(result).toBe('');
-    });
-
     it('should handle single part domain (edge case)', () => {
       // This is an edge case - technically invalid but should not crash
       expect(() => parseDomain('localhost')).not.toThrow();
@@ -388,18 +387,17 @@ describe('parseDomain', () => {
 
 describe('createUrlKey', () => {
   describe('error handling', () => {
-    it('should throw error for null input', () => {
-      expect(() => createUrlKey(null as unknown as string)).toThrow('Failed to create URL key');
+    it('should throw ZodError for null input', () => {
+      expect(() => createUrlKey(null as unknown as string)).toThrow(ZodError);
     });
 
-    it('should throw error for undefined input', () => {
-      expect(() => createUrlKey(undefined as unknown as string)).toThrow(
-        'Failed to create URL key',
-      );
+    it('should throw ZodError for undefined input', () => {
+      expect(() => createUrlKey(undefined as unknown as string)).toThrow(ZodError);
     });
 
-    it('should include base key in error message', () => {
-      expect(() => createUrlKey(null as unknown as string)).toThrow('Failed to create URL key');
+    it('should throw ZodError for non-string input', () => {
+      expect(() => createUrlKey(123 as unknown as string)).toThrow(ZodError);
+      expect(() => createUrlKey({} as unknown as string)).toThrow(ZodError);
     });
   });
 
