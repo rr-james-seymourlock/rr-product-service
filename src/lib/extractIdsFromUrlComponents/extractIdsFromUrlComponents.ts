@@ -1,5 +1,5 @@
 import { config } from './config';
-import type { URLComponents } from '@/parseUrlComponents';
+import type { URLComponents } from '@/lib/parseUrlComponents';
 import { getStoreConfig } from '@/storeConfigs';
 
 interface PatternExtractorInput {

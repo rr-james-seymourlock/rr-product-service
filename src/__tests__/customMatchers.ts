@@ -1,6 +1,6 @@
 import { expect } from 'vitest';
 import { extractIdsFromUrlComponents } from '@/lib/extractIdsFromUrlComponents';
-import { parseUrlComponents } from '@/parseUrlComponents';
+import { parseUrlComponents } from '@/lib/parseUrlComponents';
 
 /**
  * Custom Vitest matchers for product ID validation and URL parsing

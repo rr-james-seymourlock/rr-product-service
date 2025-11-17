@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { assertProductIdsMatch, END_OF_STRING_CHARS } from './testUtilities';
-import { parseUrlComponents } from '@/parseUrlComponents';
+import { parseUrlComponents } from '@/lib/parseUrlComponents';
 import { extractIdsFromUrlComponents } from '../extractIdsFromUrlComponents';
 import { config } from '../config';
 

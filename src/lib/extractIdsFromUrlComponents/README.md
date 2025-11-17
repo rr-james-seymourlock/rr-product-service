@@ -32,7 +32,7 @@ import { extractIdsFromUrlComponents } from '@/lib/extractIdsFromUrlComponents';
 
 ```typescript
 import { extractIdsFromUrlComponents } from '@/lib/extractIdsFromUrlComponents';
-import { parseUrlComponents } from '@/parseUrlComponents';
+import { parseUrlComponents } from '@/lib/parseUrlComponents';
 
 const url = 'https://www.nike.com/t/air-max-270-mens-shoe/AH8050-001';
 const urlComponents = parseUrlComponents(url);
