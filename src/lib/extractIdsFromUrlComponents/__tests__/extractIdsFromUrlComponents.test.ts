@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { extractIdsFromUrlComponents } from '@/extractIdsFromUrlComponents';
+import { extractIdsFromUrlComponents } from '../extractIdsFromUrlComponents';
 
 vi.mock('@/storeConfigs/storeConfigManager');
 

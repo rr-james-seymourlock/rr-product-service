@@ -1,5 +1,5 @@
 import { expect } from 'vitest';
-import { extractIdsFromUrlComponents } from '@/extractIdsFromUrlComponents';
+import { extractIdsFromUrlComponents } from '@/lib/extractIdsFromUrlComponents';
 import { parseUrlComponents } from '@/parseUrlComponents';
 
 /**

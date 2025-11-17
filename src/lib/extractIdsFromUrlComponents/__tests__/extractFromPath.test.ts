@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { assertProductIdsMatch, END_OF_STRING_CHARS } from './testUtilities';
 import { parseUrlComponents } from '@/parseUrlComponents';
-import { extractIdsFromUrlComponents } from '@/extractIdsFromUrlComponents';
+import { extractIdsFromUrlComponents } from '../extractIdsFromUrlComponents';
 import { config } from '../config';
 
 describe('Path extraction patterns', () => {
