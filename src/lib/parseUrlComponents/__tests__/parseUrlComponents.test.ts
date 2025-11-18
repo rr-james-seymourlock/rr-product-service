@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { ZodError } from 'zod';
 import { parseUrlComponents, parseDomain, createUrlKey } from '../parseUrlComponents';
 
@@ -216,28 +216,90 @@ describe('parseUrlComponents', () => {
   });
 
   describe('error handling', () => {
-    it('should throw ZodError for null input', () => {
-      expect(() => parseUrlComponents(null as unknown as string)).toThrow(ZodError);
+    describe('development mode', () => {
+      const originalNodeEnv = process.env['NODE_ENV'];
+
+      beforeEach(() => {
+        process.env['NODE_ENV'] = 'development';
+      });
+
+      afterEach(() => {
+        process.env['NODE_ENV'] = originalNodeEnv;
+      });
+
+      it('should throw ZodError for null input in development', () => {
+        expect(() => parseUrlComponents(null as unknown as string)).toThrow(ZodError);
+      });
+
+      it('should throw ZodError for undefined input in development', () => {
+        expect(() => parseUrlComponents(undefined as unknown as string)).toThrow(ZodError);
+      });
+
+      it('should throw ZodError for non-string input in development', () => {
+        expect(() => parseUrlComponents(123 as unknown as string)).toThrow(ZodError);
+        expect(() => parseUrlComponents({} as unknown as string)).toThrow(ZodError);
+        expect(() => parseUrlComponents([] as unknown as string)).toThrow(ZodError);
+      });
+
+      it('should throw ZodError for empty string in development', () => {
+        expect(() => parseUrlComponents('')).toThrow(ZodError);
+      });
+
+      it('should throw ZodError for invalid protocols in development', () => {
+        expect(() => parseUrlComponents('javascript:alert(1)')).toThrow(ZodError);
+        expect(() => parseUrlComponents('data:text/html,test')).toThrow(ZodError);
+        expect(() => parseUrlComponents('file:///etc/passwd')).toThrow(ZodError);
+      });
     });
 
-    it('should throw ZodError for undefined input', () => {
-      expect(() => parseUrlComponents(undefined as unknown as string)).toThrow(ZodError);
-    });
+    describe('production mode', () => {
+      const originalNodeEnv = process.env['NODE_ENV'];
 
-    it('should throw ZodError for non-string input', () => {
-      expect(() => parseUrlComponents(123 as unknown as string)).toThrow(ZodError);
-      expect(() => parseUrlComponents({} as unknown as string)).toThrow(ZodError);
-      expect(() => parseUrlComponents([] as unknown as string)).toThrow(ZodError);
-    });
+      beforeEach(() => {
+        process.env['NODE_ENV'] = 'production';
+      });
 
-    it('should throw ZodError for empty string', () => {
-      expect(() => parseUrlComponents('')).toThrow(ZodError);
-    });
+      afterEach(() => {
+        process.env['NODE_ENV'] = originalNodeEnv;
+      });
 
-    it('should throw ZodError for invalid protocols', () => {
-      expect(() => parseUrlComponents('javascript:alert(1)')).toThrow(ZodError);
-      expect(() => parseUrlComponents('data:text/html,test')).toThrow(ZodError);
-      expect(() => parseUrlComponents('file:///etc/passwd')).toThrow(ZodError);
+      it('should throw Error for null input in production', () => {
+        expect(() => parseUrlComponents(null as unknown as string)).toThrow(
+          'URL must be a non-empty string',
+        );
+      });
+
+      it('should throw Error for undefined input in production', () => {
+        expect(() => parseUrlComponents(undefined as unknown as string)).toThrow(
+          'URL must be a non-empty string',
+        );
+      });
+
+      it('should throw Error for non-string input in production', () => {
+        expect(() => parseUrlComponents(123 as unknown as string)).toThrow(
+          'URL must be a non-empty string',
+        );
+        expect(() => parseUrlComponents({} as unknown as string)).toThrow(
+          'URL must be a non-empty string',
+        );
+        expect(() => parseUrlComponents([] as unknown as string)).toThrow(
+          'URL must be a non-empty string',
+        );
+      });
+
+      it('should throw Error for empty string in production', () => {
+        expect(() => parseUrlComponents('')).toThrow('URL must be a non-empty string');
+      });
+
+      it('should throw Error for invalid protocols in production', () => {
+        expect(() => parseUrlComponents('javascript:alert(1)')).toThrow('Invalid protocol');
+        expect(() => parseUrlComponents('data:text/html,test')).toThrow('Invalid protocol');
+        expect(() => parseUrlComponents('file:///etc/passwd')).toThrow('Invalid protocol');
+      });
+
+      it('should throw Error for invalid URL format in production', () => {
+        expect(() => parseUrlComponents('not a url')).toThrow('Invalid URL format');
+      });
     });
   });
 

@@ -4,6 +4,7 @@ import {
   extractIdsInputSchema,
   productIdsSchema,
   type ProductIds,
+  type ExtractIdsInput,
 } from './extractIdsFromUrlComponents.schema';
 import { getStoreConfig } from '@/storeConfigs';
 
@@ -111,16 +112,20 @@ export const patternExtractor = (input: unknown): Set<string> => {
  * - Query parameter extraction
  * - Safe error handling
  *
+ * Performance:
+ * - Development: Full Zod validation (catch integration bugs)
+ * - Production: No validation (trust upstream parseUrlComponents)
+ *
  * Extraction order:
  * 1. Domain-specific pathname patterns (with optional transformId)
  * 2. Generic pathname patterns (if no domain-specific matches)
  * 3. Domain-specific search patterns
  * 4. Generic search patterns
  *
- * @param input - Object containing URL components and optional store ID (validated at runtime)
+ * @param input - Object containing URL components and optional store ID
  * @returns Frozen, sorted array of product IDs (max 12)
  *
- * @throws {ZodError} If input or output validation fails
+ * @throws {ZodError} If input or output validation fails (development only)
  *
  * @example
  * ```typescript
@@ -129,9 +134,14 @@ export const patternExtractor = (input: unknown): Set<string> => {
  * // Returns: ['abc-123'] (frozen array)
  * ```
  */
-export const extractIdsFromUrlComponents = (input: unknown): ProductIds => {
-  // Validate input - throws ZodError if invalid
-  const { urlComponents, storeId } = extractIdsInputSchema.parse(input);
+export const extractIdsFromUrlComponents = (input: ExtractIdsInput): ProductIds => {
+  // Validate in development to catch integration bugs
+  if (process.env['NODE_ENV'] === 'development') {
+    extractIdsInputSchema.parse(input);
+  }
+
+  // Production trusts upstream validation (already validated by parseUrlComponents)
+  const { urlComponents, storeId } = input;
 
   const { domain, pathname, search, href } = urlComponents;
   const results = new Set<string>();
@@ -183,6 +193,10 @@ export const extractIdsFromUrlComponents = (input: unknown): ProductIds => {
 
   const sortedResults = Object.freeze([...results].sort());
 
-  // Validate output - ensures internal correctness
-  return productIdsSchema.parse(sortedResults);
+  // Validate output in development only (ensures regex patterns work correctly)
+  if (process.env['NODE_ENV'] === 'development') {
+    return productIdsSchema.parse(sortedResults);
+  }
+
+  return sortedResults as ProductIds;
 };

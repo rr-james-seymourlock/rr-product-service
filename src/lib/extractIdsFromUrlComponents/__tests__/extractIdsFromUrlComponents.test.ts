@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { extractIdsFromUrlComponents } from '../extractIdsFromUrlComponents';
 import { parseUrlComponents } from '@/lib/parseUrlComponents';
 import { ZodError } from 'zod';
@@ -13,44 +13,56 @@ describe('extractIdsFromUrlComponents', () => {
     expect(result).toEqual([]);
   });
 
-  it('should throw ZodError for invalid urlComponents input', () => {
-    const invalidInput = {
-      urlComponents: {
-        href: '',
-        pathname: '',
-        search: '',
-        domain: 'example.com',
-        hostname: '',
-        // Missing required fields
-      },
-    };
+  describe('development mode validation', () => {
+    const originalNodeEnv = process.env['NODE_ENV'];
 
-    expect(() => extractIdsFromUrlComponents(invalidInput)).toThrow(ZodError);
-  });
+    beforeEach(() => {
+      process.env['NODE_ENV'] = 'development';
+    });
 
-  it('should throw ZodError for null pathname in urlComponents', () => {
-    const invalidInput = {
-      urlComponents: {
-        href: 'https://example.com',
-        pathname: null,
-        search: '',
-        domain: 'example.com',
-        hostname: 'example.com',
-      },
-    };
+    afterEach(() => {
+      process.env['NODE_ENV'] = originalNodeEnv;
+    });
 
-    expect(() => extractIdsFromUrlComponents(invalidInput)).toThrow(ZodError);
-  });
+    it('should throw ZodError for invalid urlComponents input in development', () => {
+      const invalidInput = {
+        urlComponents: {
+          href: '',
+          pathname: '',
+          search: '',
+          domain: 'example.com',
+          hostname: '',
+          // Missing required fields
+        },
+      };
 
-  it('should throw ZodError for missing urlComponents', () => {
-    expect(() => extractIdsFromUrlComponents({ storeId: 'test' })).toThrow(ZodError);
-  });
+      expect(() => extractIdsFromUrlComponents(invalidInput as any)).toThrow(ZodError);
+    });
 
-  it('should throw ZodError for empty storeId', () => {
-    const url = 'https://example.com/product';
-    const urlComponents = parseUrlComponents(url);
+    it('should throw ZodError for null pathname in urlComponents in development', () => {
+      const invalidInput = {
+        urlComponents: {
+          href: 'https://example.com',
+          pathname: null,
+          search: '',
+          domain: 'example.com',
+          hostname: 'example.com',
+        },
+      };
 
-    expect(() => extractIdsFromUrlComponents({ urlComponents, storeId: '' })).toThrow(ZodError);
+      expect(() => extractIdsFromUrlComponents(invalidInput as any)).toThrow(ZodError);
+    });
+
+    it('should throw ZodError for missing urlComponents in development', () => {
+      expect(() => extractIdsFromUrlComponents({ storeId: 'test' } as any)).toThrow(ZodError);
+    });
+
+    it('should throw ZodError for empty storeId in development', () => {
+      const url = 'https://example.com/product';
+      const urlComponents = parseUrlComponents(url);
+
+      expect(() => extractIdsFromUrlComponents({ urlComponents, storeId: '' })).toThrow(ZodError);
+    });
   });
 
   it('should return frozen array', () => {

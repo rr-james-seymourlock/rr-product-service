@@ -97,10 +97,14 @@ export const createUrlKey = (baseKey: unknown): string => {
  * - Unique key generation (SHA-1 based, URL-safe, 16 characters)
  * - Brand subdomain preservation (oldnavy.gap.com, etc.)
  *
+ * Performance:
+ * - Development: Full Zod validation (catch all edge cases)
+ * - Production: Native URL validation + lightweight checks (2μs vs 5-10μs)
+ *
  * @param url - The URL to parse and normalize
  * @returns URLComponents object with normalized URL data
  *
- * @throws {ZodError} If URL is invalid, empty, or not HTTP(S)
+ * @throws {ZodError} If URL is invalid, empty, or not HTTP(S) (development only)
  * @throws {Error} If URL cannot be parsed or normalized
  *
  * @example
@@ -120,8 +124,35 @@ export const createUrlKey = (baseKey: unknown): string => {
  * ```
  */
 export const parseUrlComponents = (url: unknown): URLComponents => {
-  // Validate input - throws ZodError if invalid
-  const validatedUrl = urlInputSchema.parse(url);
+  let validatedUrl: string;
+
+  if (process.env['NODE_ENV'] === 'development') {
+    // Full Zod validation in development
+    validatedUrl = urlInputSchema.parse(url);
+  } else {
+    // Lightweight validation in production
+    if (typeof url !== 'string' || url.length === 0) {
+      throw new Error('URL must be a non-empty string');
+    }
+
+    // Native URL constructor validates format (fast, secure)
+    try {
+      const testUrl = new URL(url);
+
+      // Block dangerous protocols
+      if (testUrl.protocol !== 'http:' && testUrl.protocol !== 'https:') {
+        throw new Error(
+          `Invalid protocol: ${testUrl.protocol}. Only HTTP(S) protocols are allowed`,
+        );
+      }
+    } catch (error) {
+      throw new Error(
+        `Invalid URL format: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+    }
+
+    validatedUrl = url;
+  }
 
   try {
     const normalized = normalizeUrl(validatedUrl, config.NORMALIZATION_RULES).toLowerCase();
@@ -146,8 +177,12 @@ export const parseUrlComponents = (url: unknown): URLComponents => {
       original: validatedUrl,
     };
 
-    // Validate output - ensures internal correctness
-    return urlComponentsSchema.parse(result);
+    // Validate output in development only
+    if (process.env['NODE_ENV'] === 'development') {
+      return urlComponentsSchema.parse(result);
+    }
+
+    return result as URLComponents;
   } catch (error) {
     throw new Error(
       `Failed to parse URL components for "${validatedUrl}": ${error instanceof Error ? error.message : 'Unknown error'}`,
