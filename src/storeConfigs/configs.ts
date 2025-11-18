@@ -858,6 +858,33 @@ export const storeConfigs: StoreConfigInterface[] = [
       ),
     ],
   },
+  {
+    id: 'test-search-patterns',
+    domain: 'test-search.example.com',
+    pathnamePatterns: [
+      buildRegExp([wordBoundary, 'test-', capture(repeat(digit, { min: 6 })), wordBoundary], {
+        global: true,
+      }),
+    ],
+    searchPatterns: [
+      buildRegExp(
+        [
+          '[?&]productId=',
+          capture(repeat(choiceOf(word, digit), { min: 6, max: 24 })),
+          wordBoundary,
+        ],
+        { global: true },
+      ),
+      buildRegExp(
+        [
+          '[?&]sku=',
+          capture(repeat(choiceOf(word, digit, '-', '_'), { min: 4, max: 24 })),
+          wordBoundary,
+        ],
+        { global: true },
+      ),
+    ],
+  },
 ];
 
 // storeConfig({
