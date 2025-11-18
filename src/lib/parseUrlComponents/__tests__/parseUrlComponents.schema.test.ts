@@ -97,8 +97,7 @@ describe('urlInputSchema', () => {
       const result = urlInputSchema.safeParse(null);
       expect(result.success).toBe(false);
       if (!result.success) {
-        // Zod v4 returns "Invalid input: expected string, received null" for type errors
-        expect(result.error.issues[0]?.message).toContain('expected string');
+        expect(result.error.issues[0]?.message).toBe('URL must be a string');
       }
     });
 
@@ -286,8 +285,7 @@ describe('baseKeySchema', () => {
       const result = baseKeySchema.safeParse(null);
       expect(result.success).toBe(false);
       if (!result.success) {
-        // Zod v4 returns "Invalid input: expected string, received null" for type errors
-        expect(result.error.issues[0]?.message).toContain('expected string');
+        expect(result.error.issues[0]?.message).toBe('Base key must be a string');
       }
     });
   });
