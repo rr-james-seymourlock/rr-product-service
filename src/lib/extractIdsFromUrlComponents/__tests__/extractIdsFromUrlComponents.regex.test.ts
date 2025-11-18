@@ -1,6 +1,6 @@
 import safeRegex from 'safe-regex';
 import { describe, test, expect } from 'vitest';
-import { config } from '../config';
+import { config } from '../extractIdsFromUrlComponents.config';
 import { COMPILED_PATTERNS } from '@/storeConfigs';
 
 // Collect all patterns from searchPatterns, pathnamePatterns, and store configs

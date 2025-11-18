@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { patternExtractor, extractIdsFromUrlComponents } from '../extractIdsFromUrlComponents';
 import * as storeConfigModule from '@/storeConfigs';
-import { config } from '../config';
+import { config } from '../extractIdsFromUrlComponents.config';
 
 describe('Error handling', () => {
   let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
@@ -19,21 +19,14 @@ describe('Error handling', () => {
   });
 
   describe('patternExtractor error handling', () => {
-    it('should validate pattern is RegExp in development mode', () => {
-      const originalNodeEnv = process.env['NODE_ENV'];
-      process.env['NODE_ENV'] = 'development';
-
-      const result = patternExtractor({
-        source: 'test123',
-        pattern: 'not a regex' as any,
-      });
-
-      expect(result).toEqual(new Set());
-      expect(consoleWarnSpy).toHaveBeenCalledWith(
-        expect.stringContaining('pattern must be a RegExp object'),
-      );
-
-      process.env['NODE_ENV'] = originalNodeEnv;
+    it('should throw ZodError for non-RegExp pattern', () => {
+      // Zod validation now catches this before development mode check
+      expect(() =>
+        patternExtractor({
+          source: 'test123',
+          pattern: 'not a regex' as any,
+        }),
+      ).toThrow('Pattern must be a RegExp object');
     });
 
     it('should validate pattern has global flag in development mode', () => {
@@ -171,7 +164,7 @@ describe('Error handling', () => {
         pathname: '/product/p123456789',
         search: '',
         domain: 'example.com',
-        key: 'abc123_defg4567',
+        key: 'abc123_defg45678', // 16 characters
         original: 'https://example.com/product/p123456789',
       };
 
@@ -199,7 +192,7 @@ describe('Error handling', () => {
         pathname: '/product/p123456789',
         search: '',
         domain: 'example.com',
-        key: 'abc123_defg4567',
+        key: 'abc123_defg45678', // 16 characters
         original: 'https://example.com/product/p123456789',
       };
 

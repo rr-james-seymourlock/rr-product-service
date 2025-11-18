@@ -1,13 +1,38 @@
-import { config } from './config';
-import type { URLComponents } from '@/lib/parseUrlComponents';
+import { config } from './extractIdsFromUrlComponents.config';
+import {
+  patternExtractorInputSchema,
+  extractIdsInputSchema,
+  productIdsSchema,
+  type ProductIds,
+} from './extractIdsFromUrlComponents.schema';
 import { getStoreConfig } from '@/storeConfigs';
 
-interface PatternExtractorInput {
-  source: string;
-  pattern: RegExp;
-}
-
-export const patternExtractor = ({ source, pattern }: PatternExtractorInput): Set<string> => {
+/**
+ * Extracts product IDs from a source string using a regular expression pattern.
+ *
+ * Features:
+ * - Timeout protection (100ms maximum)
+ * - Result limiting (12 IDs maximum)
+ * - Safe regex validation in development mode
+ * - Captures up to 2 groups per match
+ *
+ * @param input - Object containing source string and RegExp pattern (validated at runtime)
+ * @returns Set of extracted product IDs
+ *
+ * @throws {ZodError} If input validation fails
+ *
+ * @example
+ * ```typescript
+ * const ids = patternExtractor({
+ *   source: '/product/p123456789',
+ *   pattern: /p(\d{6,})/g
+ * });
+ * // Returns: Set(['p123456789', '123456789'])
+ * ```
+ */
+export const patternExtractor = (input: unknown): Set<string> => {
+  // Validate input - throws ZodError if invalid
+  const { source, pattern } = patternExtractorInputSchema.parse(input);
   if (process.env['NODE_ENV'] === 'development') {
     if (!(pattern instanceof RegExp)) {
       console.warn('Invalid input: pattern must be a RegExp object. Returning empty set.');
@@ -55,13 +80,38 @@ export const patternExtractor = ({ source, pattern }: PatternExtractorInput): Se
   return matches;
 };
 
-export const extractIdsFromUrlComponents = ({
-  urlComponents,
-  storeId,
-}: {
-  urlComponents: URLComponents;
-  storeId?: string;
-}): ReadonlyArray<string> => {
+/**
+ * Extracts product IDs from URL components using pattern matching.
+ *
+ * Features:
+ * - Domain-specific pattern extraction with priority
+ * - Store-specific ID transformation support
+ * - Fallback to generic patterns
+ * - Query parameter extraction
+ * - Safe error handling
+ *
+ * Extraction order:
+ * 1. Domain-specific pathname patterns (with optional transformId)
+ * 2. Generic pathname patterns (if no domain-specific matches)
+ * 3. Domain-specific search patterns
+ * 4. Generic search patterns
+ *
+ * @param input - Object containing URL components and optional store ID (validated at runtime)
+ * @returns Frozen, sorted array of product IDs (max 12)
+ *
+ * @throws {ZodError} If input or output validation fails
+ *
+ * @example
+ * ```typescript
+ * const urlComponents = parseUrlComponents('https://nike.com/product/abc-123');
+ * const ids = extractIdsFromUrlComponents({ urlComponents });
+ * // Returns: ['abc-123'] (frozen array)
+ * ```
+ */
+export const extractIdsFromUrlComponents = (input: unknown): ProductIds => {
+  // Validate input - throws ZodError if invalid
+  const { urlComponents, storeId } = extractIdsInputSchema.parse(input);
+
   const { domain, pathname, search, href } = urlComponents;
   const results = new Set<string>();
 
@@ -113,5 +163,8 @@ export const extractIdsFromUrlComponents = ({
     );
   }
 
-  return Object.freeze([...results].sort());
+  const sortedResults = Object.freeze([...results].sort());
+
+  // Validate output - ensures internal correctness
+  return productIdsSchema.parse(sortedResults);
 };

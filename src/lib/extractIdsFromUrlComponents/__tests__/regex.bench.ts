@@ -1,5 +1,5 @@
 import { bench, describe } from 'vitest';
-import { config } from '../config';
+import { config } from '../extractIdsFromUrlComponents.config';
 import { COMPILED_PATTERNS } from '@/storeConfigs';
 
 /**
