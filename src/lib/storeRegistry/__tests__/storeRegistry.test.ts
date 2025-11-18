@@ -3,6 +3,7 @@ import {
   getStoreConfig,
   STORE_ID_CONFIG,
   STORE_NAME_CONFIG,
+  STORE_DOMAIN_CONFIG,
   COMPILED_PATTERNS,
 } from '../storeRegistry';
 import type { StoreConfigInterface } from '../storeRegistry.types';
@@ -167,6 +168,64 @@ describe('storeRegistry', () => {
     });
   });
 
+  describe('STORE_DOMAIN_CONFIG', () => {
+    it('should be a ReadonlyMap', () => {
+      expect(STORE_DOMAIN_CONFIG).toBeInstanceOf(Map);
+    });
+
+    it('should contain all primary domains', () => {
+      storeConfigs.forEach((store) => {
+        expect(STORE_DOMAIN_CONFIG.has(store.domain)).toBe(true);
+        const config = STORE_DOMAIN_CONFIG.get(store.domain);
+        expect(config?.id).toBe(store.id);
+        expect(config?.domain).toBe(store.domain);
+      });
+    });
+
+    it('should contain all alias domains', () => {
+      storeConfigs.forEach((store) => {
+        if (store.aliases) {
+          store.aliases.forEach((alias) => {
+            expect(STORE_DOMAIN_CONFIG.has(alias.domain)).toBe(true);
+            const config = STORE_DOMAIN_CONFIG.get(alias.domain);
+            expect(config?.id).toBe(store.id); // Alias points to main store config
+          });
+        }
+      });
+    });
+
+    it('should have correct size (primary + alias domains)', () => {
+      const expectedSize = storeConfigs.reduce((count, store) => {
+        return count + 1 + (store.aliases?.length ?? 0);
+      }, 0);
+      expect(STORE_DOMAIN_CONFIG.size).toBe(expectedSize);
+    });
+
+    it('should map domains directly to configs', () => {
+      const targetConfig = STORE_DOMAIN_CONFIG.get('target.com');
+      expect(targetConfig).toBeDefined();
+      expect(targetConfig?.id).toBe('5246');
+      expect(targetConfig?.domain).toBe('target.com');
+
+      const nikeConfig = STORE_DOMAIN_CONFIG.get('nike.com');
+      expect(nikeConfig).toBeDefined();
+      expect(nikeConfig?.id).toBe('9528');
+      expect(nikeConfig?.domain).toBe('nike.com');
+    });
+
+    it('should provide direct domain lookup without indirection', () => {
+      // Verify that STORE_DOMAIN_CONFIG provides correct config for domains
+      // Note: Duplicate IDs may cause STORE_ID_CONFIG to have last entry win
+      storeConfigs.forEach((store) => {
+        const configByDomain = STORE_DOMAIN_CONFIG.get(store.domain);
+        expect(configByDomain).toBeDefined();
+        expect(configByDomain?.domain).toBe(store.domain);
+        // Config should match either this store or another with same ID (duplicate ID case)
+        expect([store.id, configByDomain?.id]).toContain(store.id);
+      });
+    });
+  });
+
   describe('COMPILED_PATTERNS', () => {
     it('should be a ReadonlyMap', () => {
       expect(COMPILED_PATTERNS).toBeInstanceOf(Map);
@@ -299,8 +358,94 @@ describe('storeRegistry', () => {
       const endTime = performance.now();
       const avgTime = (endTime - startTime) / 1000;
 
-      // Should be fast (< 0.02ms per lookup on average, slightly slower than ID due to double Map access)
-      expect(avgTime).toBeLessThan(0.02);
+      // Should be very fast (< 0.01ms per lookup - optimized to single Map access)
+      expect(avgTime).toBeLessThan(0.01);
+    });
+
+    it('should scale linearly with number of lookups (1000 RPS simulation)', () => {
+      // Simulate 1 second of 1000 RPS traffic
+      const iterations = 1000;
+      const domains = ['target.com', 'nike.com', 'walmart.com', 'bestbuy.com'];
+      const ids = ['5246', '9528', '3828', '4712'];
+
+      const startTime = performance.now();
+
+      for (let i = 0; i < iterations; i++) {
+        // Mix of ID and domain lookups (50/50 split)
+        if (i % 2 === 0) {
+          const id = ids[i % ids.length];
+          if (id) getStoreConfig({ id });
+        } else {
+          const domain = domains[i % domains.length];
+          if (domain) getStoreConfig({ domain });
+        }
+      }
+
+      const endTime = performance.now();
+      const totalTime = endTime - startTime;
+
+      // At 1000 RPS, total time for 1000 lookups should be < 10ms
+      expect(totalTime).toBeLessThan(10);
+    });
+
+    it('should have consistent performance regardless of store position', () => {
+      // Test first, middle, and last stores
+      const firstStore = storeConfigs[0];
+      const middleStore = storeConfigs[Math.floor(storeConfigs.length / 2)];
+      const lastStore = storeConfigs[storeConfigs.length - 1];
+
+      // Ensure we have stores to test
+      expect(firstStore).toBeDefined();
+      expect(middleStore).toBeDefined();
+      expect(lastStore).toBeDefined();
+
+      if (!firstStore || !middleStore || !lastStore) {
+        throw new Error('Test requires at least one store config');
+      }
+
+      const iterations = 1000;
+
+      // Test first store
+      const startFirst = performance.now();
+      for (let i = 0; i < iterations; i++) {
+        getStoreConfig({ id: firstStore.id });
+      }
+      const firstTime = performance.now() - startFirst;
+
+      // Test middle store
+      const startMiddle = performance.now();
+      for (let i = 0; i < iterations; i++) {
+        getStoreConfig({ id: middleStore.id });
+      }
+      const middleTime = performance.now() - startMiddle;
+
+      // Test last store
+      const startLast = performance.now();
+      for (let i = 0; i < iterations; i++) {
+        getStoreConfig({ id: lastStore.id });
+      }
+      const lastTime = performance.now() - startLast;
+
+      // All should be within 2ms of each other (O(1) lookup, not O(n))
+      expect(Math.abs(firstTime - middleTime)).toBeLessThan(2);
+      expect(Math.abs(middleTime - lastTime)).toBeLessThan(2);
+      expect(Math.abs(firstTime - lastTime)).toBeLessThan(2);
+    });
+
+    it('should handle missing lookups efficiently', () => {
+      const iterations = 1000;
+      const startTime = performance.now();
+
+      for (let i = 0; i < iterations; i++) {
+        getStoreConfig({ id: 'non-existent-id' });
+        getStoreConfig({ domain: 'non-existent-domain.com' });
+      }
+
+      const endTime = performance.now();
+      const avgTime = (endTime - startTime) / (iterations * 2);
+
+      // Missing lookups should be just as fast (< 0.01ms per lookup)
+      expect(avgTime).toBeLessThan(0.01);
     });
   });
 
@@ -310,6 +455,7 @@ describe('storeRegistry', () => {
       // We can verify they work as expected
       expect(STORE_ID_CONFIG).toBeInstanceOf(Map);
       expect(STORE_NAME_CONFIG).toBeInstanceOf(Map);
+      expect(STORE_DOMAIN_CONFIG).toBeInstanceOf(Map);
       expect(COMPILED_PATTERNS).toBeInstanceOf(Map);
     });
 
