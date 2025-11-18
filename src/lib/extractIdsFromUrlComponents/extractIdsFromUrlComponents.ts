@@ -1,0 +1,202 @@
+import { config } from './extractIdsFromUrlComponents.config';
+import {
+  patternExtractorInputSchema,
+  extractIdsInputSchema,
+  productIdsSchema,
+  type ProductIds,
+  type ExtractIdsInput,
+} from './extractIdsFromUrlComponents.schema';
+import { getStoreConfig } from '@/lib/storeRegistry';
+
+/**
+ * Internal pattern extractor without validation overhead.
+ * Used for internal calls where inputs are known to be valid.
+ *
+ * Performance optimizations:
+ * - No Zod validation (saves ~1200-1800 validations/second at 300 RPS)
+ * - Date.now() checked every 5 iterations (reduces syscalls by 80%)
+ * - RegExp state reset in finally block (prevents state corruption)
+ *
+ * @internal
+ */
+const patternExtractorInternal = (source: string, pattern: RegExp): Set<string> => {
+  const matches = new Set<string>();
+  let match;
+  let iterationCount = 0;
+  const startTime = Date.now();
+  const CHECK_INTERVAL = 5;
+
+  try {
+    while ((match = pattern.exec(source)) !== null) {
+      // Check timeout every 5 iterations instead of every iteration
+      if (++iterationCount % CHECK_INTERVAL === 0 && Date.now() - startTime >= config.TIMEOUT_MS) {
+        console.warn(
+          `Pattern extraction timed out after ${Date.now() - startTime}ms for source: ${source}`,
+        );
+        break;
+      }
+
+      if (match[1]) {
+        matches.add(match[1]);
+      }
+      if (match[2]) {
+        matches.add(match[2]);
+      }
+
+      if (matches.size >= config.MAX_RESULTS) {
+        if (process.env['NODE_ENV'] === 'development') {
+          console.warn(`Reached maximum results limit of ${config.MAX_RESULTS}`);
+        }
+        break;
+      }
+    }
+  } catch (error) {
+    console.error(
+      `Error extracting patterns from source "${source}": ${error instanceof Error ? error.message : 'Unknown error'}`,
+    );
+  } finally {
+    // Always reset regex state to prevent issues on next call
+    pattern.lastIndex = 0;
+  }
+
+  return matches;
+};
+
+/**
+ * Extracts product IDs from a source string using a regular expression pattern.
+ *
+ * Features:
+ * - Timeout protection (100ms maximum)
+ * - Result limiting (12 IDs maximum)
+ * - Safe regex validation in development mode
+ * - Captures up to 2 groups per match
+ *
+ * @param input - Object containing source string and RegExp pattern (validated at runtime)
+ * @returns Set of extracted product IDs
+ *
+ * @throws {ZodError} If input validation fails
+ *
+ * @example
+ * ```typescript
+ * const ids = patternExtractor({
+ *   source: '/product/p123456789',
+ *   pattern: /p(\d{6,})/g
+ * });
+ * // Returns: Set(['p123456789', '123456789'])
+ * ```
+ */
+export const patternExtractor = (input: unknown): Set<string> => {
+  // Validate input - throws ZodError if invalid
+  const { source, pattern } = patternExtractorInputSchema.parse(input);
+  if (process.env['NODE_ENV'] === 'development') {
+    if (!(pattern instanceof RegExp)) {
+      console.warn('Invalid input: pattern must be a RegExp object. Returning empty set.');
+      return new Set();
+    }
+    if (!pattern.global) {
+      console.warn(`RegExp pattern '${pattern}' must have global flag (/g). Returning empty set.`);
+      return new Set();
+    }
+  }
+
+  return patternExtractorInternal(source, pattern);
+};
+
+/**
+ * Extracts product IDs from URL components using pattern matching.
+ *
+ * Features:
+ * - Domain-specific pattern extraction with priority
+ * - Store-specific ID transformation support
+ * - Fallback to generic patterns
+ * - Query parameter extraction
+ * - Safe error handling
+ *
+ * Performance:
+ * - Development: Full Zod validation (catch integration bugs)
+ * - Production: No validation (trust upstream parseUrlComponents)
+ *
+ * Extraction order:
+ * 1. Domain-specific pathname patterns (with optional transformId)
+ * 2. Generic pathname patterns (if no domain-specific matches)
+ * 3. Domain-specific search patterns
+ * 4. Generic search patterns
+ *
+ * @param input - Object containing URL components and optional store ID
+ * @returns Frozen, sorted array of product IDs (max 12)
+ *
+ * @throws {ZodError} If input or output validation fails (development only)
+ *
+ * @example
+ * ```typescript
+ * const urlComponents = parseUrlComponents('https://nike.com/product/abc-123');
+ * const ids = extractIdsFromUrlComponents({ urlComponents });
+ * // Returns: ['abc-123'] (frozen array)
+ * ```
+ */
+export const extractIdsFromUrlComponents = (input: ExtractIdsInput): ProductIds => {
+  // Validate in development to catch integration bugs
+  if (process.env['NODE_ENV'] === 'development') {
+    extractIdsInputSchema.parse(input);
+  }
+
+  // Production trusts upstream validation (already validated by parseUrlComponents)
+  const { urlComponents, storeId } = input;
+
+  const { domain, pathname, search, href } = urlComponents;
+  const results = new Set<string>();
+
+  try {
+    const domainConfig = getStoreConfig(storeId ? { domain, id: storeId } : { domain });
+
+    // Check domain-specific path patterns first
+    if (domainConfig?.pathnamePatterns && pathname) {
+      for (const pattern of domainConfig.pathnamePatterns) {
+        for (const id of patternExtractorInternal(pathname, pattern)) {
+          // Apply transform function if it exists, otherwise use the original ID
+          const transformedId = domainConfig.transformId ? domainConfig.transformId(id) : id;
+          results.add(transformedId);
+        }
+      }
+    }
+
+    // Only run pathname patterns if no domain-specific pathname id's were found
+    if (results.size === 0 && pathname) {
+      // Iterate through all pathname patterns
+      for (const pattern of config.PATTERNS.pathnamePatterns) {
+        for (const id of patternExtractorInternal(pathname, pattern)) {
+          results.add(id);
+        }
+      }
+    }
+
+    // Check domain-specific search patterns first
+    if (domainConfig?.searchPatterns && search) {
+      for (const pattern of domainConfig.searchPatterns) {
+        for (const id of patternExtractorInternal(search, pattern)) {
+          results.add(id);
+        }
+      }
+    }
+
+    // Only run query patterns if URL contains query parameters
+    if (search) {
+      for (const id of patternExtractorInternal(search, config.PATTERNS.searchPattern)) {
+        results.add(id);
+      }
+    }
+  } catch (error) {
+    console.error(
+      `Error processing URL ${href}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+    );
+  }
+
+  const sortedResults = Object.freeze([...results].sort());
+
+  // Validate output in development only (ensures regex patterns work correctly)
+  if (process.env['NODE_ENV'] === 'development') {
+    return productIdsSchema.parse(sortedResults);
+  }
+
+  return sortedResults as ProductIds;
+};

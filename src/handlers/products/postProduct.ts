@@ -4,9 +4,9 @@ import jsonBodyParser from '@middy/http-json-body-parser';
 import { postProductSchema } from './postProduct.schema';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import type { z } from 'zod';
-import { extractIdsFromUrlComponents } from '@/extractIdsFromUrlComponents';
+import { extractIdsFromUrlComponents } from '@/lib/extractIdsFromUrlComponents';
+import { parseUrlComponents } from '@/lib/parseUrlComponents';
 import { createZodValidator } from '@/middleware/zodValidator';
-import { parseUrlComponents } from '@/parseUrlComponents';
 
 export type PostProductRequest = z.infer<typeof postProductSchema>;
 

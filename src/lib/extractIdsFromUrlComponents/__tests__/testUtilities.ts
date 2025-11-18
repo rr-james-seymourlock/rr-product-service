@@ -1,8 +1,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { expect } from 'vitest';
-import { extractIdsFromUrlComponents } from '@/extractIdsFromUrlComponents';
-import { parseUrlComponents } from '@/parseUrlComponents/parseUrlComponents';
+import { extractIdsFromUrlComponents } from '../extractIdsFromUrlComponents';
+import { parseUrlComponents } from '@/lib/parseUrlComponents';
 
 export const END_OF_STRING_CHARS = [
   '',

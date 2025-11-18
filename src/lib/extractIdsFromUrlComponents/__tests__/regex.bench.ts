@@ -1,6 +1,6 @@
 import { bench, describe } from 'vitest';
-import { config } from '../config';
-import { COMPILED_PATTERNS } from '@/storeConfigs';
+import { config } from '../extractIdsFromUrlComponents.config';
+import { COMPILED_PATTERNS } from '@/lib/storeRegistry';
 
 /**
  * Benchmark suite for regex pattern performance

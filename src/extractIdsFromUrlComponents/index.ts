@@ -1,1 +1,0 @@
-export { extractIdsFromUrlComponents } from './extractIdsFromUrlComponents';
