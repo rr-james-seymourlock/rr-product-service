@@ -137,7 +137,7 @@ describe('Error handling', () => {
         return startTime + config.TIMEOUT_MS + 10; // Exceed timeout
       });
 
-      const result = patternExtractor({
+      patternExtractor({
         source: 'test123',
         pattern,
       });

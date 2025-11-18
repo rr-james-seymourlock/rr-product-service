@@ -98,7 +98,7 @@ describe('urlInputSchema', () => {
       expect(result.success).toBe(false);
       if (!result.success) {
         // Zod v4 returns "Invalid input: expected string, received null" for type errors
-        expect(result.error.issues[0].message).toContain('expected string');
+        expect(result.error.issues[0]?.message).toContain('expected string');
       }
     });
 
@@ -106,7 +106,7 @@ describe('urlInputSchema', () => {
       const result = urlInputSchema.safeParse('');
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues[0].message).toBe('URL cannot be empty');
+        expect(result.error.issues[0]?.message).toBe('URL cannot be empty');
       }
     });
 
@@ -114,7 +114,7 @@ describe('urlInputSchema', () => {
       const result = urlInputSchema.safeParse('not a url');
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues[0].message).toContain('Invalid URL');
+        expect(result.error.issues[0]?.message).toContain('Invalid URL');
       }
     });
 
@@ -123,7 +123,7 @@ describe('urlInputSchema', () => {
       expect(result.success).toBe(false);
       if (!result.success) {
         const lastIssue = result.error.issues[result.error.issues.length - 1];
-        expect(lastIssue.message).toBe('Only HTTP(S) protocols are allowed');
+        expect(lastIssue?.message).toBe('Only HTTP(S) protocols are allowed');
       }
     });
   });
@@ -246,7 +246,7 @@ describe('hostnameSchema', () => {
       const result = hostnameSchema.safeParse('');
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues[0].message).toBe('Hostname cannot be empty');
+        expect(result.error.issues[0]?.message).toBe('Hostname cannot be empty');
       }
     });
   });
@@ -287,7 +287,7 @@ describe('baseKeySchema', () => {
       expect(result.success).toBe(false);
       if (!result.success) {
         // Zod v4 returns "Invalid input: expected string, received null" for type errors
-        expect(result.error.issues[0].message).toContain('expected string');
+        expect(result.error.issues[0]?.message).toContain('expected string');
       }
     });
   });
@@ -356,8 +356,8 @@ describe('publicUrlSchema', () => {
       expect(result.success).toBe(false);
       if (!result.success) {
         const lastIssue = result.error.issues[result.error.issues.length - 1];
-        expect(lastIssue.message).toContain('public address');
-        expect(lastIssue.message).toContain('private IP ranges are not allowed');
+        expect(lastIssue?.message).toContain('public address');
+        expect(lastIssue?.message).toContain('private IP ranges are not allowed');
       }
     });
   });

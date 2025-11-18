@@ -16,12 +16,7 @@ import { z } from 'zod';
  * ```
  */
 export const urlInputSchema = z
-  .string({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    required_error: 'URL is required',
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    invalid_type_error: 'URL must be a string',
-  })
+  .string({ message: 'URL must be a string' })
   .min(1, 'URL cannot be empty')
   // eslint-disable-next-line sonarjs/deprecation
   .url({ message: 'Invalid URL format' })
@@ -109,12 +104,7 @@ export type URLComponents = z.infer<typeof urlComponentsSchema>;
  * ```
  */
 export const hostnameSchema = z
-  .string({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    required_error: 'Hostname is required',
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    invalid_type_error: 'Hostname must be a string',
-  })
+  .string({ message: 'Hostname must be a string' })
   .min(1, 'Hostname cannot be empty');
 
 /**
@@ -133,14 +123,7 @@ export type Hostname = z.infer<typeof hostnameSchema>;
  * baseKeySchema.parse(null); // ✗ Throws ZodError
  * ```
  */
-export const baseKeySchema = z
-  .string({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    required_error: 'Base key is required for URL key generation',
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    invalid_type_error: 'Base key must be a string',
-  })
-  .min(0); // Can be empty string (will generate hash of empty string)
+export const baseKeySchema = z.string({ message: 'Base key must be a string' }).min(0); // Can be empty string (will generate hash of empty string)
 
 /**
  * Type inferred from baseKeySchema.
