@@ -6,7 +6,7 @@ import {
   hostnameSchema,
   baseKeySchema,
   publicUrlSchema,
-} from '../schemas';
+} from '../parseUrlComponents.schema';
 
 describe('urlInputSchema', () => {
   describe('valid inputs', () => {

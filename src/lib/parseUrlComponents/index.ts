@@ -17,4 +17,4 @@ export {
   type Hostname,
   type BaseKey,
   type PublicUrl,
-} from './schemas';
+} from './parseUrlComponents.schema';

@@ -14,7 +14,7 @@ This document defines our strategy for using Zod across the codebase, particular
 
 ### 2. **Schema Organization**
 
-- Store schemas in `schemas.ts` files within each library/module
+- Store schemas in `[library-name].schema.ts` files within each library/module
 - Export both schemas and inferred types
 - Keep schemas close to the code that uses them
 
@@ -34,14 +34,28 @@ This document defines our strategy for using Zod across the codebase, particular
 
 ```
 src/lib/[library-name]/
-├── schemas.ts           # Zod schemas and inferred types
-├── index.ts             # Public API exports (includes schemas)
-├── [implementation].ts  # Implementation using schemas
+├── [library-name].schema.ts   # Zod schemas and inferred types
+├── [library-name].config.ts   # Library configuration
+├── [library-name].README.md   # Documentation including schema usage
+├── [library-name].ts           # Main implementation using schemas
+├── index.ts                    # Public API exports (includes schemas)
 ├── __tests__/
-│   ├── schemas.test.ts  # Schema validation tests
+│   ├── [library-name].test.ts         # Main integration tests
+│   ├── [library-name].schema.test.ts  # Schema validation tests
+│   ├── [library-name].[feature].test.ts  # Feature-specific unit tests
 │   └── ...
-└── README.md           # Documentation including schema usage
+└── __fixtures__/               # Test data (optional)
 ```
+
+**File Naming Convention:**
+
+Files are prefixed with the library name for better editor usability when working across multiple libraries:
+
+- `parseUrlComponents.schema.ts` instead of `schemas.ts`
+- `parseUrlComponents.config.ts` instead of `config.ts`
+- `parseUrlComponents.README.md` instead of `README.md`
+
+This makes it easy to identify files in editor tabs when working across libraries.
 
 ## Schema Patterns
 
@@ -50,7 +64,7 @@ src/lib/[library-name]/
 Validates external input (user data, API requests, etc.)
 
 ```typescript
-// schemas.ts
+// parseUrlComponents.schema.ts
 import { z } from 'zod';
 
 // Define the schema
@@ -80,7 +94,7 @@ export type UrlInput = z.infer<typeof urlInputSchema>;
 Validates function outputs to ensure internal correctness
 
 ```typescript
-// schemas.ts
+// parseUrlComponents.schema.ts
 export const urlComponentsSchema = z.object({
   href: z.string().url(),
   encodedHref: z.string(),
@@ -103,7 +117,7 @@ export type URLComponents = z.infer<typeof urlComponentsSchema>;
 Validates configuration objects
 
 ```typescript
-// schemas.ts
+// parseUrlComponents.config.ts (or .schema.ts)
 export const configSchema = z.object({
   MULTI_PART_TLDS: z.set(z.string()),
   PRESERVED_SUBDOMAINS: z.set(z.string()),
@@ -367,7 +381,7 @@ export const sanitizedStringSchema = z
 
 ### For Existing Libraries
 
-1. **Create schemas.ts** - Define input/output schemas
+1. **Create [library-name].schema.ts** - Define input/output schemas
 2. **Update types** - Change from interfaces to `z.infer<typeof schema>`
 3. **Add validation** - Wrap existing functions with schema validation
 4. **Add tests** - Test both valid and invalid cases
@@ -422,7 +436,7 @@ export function parseUrlComponents(url: unknown): URLComponents {
 
 When adding Zod to a library, ensure:
 
-- [ ] `schemas.ts` file created with all validation schemas
+- [ ] `[library-name].schema.ts` file created with all validation schemas
 - [ ] Types inferred from schemas using `z.infer<>`
 - [ ] Input validation using `.parse()` or `.safeParse()`
 - [ ] Output validation for critical functions
@@ -442,6 +456,6 @@ When adding Zod to a library, ensure:
 
 ## Examples in This Codebase
 
-- `src/lib/parseUrlComponents/schemas.ts` - URL validation schemas
+- `src/lib/parseUrlComponents/parseUrlComponents.schema.ts` - URL validation schemas
 - `src/handlers/products/postProduct.schema.ts` - API request validation
 - `src/middleware/zodValidator.ts` - Middleware pattern for validation

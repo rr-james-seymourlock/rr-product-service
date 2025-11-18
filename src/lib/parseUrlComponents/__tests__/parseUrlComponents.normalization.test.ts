@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import normalizeUrl from 'normalize-url';
-import { config } from '../config';
+import { config } from '../parseUrlComponents.config';
 
 describe('normalizeUrl', () => {
   it('should normalize the url', () => {

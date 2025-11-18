@@ -1,13 +1,13 @@
 import { createHash } from 'node:crypto';
 import normalizeUrl from 'normalize-url';
-import { config } from './config';
+import { config } from './parseUrlComponents.config';
 import {
   urlInputSchema,
   urlComponentsSchema,
   hostnameSchema,
   baseKeySchema,
   type URLComponents,
-} from './schemas';
+} from './parseUrlComponents.schema';
 
 // Re-export the type for backward compatibility
 export type { URLComponents };
