@@ -165,11 +165,30 @@ All patterns must:
 
 ## Performance
 
+### Optimizations
+
+Optimized for **300 requests per second** on AWS Lambda with Phase 1 optimizations (commit 011e6de):
+
+- **Internal pattern extractor**: Eliminates 1200-1800 Zod validations/second by using internal function for known-valid inputs
+- **RegExp state reset**: `finally` block ensures `pattern.lastIndex = 0` for reliability
+- **Reduced syscalls**: Timeout checks every 5 iterations (80% reduction in `Date.now()` calls)
+- **Expected improvement**: 30-40% reduction in per-request overhead
+
+### Performance Characteristics
+
 - **Regex execution**: < 10ms per pattern (enforced by tests)
 - **Timeout protection**: 100ms maximum per pattern
 - **Result limit**: 12 IDs maximum per URL
-- **409 tests** ensuring correctness across 100+ stores
+- **579 tests** ensuring correctness across 100+ stores
 - **97.91% line coverage**, **97.36% branch coverage**
+
+### Performance Documentation
+
+See [docs/performance-optimization.md](./docs/performance-optimization.md) for:
+
+- Detailed performance analysis
+- Phase 2 & 3 optimization recommendations
+- Measurement plan for production optimization
 
 ## Security
 
