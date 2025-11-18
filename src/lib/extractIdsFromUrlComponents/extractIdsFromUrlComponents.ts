@@ -6,7 +6,7 @@ import {
   type ProductIds,
   type ExtractIdsInput,
 } from './extractIdsFromUrlComponents.schema';
-import { getStoreConfig } from '@/storeConfigs';
+import { getStoreConfig } from '@/lib/storeRegistry';
 
 /**
  * Internal pattern extractor without validation overhead.

@@ -3,7 +3,7 @@ import { extractIdsFromUrlComponents } from '../extractIdsFromUrlComponents';
 import { parseUrlComponents } from '@/lib/parseUrlComponents';
 import { ZodError } from 'zod';
 
-vi.mock('@/storeConfigs/storeConfigManager');
+vi.mock('@/lib/storeRegistry');
 
 describe('extractIdsFromUrlComponents', () => {
   it('should return empty array for URL with no extractable IDs', () => {

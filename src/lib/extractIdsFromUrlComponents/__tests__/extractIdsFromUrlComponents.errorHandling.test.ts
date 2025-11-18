@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { patternExtractor, extractIdsFromUrlComponents } from '../extractIdsFromUrlComponents';
-import * as storeConfigModule from '@/storeConfigs';
+import * as storeConfigModule from '@/lib/storeRegistry';
 import { config } from '../extractIdsFromUrlComponents.config';
 
 describe('Error handling', () => {

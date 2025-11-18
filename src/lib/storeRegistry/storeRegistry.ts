@@ -3,7 +3,7 @@
  * domain mapping, and URL pattern matching for multi-store environments.
  */
 
-import { storeConfigs } from './configs';
+import { storeConfigs } from './storeRegistry.config';
 
 export interface StoreConfigInterface {
   readonly id: string;
@@ -40,8 +40,10 @@ export const STORE_ID_CONFIG: ReadonlyMap<string, StoreConfigInterface> = new Ma
   storeConfigs.flatMap(
     (config): ReadonlyArray<[string, StoreConfigInterface]> => [
       [config.id, config] as [string, StoreConfigInterface],
-      ...(config.aliases?.map((alias) => [alias.id, config] as [string, StoreConfigInterface]) ??
-        []),
+      ...(config.aliases?.map(
+        (alias: { readonly id: string; readonly domain: string }) =>
+          [alias.id, config] as [string, StoreConfigInterface],
+      ) ?? []),
     ],
   ),
 );
@@ -54,7 +56,10 @@ export const STORE_ID_CONFIG: ReadonlyMap<string, StoreConfigInterface> = new Ma
 export const STORE_NAME_CONFIG: ReadonlyMap<string, string> = new Map(
   storeConfigs.flatMap((config) => [
     [config.domain, config.id] as const,
-    ...(config.aliases?.map((alias) => [alias.domain, alias.id] as const) ?? []),
+    ...(config.aliases?.map(
+      (alias: { readonly id: string; readonly domain: string }) =>
+        [alias.domain, alias.id] as const,
+    ) ?? []),
   ]),
 );
 

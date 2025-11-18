@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { extractIdsFromUrlComponents } from '../extractIdsFromUrlComponents';
 import { parseUrlComponents } from '@/lib/parseUrlComponents';
-import { getStoreConfig } from '@/storeConfigs';
+import { getStoreConfig } from '@/lib/storeRegistry';
 
 describe('Domain-specific search patterns', () => {
   it('should extract IDs from query parameters using domain-specific searchPatterns', () => {
