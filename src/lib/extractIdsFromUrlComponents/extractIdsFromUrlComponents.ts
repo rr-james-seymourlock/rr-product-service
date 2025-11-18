@@ -8,6 +8,60 @@ import {
 import { getStoreConfig } from '@/storeConfigs';
 
 /**
+ * Internal pattern extractor without validation overhead.
+ * Used for internal calls where inputs are known to be valid.
+ *
+ * Performance optimizations:
+ * - No Zod validation (saves ~1200-1800 validations/second at 300 RPS)
+ * - Date.now() checked every 5 iterations (reduces syscalls by 80%)
+ * - RegExp state reset in finally block (prevents state corruption)
+ *
+ * @internal
+ */
+const patternExtractorInternal = (source: string, pattern: RegExp): Set<string> => {
+  const matches = new Set<string>();
+  let match;
+  let iterationCount = 0;
+  const startTime = Date.now();
+  const CHECK_INTERVAL = 5;
+
+  try {
+    while ((match = pattern.exec(source)) !== null) {
+      // Check timeout every 5 iterations instead of every iteration
+      if (++iterationCount % CHECK_INTERVAL === 0 && Date.now() - startTime >= config.TIMEOUT_MS) {
+        console.warn(
+          `Pattern extraction timed out after ${Date.now() - startTime}ms for source: ${source}`,
+        );
+        break;
+      }
+
+      if (match[1]) {
+        matches.add(match[1]);
+      }
+      if (match[2]) {
+        matches.add(match[2]);
+      }
+
+      if (matches.size >= config.MAX_RESULTS) {
+        if (process.env['NODE_ENV'] === 'development') {
+          console.warn(`Reached maximum results limit of ${config.MAX_RESULTS}`);
+        }
+        break;
+      }
+    }
+  } catch (error) {
+    console.error(
+      `Error extracting patterns from source "${source}": ${error instanceof Error ? error.message : 'Unknown error'}`,
+    );
+  } finally {
+    // Always reset regex state to prevent issues on next call
+    pattern.lastIndex = 0;
+  }
+
+  return matches;
+};
+
+/**
  * Extracts product IDs from a source string using a regular expression pattern.
  *
  * Features:
@@ -44,40 +98,7 @@ export const patternExtractor = (input: unknown): Set<string> => {
     }
   }
 
-  const matches = new Set<string>();
-  let match;
-  const startTime = Date.now();
-
-  try {
-    while ((match = pattern.exec(source)) !== null) {
-      if (Date.now() - startTime >= config.TIMEOUT_MS) {
-        console.warn(
-          `Pattern extraction timed out after ${Date.now() - startTime}ms for source: ${source}`,
-        );
-        break;
-      }
-
-      if (match[1]) {
-        matches.add(match[1]);
-      }
-      if (match[2]) {
-        matches.add(match[2]);
-      }
-
-      if (matches.size >= config.MAX_RESULTS) {
-        if (process.env['NODE_ENV'] === 'development') {
-          console.warn(`Reached maximum results limit of ${config.MAX_RESULTS}`);
-        }
-        break;
-      }
-    }
-  } catch (error) {
-    console.error(
-      `Error extracting patterns from source "${source}": ${error instanceof Error ? error.message : 'Unknown error'}`,
-    );
-  }
-
-  return matches;
+  return patternExtractorInternal(source, pattern);
 };
 
 /**
@@ -121,7 +142,7 @@ export const extractIdsFromUrlComponents = (input: unknown): ProductIds => {
     // Check domain-specific path patterns first
     if (domainConfig?.pathnamePatterns && pathname) {
       for (const pattern of domainConfig.pathnamePatterns) {
-        for (const id of patternExtractor({ source: pathname, pattern })) {
+        for (const id of patternExtractorInternal(pathname, pattern)) {
           // Apply transform function if it exists, otherwise use the original ID
           const transformedId = domainConfig.transformId ? domainConfig.transformId(id) : id;
           results.add(transformedId);
@@ -133,7 +154,7 @@ export const extractIdsFromUrlComponents = (input: unknown): ProductIds => {
     if (results.size === 0 && pathname) {
       // Iterate through all pathname patterns
       for (const pattern of config.PATTERNS.pathnamePatterns) {
-        for (const id of patternExtractor({ source: pathname, pattern })) {
+        for (const id of patternExtractorInternal(pathname, pattern)) {
           results.add(id);
         }
       }
@@ -142,7 +163,7 @@ export const extractIdsFromUrlComponents = (input: unknown): ProductIds => {
     // Check domain-specific search patterns first
     if (domainConfig?.searchPatterns && search) {
       for (const pattern of domainConfig.searchPatterns) {
-        for (const id of patternExtractor({ source: search, pattern })) {
+        for (const id of patternExtractorInternal(search, pattern)) {
           results.add(id);
         }
       }
@@ -150,10 +171,7 @@ export const extractIdsFromUrlComponents = (input: unknown): ProductIds => {
 
     // Only run query patterns if URL contains query parameters
     if (search) {
-      for (const id of patternExtractor({
-        source: search,
-        pattern: config.PATTERNS.searchPattern,
-      })) {
+      for (const id of patternExtractorInternal(search, config.PATTERNS.searchPattern)) {
         results.add(id);
       }
     }

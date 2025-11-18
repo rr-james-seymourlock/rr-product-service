@@ -129,7 +129,7 @@ describe('Error handling', () => {
       vi.spyOn(Date, 'now').mockImplementation(() => {
         callCount++;
         // First call is the startTime initialization
-        // Second call is the first timeout check
+        // Second call is after 5 iterations (due to CHECK_INTERVAL = 5)
         // Return time that exceeds TIMEOUT_MS on the second check
         if (callCount === 1) {
           return startTime;
@@ -137,8 +137,9 @@ describe('Error handling', () => {
         return startTime + config.TIMEOUT_MS + 10; // Exceed timeout
       });
 
+      // Need at least 5 matches to trigger the timeout check (CHECK_INTERVAL = 5)
       patternExtractor({
-        source: 'test123',
+        source: 'test1 test2 test3 test4 test5',
         pattern,
       });
 
