@@ -4,32 +4,7 @@
  */
 
 import { storeConfigs } from './storeRegistry.config';
-
-export interface StoreConfigInterface {
-  readonly id: string;
-  readonly domain: string;
-  /** Optional list of alternative domains and IDs that map to this store */
-  readonly aliases?: ReadonlyArray<{
-    readonly id: string;
-    readonly domain: string;
-  }>;
-  /** Optional examples of ID structures, not used in system but potential future for Levenshtein Distance comparisons */
-  readonly patternFormats?: string[];
-  /** Optional list of regular expressions for URL pattern matching */
-  readonly pathnamePatterns?: RegExp[];
-  readonly searchPatterns?: RegExp[];
-  /**
-   * Optional transform function to modify the captured ID
-   * @param id The ID to transform
-   */
-
-  readonly transformId?: (id: string) => string;
-}
-
-interface StoreIdentifier {
-  domain?: string;
-  id?: string;
-}
+import type { StoreConfigInterface, StoreIdentifier, StoreAlias } from './storeRegistry.types';
 
 /**
  * Map of store IDs to their complete configuration objects.
@@ -41,8 +16,7 @@ export const STORE_ID_CONFIG: ReadonlyMap<string, StoreConfigInterface> = new Ma
     (config): ReadonlyArray<[string, StoreConfigInterface]> => [
       [config.id, config] as [string, StoreConfigInterface],
       ...(config.aliases?.map(
-        (alias: { readonly id: string; readonly domain: string }) =>
-          [alias.id, config] as [string, StoreConfigInterface],
+        (alias: StoreAlias) => [alias.id, config] as [string, StoreConfigInterface],
       ) ?? []),
     ],
   ),
@@ -56,10 +30,7 @@ export const STORE_ID_CONFIG: ReadonlyMap<string, StoreConfigInterface> = new Ma
 export const STORE_NAME_CONFIG: ReadonlyMap<string, string> = new Map(
   storeConfigs.flatMap((config) => [
     [config.domain, config.id] as const,
-    ...(config.aliases?.map(
-      (alias: { readonly id: string; readonly domain: string }) =>
-        [alias.domain, alias.id] as const,
-    ) ?? []),
+    ...(config.aliases?.map((alias: StoreAlias) => [alias.domain, alias.id] as const) ?? []),
   ]),
 );
 

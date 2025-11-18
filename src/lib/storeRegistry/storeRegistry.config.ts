@@ -8,7 +8,7 @@ import {
   choiceOf,
   endOfString,
 } from 'ts-regex-builder';
-import type { StoreConfigInterface } from './storeRegistry';
+import type { StoreConfigInterface } from './storeRegistry.types';
 
 export const storeConfigs: StoreConfigInterface[] = [
   {

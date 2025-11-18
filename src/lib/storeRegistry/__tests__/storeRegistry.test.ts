@@ -4,8 +4,8 @@ import {
   STORE_ID_CONFIG,
   STORE_NAME_CONFIG,
   COMPILED_PATTERNS,
-  type StoreConfigInterface,
 } from '../storeRegistry';
+import type { StoreConfigInterface } from '../storeRegistry.types';
 import { storeConfigs } from '../storeRegistry.config';
 
 describe('storeRegistry', () => {
