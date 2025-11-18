@@ -9,7 +9,7 @@ Store configuration management system that handles store identification, domain 
 - **Alias support**: Multiple domains/IDs can map to the same store
 - **Pre-compiled patterns**: Zero overhead for regex pattern access
 - **100+ store configurations**: Support for major retailers
-- **Type-safe**: Full TypeScript support with Zod validation
+- **Type-safe**: Full TypeScript support with compile-time validation
 - **Immutable**: ReadonlyMap and readonly interfaces prevent accidental mutations
 - **Performance optimized**: <0.01ms per lookup on average
 
@@ -228,60 +228,23 @@ if (targetPatterns) {
 const hasPatterns = COMPILED_PATTERNS.has('5246');
 ```
 
-## Schemas
+## Validation Strategy
 
-### `storeAliasSchema`
+**Compile-time validation with TypeScript:**
 
-Validates store alias configuration.
+This library uses TypeScript for all validation, providing zero runtime overhead:
 
-```typescript
-import { storeAliasSchema } from '@/lib/storeRegistry';
+- Store configurations are validated at compile time
+- Type safety ensures correct structure
+- No runtime validation cost (perfect for high-performance scenarios)
+- Tests verify configuration correctness
 
-const alias = storeAliasSchema.parse({
-  id: 'nike-uk',
-  domain: 'nike.co.uk',
-});
-```
+**Why no runtime validation?**
 
-### `storeConfigSchema`
-
-Validates complete store configuration.
-
-```typescript
-import { storeConfigSchema } from '@/lib/storeRegistry';
-
-const config = storeConfigSchema.parse({
-  id: '9528',
-  domain: 'nike.com',
-  pathnamePatterns: [/test/g],
-});
-```
-
-### `storeIdentifierSchema`
-
-Validates store identifier input for `getStoreConfig`.
-
-```typescript
-import { storeIdentifierSchema } from '@/lib/storeRegistry';
-
-const identifier = storeIdentifierSchema.parse({
-  id: '5246',
-  domain: 'target.com',
-});
-```
-
-### `storeConfigsSchema`
-
-Validates array of store configurations.
-
-```typescript
-import { storeConfigsSchema } from '@/lib/storeRegistry';
-
-const configs = storeConfigsSchema.parse([
-  { id: '5246', domain: 'target.com' },
-  { id: '9528', domain: 'nike.com' },
-]);
-```
+- Store configs are static, defined in code at build time
+- TypeScript catches structural errors during development
+- Test suite validates all configurations work correctly
+- Zero overhead = optimal for 1000+ RPS workloads
 
 ## Performance
 
@@ -421,24 +384,22 @@ npm run test:coverage
 
 ### Test Coverage
 
-- **60 tests** across 2 test files
+- **31 tests** in comprehensive test suite
 - Coverage: 100% lines, 100% branches, 100% functions
 - Tests include:
   - Store lookup (ID and domain)
   - Alias resolution
   - Map structure validation
   - Performance benchmarks
-  - Schema validation
+  - Type safety verification
   - Edge cases
 
 ### Test Files
 
-- `storeRegistry.test.ts` - Core functionality and integration tests
-- `storeRegistry.schema.test.ts` - Zod schema validation tests
+- `storeRegistry.test.ts` - Core functionality, integration, and performance tests
 
 ## Dependencies
 
-- `zod` - Runtime validation
 - `ts-regex-builder` - Safe regex pattern construction
 
 ## Common Use Cases
@@ -513,7 +474,7 @@ When updating configurations:
 ## Known Limitations
 
 - **Duplicate IDs**: If multiple stores share the same ID, the last entry in the array wins (Map behavior)
-- **No runtime validation in production**: Store configs are not validated at runtime in production mode for performance
+- **Compile-time only validation**: Store configs validated by TypeScript at build time, not at runtime (optimal for performance)
 - **Immutable patterns**: RegExp patterns cannot be modified after module load
 - **Single domain per store**: Primary stores have one domain; use aliases for additional domains
 
