@@ -95,7 +95,7 @@ while ((match = pattern.exec(source)) !== null) {
 - Can we remove timeout entirely for strings under certain length?
 
 **Priority:** High
-**Status:** [ ] Not started
+**Status:** [x] Completed (commit 011e6de)
 
 ---
 
@@ -126,7 +126,7 @@ try {
 ```
 
 **Priority:** High
-**Status:** [ ] Not started
+**Status:** [x] Completed (commit 011e6de)
 
 ---
 
@@ -181,7 +181,7 @@ export const extractIdsFromUrlComponents = (input: unknown): ProductIds => {
 ```
 
 **Priority:** High
-**Status:** [ ] Not started
+**Status:** [x] Completed (commit 011e6de)
 
 ---
 
@@ -306,21 +306,24 @@ Efficient duplicate handling before sorting
 
 ## 🎯 Recommended Implementation Order
 
-### Phase 1: High Impact, Low Risk
+### Phase 1: High Impact, Low Risk ✅ COMPLETED
 
-1. **Make patternExtractor internal** (Optimization #4)
+1. **Make patternExtractor internal** (Optimization #4) ✅
    - Remove Zod validation for internal calls
    - Keep validated version for public API if needed
    - Expected impact: 1200-1800 fewer validations/second
+   - **Status:** Completed in commit 011e6de
 
-2. **Add RegExp state reset** (Optimization #3)
+2. **Add RegExp state reset** (Optimization #3) ✅
    - Add `finally` block with `pattern.lastIndex = 0`
    - Prevents subtle bugs in error cases
    - Zero performance cost
+   - **Status:** Completed in commit 011e6de
 
-3. **Reduce Date.now() frequency** (Optimization #2)
+3. **Reduce Date.now() frequency** (Optimization #2) ✅
    - Check every 5 iterations instead of every iteration
    - Expected impact: 80% reduction in syscalls
+   - **Status:** Completed in commit 011e6de
 
 ### Phase 2: High Impact, Medium Risk
 
