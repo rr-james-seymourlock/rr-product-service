@@ -6,14 +6,18 @@
   "exports": {
     "./types": "./src/types/index.ts",
     "./utils": "./src/utils/index.ts",
-    "./constants": "./src/constants/index.ts"
+    "./constants": "./src/constants/index.ts",
+    "./testing": "./src/testing/customMatchers.ts"
   },
   "scripts": {
     "clean": "rm -rf .turbo node_modules dist",
     "format": "prettier --check \"**/*.{ts,tsx}\"",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@rr/product-id-extractor": "workspace:*",
+    "@rr/url-parser": "workspace:*"
   },
   "devDependencies": {
     "@rr/eslint-config": "workspace:*",

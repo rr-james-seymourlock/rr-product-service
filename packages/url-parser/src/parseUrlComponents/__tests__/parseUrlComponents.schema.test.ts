@@ -199,7 +199,7 @@ describe('urlComponentsSchema', () => {
     });
 
     it('should reject missing required fields', () => {
-      const { href, ...incomplete } = validComponents;
+      const { href: _href, ...incomplete } = validComponents;
       expect(() => urlComponentsSchema.parse(incomplete)).toThrow(ZodError);
     });
 

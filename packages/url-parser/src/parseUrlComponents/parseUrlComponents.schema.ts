@@ -18,7 +18,6 @@ import { z } from 'zod';
 export const urlInputSchema = z
   .string({ message: 'URL must be a string' })
   .min(1, 'URL cannot be empty')
-  // eslint-disable-next-line sonarjs/deprecation
   .url({ message: 'Invalid URL format' })
   .refine(
     (url) => {
@@ -69,7 +68,6 @@ export type UrlInput = z.infer<typeof urlInputSchema>;
  * ```
  */
 export const urlComponentsSchema = z.object({
-  // eslint-disable-next-line sonarjs/deprecation
   href: z.string().url({ message: 'Invalid normalized URL' }),
   encodedHref: z.string().min(1, 'Encoded href cannot be empty'),
   hostname: z.string().min(1, 'Hostname cannot be empty'),

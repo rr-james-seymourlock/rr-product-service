@@ -1,0 +1,37 @@
+service: rr-product-service
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: us-east-1
+  architecture: arm64
+
+functions:
+  postProduct:
+    handler: src/functions/postProduct/handler.handler
+    events:
+      - http:
+          path: product
+          method: post
+
+plugins:
+  - serverless-esbuild
+  - serverless-offline
+
+custom:
+  esbuild:
+    bundle: true
+    minify: false
+    sourcemap: true
+    target: esnext
+    format: esm
+    platform: node
+    mainFields: ['module', 'main']
+    conditions: ['module', 'import', 'require']
+    external:
+      - '@aws-sdk/*'
+    # Bundle workspace packages into the Lambda
+    packager: pnpm
+    packagePath: ../../package.json
+    concurrency: 10

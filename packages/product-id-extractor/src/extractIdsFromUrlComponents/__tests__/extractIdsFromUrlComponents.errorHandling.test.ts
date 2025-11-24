@@ -26,6 +26,7 @@ describe('Error handling', () => {
       expect(() =>
         patternExtractor({
           source: 'test123',
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           pattern: 'not a regex' as any,
         }),
       ).toThrow('Pattern must be a RegExp object');

@@ -38,6 +38,7 @@ describe('extractIdsFromUrlComponents', () => {
         },
       };
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect(() => extractIdsFromUrlComponents(invalidInput as any)).toThrow(ZodError);
     });
 
@@ -52,10 +53,12 @@ describe('extractIdsFromUrlComponents', () => {
         },
       };
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect(() => extractIdsFromUrlComponents(invalidInput as any)).toThrow(ZodError);
     });
 
     it('should throw ZodError for missing urlComponents in development', () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect(() => extractIdsFromUrlComponents({ storeId: 'test' } as any)).toThrow(ZodError);
     });
 

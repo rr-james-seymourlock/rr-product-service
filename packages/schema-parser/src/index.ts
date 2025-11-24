@@ -1,4 +1,1 @@
-export {
-  extractSkusFromSchema,
-  isValidProductSchema,
-} from './parseProductSchema/extractSkusFromSchema';
+export { extractSkusFromSchema } from './parseProductSchema/extractSkusFromSchema';

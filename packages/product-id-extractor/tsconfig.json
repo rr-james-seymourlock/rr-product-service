@@ -3,7 +3,10 @@
   "compilerOptions": {
     "tsBuildInfoFile": "node_modules/.cache/tsbuildinfo.json",
     "paths": {
-      "@rr/store-registry": ["../store-registry/src"]
+      "@rr/url-parser": ["../url-parser/src"],
+      "@rr/url-parser/*": ["../url-parser/src/*"],
+      "@rr/store-registry": ["../store-registry/src"],
+      "@rr/store-registry/*": ["../store-registry/src/*"]
     }
   },
   "include": ["src"],
