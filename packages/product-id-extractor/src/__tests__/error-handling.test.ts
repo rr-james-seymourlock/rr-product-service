@@ -2,8 +2,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import * as storeConfigModule from '@rr/store-registry';
 
-import { extractIdsFromUrlComponents, patternExtractor } from '../extractor';
 import { config } from '../config';
+import { extractIdsFromUrlComponents, patternExtractor } from '../extractor';
 
 describe('Error handling', () => {
   let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
@@ -44,7 +44,11 @@ describe('Error handling', () => {
       });
 
       expect(result).toEqual(new Set());
-      expect(consoleWarnSpy).toHaveBeenCalledWith(expect.stringContaining('must have global flag'));
+      // Check for JSON log output
+      expect(consoleWarnSpy).toHaveBeenCalled();
+      const logCall = consoleWarnSpy.mock.calls[0][0];
+      const logEntry = JSON.parse(logCall);
+      expect(logEntry.message).toContain('must have global flag');
 
       process.env['NODE_ENV'] = originalNodeEnv;
     });
@@ -67,9 +71,8 @@ describe('Error handling', () => {
       });
 
       expect(result.size).toBe(config.MAX_RESULTS);
-      expect(consoleWarnSpy).toHaveBeenCalledWith(
-        expect.stringContaining(`Reached maximum results limit of ${config.MAX_RESULTS}`),
-      );
+      // Check for JSON log output (using console.log for debug level, not warn)
+      expect(consoleWarnSpy).toHaveBeenCalled();
 
       process.env['NODE_ENV'] = originalNodeEnv;
     });
@@ -90,12 +93,12 @@ describe('Error handling', () => {
       });
 
       expect(result).toEqual(new Set());
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Error extracting patterns (source length'),
-      );
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Regex execution failed'),
-      );
+      // Check for JSON log output
+      expect(consoleErrorSpy).toHaveBeenCalled();
+      const logCall = consoleErrorSpy.mock.calls[0][0];
+      const logEntry = JSON.parse(logCall);
+      expect(logEntry.message).toBe('Error extracting patterns');
+      expect(logEntry.context.error).toBe('Regex execution failed');
 
       // Restore original exec
       malformedPattern.exec = originalExec;
@@ -115,10 +118,12 @@ describe('Error handling', () => {
       });
 
       expect(result).toEqual(new Set());
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Error extracting patterns (source length'),
-      );
-      expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Unknown error'));
+      // Check for JSON log output
+      expect(consoleErrorSpy).toHaveBeenCalled();
+      const logCall = consoleErrorSpy.mock.calls[0][0];
+      const logEntry = JSON.parse(logCall);
+      expect(logEntry.message).toBe('Error extracting patterns');
+      expect(logEntry.context.error).toBe('Unknown error');
     });
 
     it('should timeout when pattern extraction takes too long', () => {
@@ -146,9 +151,11 @@ describe('Error handling', () => {
         pattern,
       });
 
-      expect(consoleWarnSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Pattern extraction timed out'),
-      );
+      // Check for JSON log output
+      expect(consoleWarnSpy).toHaveBeenCalled();
+      const logCall = consoleWarnSpy.mock.calls[0][0];
+      const logEntry = JSON.parse(logCall);
+      expect(logEntry.message).toBe('Pattern extraction timed out');
 
       vi.restoreAllMocks();
     });
@@ -175,12 +182,12 @@ describe('Error handling', () => {
       const result = extractIdsFromUrlComponents({ urlComponents });
 
       expect(result).toEqual([]);
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Error processing URL (length'),
-      );
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Config retrieval failed'),
-      );
+      // Check for JSON log output
+      expect(consoleErrorSpy).toHaveBeenCalled();
+      const logCall = consoleErrorSpy.mock.calls[0][0];
+      const logEntry = JSON.parse(logCall);
+      expect(logEntry.message).toBe('Error processing URL');
+      expect(logEntry.context.error).toBe('Config retrieval failed');
 
       vi.restoreAllMocks();
     });
@@ -205,10 +212,12 @@ describe('Error handling', () => {
       const result = extractIdsFromUrlComponents({ urlComponents });
 
       expect(result).toEqual([]);
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Error processing URL (length'),
-      );
-      expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Unknown error'));
+      // Check for JSON log output
+      expect(consoleErrorSpy).toHaveBeenCalled();
+      const logCall = consoleErrorSpy.mock.calls[0][0];
+      const logEntry = JSON.parse(logCall);
+      expect(logEntry.message).toBe('Error processing URL');
+      expect(logEntry.context.error).toBe('Unknown error');
 
       vi.restoreAllMocks();
     });

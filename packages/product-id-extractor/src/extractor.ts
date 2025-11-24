@@ -2,6 +2,7 @@ import { getStoreConfig } from '@rr/store-registry';
 import type { StoreConfigInterface } from '@rr/store-registry/types';
 
 import { config } from './config';
+import { createLogger } from './logger';
 import {
   type ExtractIdsInput,
   type ProductIds,
@@ -9,6 +10,8 @@ import {
   patternExtractorInputSchema,
   productIdsSchema,
 } from './types';
+
+const logger = createLogger('product-id-extractor.extractor');
 
 /**
  * Internal pattern extractor without validation overhead.
@@ -21,7 +24,7 @@ import {
  *
  * @internal
  */
-const patternExtractorInternal = (source: string, pattern: RegExp): Set<string> => {
+const patternExtractorInternal = (source: string, pattern: RegExp) => {
   const matches = new Set<string>();
   let match;
   let iterationCount = 0;
@@ -32,11 +35,11 @@ const patternExtractorInternal = (source: string, pattern: RegExp): Set<string> 
     while ((match = pattern.exec(source)) !== null) {
       // Check timeout every 5 iterations instead of every iteration
       if (++iterationCount % CHECK_INTERVAL === 0 && Date.now() - startTime >= config.TIMEOUT_MS) {
-        if (process.env['NODE_ENV'] !== 'production') {
-          console.warn(
-            `Pattern extraction timed out after ${Date.now() - startTime}ms (source length: ${source.length})`,
-          );
-        }
+        const duration = Date.now() - startTime;
+        logger.warn(
+          { duration, sourceLength: source.length, iterationCount },
+          'Pattern extraction timed out',
+        );
         break;
       }
 
@@ -48,18 +51,21 @@ const patternExtractorInternal = (source: string, pattern: RegExp): Set<string> 
       }
 
       if (matches.size >= config.MAX_RESULTS) {
-        if (process.env['NODE_ENV'] === 'development') {
-          console.warn(`Reached maximum results limit of ${config.MAX_RESULTS}`);
-        }
+        logger.warn(
+          { maxResults: config.MAX_RESULTS, matchCount: matches.size },
+          'Reached maximum results limit',
+        );
         break;
       }
     }
   } catch (error) {
-    if (process.env['NODE_ENV'] !== 'production') {
-      console.error(
-        `Error extracting patterns (source length: ${source.length}): ${error instanceof Error ? error.message : 'Unknown error'}`,
-      );
-    }
+    logger.error(
+      {
+        sourceLength: source.length,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      },
+      'Error extracting patterns',
+    );
   } finally {
     // Always reset regex state to prevent issues on next call
     pattern.lastIndex = 0;
@@ -78,7 +84,7 @@ const addPatternMatches = ({
   patterns: ReadonlyArray<RegExp> | undefined;
   results: Set<string>;
   transform?: StoreConfigInterface['transformId'];
-}): void => {
+}) => {
   if (!source || patterns === undefined) {
     return;
   }
@@ -121,16 +127,16 @@ const addPatternMatches = ({
  * // Returns: Set(['p123456789', '123456789'])
  * ```
  */
-export const patternExtractor = (input: unknown): Set<string> => {
+export const patternExtractor = (input: unknown) => {
   // Validate input - throws ZodError if invalid
   const { source, pattern } = patternExtractorInputSchema.parse(input);
   if (process.env['NODE_ENV'] === 'development') {
     if (!(pattern instanceof RegExp)) {
-      console.warn('Invalid input: pattern must be a RegExp object. Returning empty set.');
+      logger.warn({ pattern: String(pattern) }, 'Invalid input: pattern must be a RegExp object');
       return new Set();
     }
     if (!pattern.global) {
-      console.warn(`RegExp pattern '${pattern}' must have global flag (/g). Returning empty set.`);
+      logger.warn({ pattern: pattern.toString() }, 'RegExp pattern must have global flag (/g)');
       return new Set();
     }
   }
@@ -170,7 +176,7 @@ export const patternExtractor = (input: unknown): Set<string> => {
  * // Returns: ['abc-123'] (frozen array)
  * ```
  */
-export const extractIdsFromUrlComponents = (input: ExtractIdsInput): ProductIds => {
+export const extractIdsFromUrlComponents = (input: ExtractIdsInput) => {
   // Validate in development to catch integration bugs
   if (process.env['NODE_ENV'] === 'development') {
     extractIdsInputSchema.parse(input);
@@ -220,11 +226,13 @@ export const extractIdsFromUrlComponents = (input: ExtractIdsInput): ProductIds 
       });
     }
   } catch (error) {
-    if (process.env['NODE_ENV'] !== 'production') {
-      console.error(
-        `Error processing URL (length: ${href.length}): ${error instanceof Error ? error.message : 'Unknown error'}`,
-      );
-    }
+    logger.error(
+      {
+        hrefLength: href.length,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      },
+      'Error processing URL',
+    );
   }
 
   const sortedResults = [...results].sort();

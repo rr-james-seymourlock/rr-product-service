@@ -12,3 +12,13 @@ export {
   productIdsSchema,
   patternExtractorInputSchema,
 } from './types';
+
+// Errors
+export {
+  PatternExtractionError,
+  PatternExtractionTimeoutError,
+  UrlProcessingError,
+} from './errors';
+
+// Logger
+export { createLogger, logger } from './logger';

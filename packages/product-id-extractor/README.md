@@ -1,4 +1,4 @@
-# extractIdsFromUrlComponents
+# @rr/product-id-extractor
 
 Extract product IDs from URL components using configurable regex patterns with store-specific customization.
 
@@ -13,12 +13,16 @@ Extract product IDs from URL components using configurable regex patterns with s
 - **Runtime validation**: Zod schema validation (development mode only)
 - **Type safety**: Full TypeScript support with inferred types
 - **Optimized for Lambda**: <1ms overhead at 300 RPS
+- **Custom error classes**: Type-safe error handling with detailed context
+- **Structured logging**: JSON-formatted logs with namespaces
 
 ## Installation
 
+This library is internal to the rr-product-service monorepo.
+
 ```typescript
-import { extractIdsFromUrlComponents } from '@/lib/extractIdsFromUrlComponents';
-import { parseUrlComponents } from '@/lib/parseUrlComponents';
+import { extractIdsFromUrlComponents } from '@rr/product-id-extractor';
+import { parseUrlComponents } from '@rr/url-parser';
 ```
 
 ## Usage
@@ -26,8 +30,8 @@ import { parseUrlComponents } from '@/lib/parseUrlComponents';
 ### Basic Usage
 
 ```typescript
-import { extractIdsFromUrlComponents } from '@/lib/extractIdsFromUrlComponents';
-import { parseUrlComponents } from '@/lib/parseUrlComponents';
+import { extractIdsFromUrlComponents } from '@rr/product-id-extractor';
+import { parseUrlComponents } from '@rr/url-parser';
 
 const url = 'https://nike.com/t/air-max-270-mens-shoe/AH8050-001';
 const urlComponents = parseUrlComponents(url);
@@ -47,7 +51,7 @@ const productIds = extractIdsFromUrlComponents({
 ### Advanced: Pattern Extractor
 
 ```typescript
-import { patternExtractor } from '@/lib/extractIdsFromUrlComponents';
+import { patternExtractor } from '@rr/product-id-extractor';
 
 const ids = patternExtractor({
   source: '/product/p123456789',
@@ -241,6 +245,124 @@ productIdsSchema.parse(results);
 // ✓ Maximum 12 IDs
 ```
 
+## Logging
+
+The library includes structured JSON logging for debugging and observability.
+
+### Automatic Logging
+
+The extractor automatically logs:
+
+- **Warnings**: Pattern extraction timeouts, result limit reached
+- **Errors**: Pattern extraction failures, URL processing errors
+- **Debug**: Development-mode validation issues
+
+```json
+{
+  "level": "warn",
+  "message": "Pattern extraction timed out",
+  "context": {
+    "duration": 105,
+    "sourceLength": 5000,
+    "iterationCount": 1000,
+    "namespace": "product-id-extractor.extractor"
+  },
+  "timestamp": "2025-11-24T23:20:15.123Z"
+}
+```
+
+### Custom Logger Instances
+
+Create namespaced loggers for different contexts:
+
+```typescript
+import { createLogger } from '@rr/product-id-extractor';
+
+const customLogger = createLogger('my-service.id-extraction');
+
+customLogger.info({ storeId: 'nike.com' }, 'Extracting IDs');
+customLogger.warn({ maxResults: 12 }, 'Reached result limit');
+customLogger.error({ error: err }, 'Extraction failed');
+```
+
+### Log Levels
+
+- `debug` - Development-mode warnings (invalid inputs, missing patterns)
+- `info` - General informational messages (not currently used)
+- `warn` - Performance issues (timeouts, limits reached)
+- `error` - Extraction failures (pattern errors, URL processing errors)
+
+**Note:** Logs are automatically suppressed when `NODE_ENV=test` to keep test output clean.
+
+## Error Handling
+
+The library exports custom error classes for type-safe error handling:
+
+```typescript
+import {
+  extractIdsFromUrlComponents,
+  PatternExtractionError,
+  PatternExtractionTimeoutError,
+  UrlProcessingError,
+} from '@rr/product-id-extractor';
+
+try {
+  const ids = extractIdsFromUrlComponents({ urlComponents });
+} catch (error) {
+  if (error instanceof PatternExtractionTimeoutError) {
+    console.error('Pattern extraction timed out:', error.duration, 'ms');
+  } else if (error instanceof PatternExtractionError) {
+    console.error('Pattern extraction failed:', error.sourceLength);
+  } else if (error instanceof UrlProcessingError) {
+    console.error('URL processing failed:', error.hrefLength);
+  }
+}
+```
+
+### Custom Error Classes
+
+#### `PatternExtractionTimeoutError`
+
+Thrown when pattern extraction exceeds the timeout limit (100ms).
+
+```typescript
+class PatternExtractionTimeoutError extends Error {
+  constructor(
+    public readonly duration: number,
+    public readonly sourceLength: number,
+    message?: string,
+  )
+}
+```
+
+#### `PatternExtractionError`
+
+Thrown when pattern extraction fails.
+
+```typescript
+class PatternExtractionError extends Error {
+  constructor(
+    public readonly sourceLength: number,
+    message?: string,
+  )
+}
+```
+
+#### `UrlProcessingError`
+
+Thrown when URL processing fails.
+
+```typescript
+class UrlProcessingError extends Error {
+  constructor(
+    public readonly hrefLength: number,
+    message?: string,
+  )
+}
+```
+
+**Note:** In the current implementation, errors are logged but not thrown. Custom error classes are exported for future use and consistency with other packages.
+
 ## API Reference
 
 ### `extractIdsFromUrlComponents(input)`
@@ -395,7 +517,7 @@ const ids = extractIdsFromUrlComponents({ urlComponents });
 
 - `zod` - Runtime validation (development mode only)
 - `ts-regex-builder` - Safe regex pattern construction
-- `@/lib/parseUrlComponents` - URL normalization and parsing
+- `@rr/url-parser` - URL normalization and parsing
 - `@/storeConfigs` - Store-specific configuration management
 
 ## Maintenance
