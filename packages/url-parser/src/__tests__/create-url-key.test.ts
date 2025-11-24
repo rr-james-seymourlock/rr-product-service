@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { createUrlKey } from '../parseUrlComponents';
+import { createUrlKey } from '../parser';
 
 describe('createUrlKey', () => {
   it('should create consistent hash keys for the same input', () => {

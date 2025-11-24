@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { ZodError } from 'zod';
 
-import { createUrlKey, parseDomain, parseUrlComponents } from '../parseUrlComponents';
+import { createUrlKey, parseDomain, parseUrlComponents } from '../parser';
 
 describe('parseUrlComponents', () => {
   describe('integration tests', () => {

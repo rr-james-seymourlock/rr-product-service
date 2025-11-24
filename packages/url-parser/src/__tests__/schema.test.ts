@@ -7,7 +7,7 @@ import {
   publicUrlSchema,
   urlComponentsSchema,
   urlInputSchema,
-} from '../parseUrlComponents.schema';
+} from '../types';
 
 describe('urlInputSchema', () => {
   describe('valid inputs', () => {

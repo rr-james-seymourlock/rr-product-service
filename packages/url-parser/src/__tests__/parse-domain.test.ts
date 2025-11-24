@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
-import { parseDomain } from '../parseUrlComponents';
+import { parseDomain } from '../parser';
 
 describe('parseDomain', () => {
   beforeEach(() => {

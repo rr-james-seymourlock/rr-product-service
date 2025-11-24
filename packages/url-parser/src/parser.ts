@@ -2,14 +2,14 @@ import { createHash } from 'node:crypto';
 import normalizeUrl from 'normalize-url';
 import { parse as parseDomainParts } from 'tldts';
 
-import { config } from './parseUrlComponents.config';
+import { config } from './config';
 import {
   type URLComponents,
   baseKeySchema,
   hostnameSchema,
   urlComponentsSchema,
   urlInputSchema,
-} from './parseUrlComponents.schema';
+} from './types';
 
 // Re-export the type for backward compatibility
 export type { URLComponents };
