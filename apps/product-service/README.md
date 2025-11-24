@@ -5,7 +5,7 @@ Lambda functions for product parsing and ID extraction, built with AWS SAM.
 ## Prerequisites
 
 - [AWS SAM CLI](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/install-sam-cli.html)
-- Node.js 20.x or later
+- Node.js 22.x or later
 - PNPM 10.x or later
 - Docker (for local development with SAM)
 

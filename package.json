@@ -5,7 +5,7 @@
   "type": "module",
   "description": "RR Product Service - Monorepo for Lambda functions and shared packages",
   "engines": {
-    "node": ">=22.21.0",
+    "node": ">=22.0.0",
     "pnpm": ">=10.18.1"
   },
   "packageManager": "pnpm@10.23.0",

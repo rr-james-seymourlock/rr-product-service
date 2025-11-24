@@ -5,10 +5,10 @@
   "type": "module",
   "description": "Product service Lambda functions",
   "scripts": {
+    "build": "node esbuild.config.mjs",
     "dev": "sam local start-api --warm-containers EAGER",
-    "build": "sam build",
-    "deploy": "sam deploy",
-    "deploy:guided": "sam deploy --guided",
+    "deploy": "pnpm run build && sam deploy --resolve-s3",
+    "deploy:guided": "pnpm run build && sam deploy --guided",
     "validate": "sam validate",
     "delete": "sam delete",
     "logs": "sam logs --tail",
@@ -16,7 +16,8 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "format": "prettier --check \"**/*.{ts,tsx}\"",
-    "test": "echo \"Tests handled by packages\""
+    "test": "echo \"Tests handled by packages\"",
+    "clean": "rm -rf .turbo dist .aws-sam"
   },
   "dependencies": {
     "@middy/core": "^6.3.0",
