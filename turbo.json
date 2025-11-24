@@ -1,25 +1,30 @@
 {
   "$schema": "https://turborepo.org/schema.json",
   "ui": "stream",
+  "globalDependencies": ["**/.env"],
+  "globalEnv": ["NODE_ENV", "AWS_REGION", "AWS_ACCOUNT_ID"],
   "tasks": {
+    "topo": {
+      "dependsOn": ["^topo"]
+    },
     "build": {
       "dependsOn": ["^build"],
-      "outputs": [".serverless/**", "dist/**"]
+      "outputs": ["dist/**", ".aws-sam/build/**"]
     },
     "dev": {
       "persistent": true,
       "cache": false
     },
     "test": {
-      "dependsOn": ["^build"],
+      "dependsOn": ["^topo"],
       "outputs": ["coverage/**"]
     },
     "lint": {
-      "dependsOn": ["^build"],
+      "dependsOn": ["^topo"],
       "outputs": ["node_modules/.cache/.eslintcache"]
     },
     "typecheck": {
-      "dependsOn": ["^build"],
+      "dependsOn": ["^topo"],
       "outputs": ["node_modules/.cache/tsbuildinfo.json"]
     },
     "format": {

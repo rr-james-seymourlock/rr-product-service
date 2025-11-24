@@ -200,3 +200,4 @@ The `parseDomain()` function extracts base domain while preserving whitelisted s
 - **Testing**: Vitest with coverage reporting
 - **Linting**: ESLint with TypeScript, import, regexp, sonarjs, and unicorn plugins
 - **Commits**: Conventional commits enforced via commitlint and husky hooks
+- run typecheck, lint and build after every major change to make sure everything works
