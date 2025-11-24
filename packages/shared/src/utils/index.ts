@@ -1,2 +1,2 @@
-// Shared utilities will be added here
-export {};
+// Shared utilities
+export { createLogger } from './logger';

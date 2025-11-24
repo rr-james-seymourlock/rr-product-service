@@ -16,6 +16,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@rr/shared": "workspace:*",
     "@rr/store-registry": "workspace:*",
     "zod": "catalog:"
   },

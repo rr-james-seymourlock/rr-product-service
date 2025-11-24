@@ -16,6 +16,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@rr/shared": "workspace:*",
     "ts-regex-builder": "^1.8.2"
   },
   "devDependencies": {
