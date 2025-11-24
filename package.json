@@ -1,82 +1,50 @@
 {
-  "name": "rr-product-service",
+  "name": "rr-product-service-monorepo",
   "version": "1.0.0",
+  "private": true,
   "type": "module",
-  "exports": {
-    ".": {
-      "import": "./dist/index.js"
-    }
-  },
-  "scripts": {
-    "build": "sls package",
-    "deploy": "sls deploy",
-    "offline": "sls offline",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage",
-    "test:bench": "vitest bench",
-    "typecheck": "tsc --noEmit",
-    "lint": "eslint . --ext .ts",
-    "lint:fix": "eslint . --ext .ts --fix",
-    "format": "prettier --write \"**/*.{ts,js,json,md}\"",
-    "check": "npm run lint && npm run typecheck && npm test",
-    "prepare": "husky",
-    "lint-staged": "lint-staged"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
+  "description": "RR Product Service - Monorepo for Lambda functions and shared packages",
   "engines": {
     "node": ">=22.21.0",
-    "npm": ">=10.0.0"
+    "pnpm": ">=10.18.1"
+  },
+  "packageManager": "pnpm@10.23.0",
+  "scripts": {
+    "build": "turbo build",
+    "dev": "turbo dev --parallel",
+    "test": "turbo test",
+    "test:watch": "turbo test -- --watch",
+    "test:coverage": "turbo test -- --coverage",
+    "lint": "turbo lint && manypkg check",
+    "lint:fix": "turbo lint -- --fix && manypkg fix",
+    "typecheck": "turbo typecheck",
+    "format": "turbo format",
+    "format:fix": "turbo format -- --write",
+    "check": "pnpm lint && pnpm typecheck && pnpm test",
+    "clean": "turbo clean",
+    "clean:workspaces": "git clean -xdf node_modules",
+    "syncpack:list": "pnpm dlx syncpack list-mismatches",
+    "syncpack:fix": "pnpm dlx syncpack fix-mismatches",
+    "prepare": "husky",
+    "postinstall": "manypkg fix"
   },
   "devDependencies": {
     "@commitlint/cli": "^20.1.0",
     "@commitlint/config-conventional": "^20.0.0",
-    "@eslint/js": "^9.39.1",
-    "@types/aws-lambda": "^8.10.158",
-    "@types/jsonld": "^1.5.15",
-    "@types/node": "^24.10.1",
-    "@types/safe-regex": "^1.1.6",
-    "@typescript-eslint/eslint-plugin": "^8.47.0",
-    "@typescript-eslint/parser": "^8.47.0",
-    "@vitest/coverage-v8": "^4.0.10",
-    "csv-parse": "^6.1.0",
-    "csv-stringify": "^6.6.0",
-    "esbuild": "^0.27.0",
-    "eslint": "^9.39.1",
-    "eslint-config-prettier": "^10.1.8",
-    "eslint-import-resolver-typescript": "^4.4.4",
-    "eslint-plugin-import": "^2.32.0",
-    "eslint-plugin-regexp": "^2.10.0",
-    "eslint-plugin-sonarjs": "^3.0.5",
-    "eslint-plugin-unicorn": "^62.0.0",
-    "globals": "^16.5.0",
+    "@manypkg/cli": "^0.25.1",
+    "@turbo/gen": "^2.6.1",
     "husky": "^9.1.7",
-    "jsonld": "^8.3.3",
     "lint-staged": "^16.2.6",
     "prettier": "^3.6.2",
-    "safe-regex": "^2.1.1",
-    "serverless": "^3.40.0",
-    "serverless-esbuild": "^1.56.0",
-    "serverless-offline": "^13.9.0",
-    "typescript": "^5.9.3",
-    "typescript-eslint": "^8.47.0",
-    "vitest": "^4.0.10"
+    "turbo": "^2.6.1",
+    "typescript": "^5.9.3"
   },
-  "dependencies": {
-    "@middy/core": "^6.4.5",
-    "@middy/http-error-handler": "^6.4.5",
-    "@middy/http-json-body-parser": "^6.4.5",
-    "@middy/validator": "^6.4.5",
-    "aws-lambda": "^1.0.7",
-    "axios": "^1.13.2",
-    "normalize-url": "^8.1.0",
-    "punycode": "^2.3.1",
-    "schema-dts": "^1.1.5",
-    "tldts": "^7.0.18",
-    "ts-regex-builder": "^1.8.2",
-    "zod": "^4.1.12"
-  }
+  "keywords": [
+    "monorepo",
+    "turborepo",
+    "lambda",
+    "product-service"
+  ],
+  "author": "",
+  "license": "ISC"
 }
