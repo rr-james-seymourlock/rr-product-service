@@ -7,16 +7,16 @@
  * Store alias configuration.
  * Represents alternative domains and IDs that map to a primary store.
  */
-export interface StoreAlias {
+export type StoreAlias = {
   readonly id: string;
   readonly domain: string;
-}
+};
 
 /**
- * Complete store configuration interface.
+ * Complete store configuration type.
  * Defines the structure of store configuration objects including patterns and aliases.
  */
-export interface StoreConfigInterface {
+export type StoreConfigInterface = {
   readonly id: string;
   readonly domain: string;
   /** Optional list of alternative domains and IDs that map to this store */
@@ -31,14 +31,14 @@ export interface StoreConfigInterface {
    * @param id The ID to transform
    */
   readonly transformId?: (id: string) => string;
-}
+};
 
 /**
  * Store identifier for lookup operations.
  * Used by getStoreConfig to specify which store to retrieve.
  * At least one of domain or id should be provided.
  */
-export interface StoreIdentifier {
+export type StoreIdentifier = {
   domain?: string;
   id?: string;
-}
+};

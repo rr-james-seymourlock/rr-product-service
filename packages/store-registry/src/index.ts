@@ -16,3 +16,6 @@ export type {
   StoreAlias,
   StoreIdentifier,
 } from './types';
+
+// Logger
+export { createLogger, logger } from './logger';

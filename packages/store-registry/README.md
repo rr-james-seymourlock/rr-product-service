@@ -1,4 +1,4 @@
-# storeRegistry
+# @rr/store-registry
 
 Store configuration management system that handles store identification, domain mapping, and URL pattern matching for multi-store environments.
 
@@ -10,13 +10,17 @@ Store configuration management system that handles store identification, domain 
 - **Pre-compiled patterns**: Zero overhead for regex pattern access
 - **100+ store configurations**: Support for major retailers
 - **Type-safe**: Full TypeScript support with compile-time validation
-- **Immutable**: ReadonlyMap and readonly interfaces prevent accidental mutations
+- **Immutable**: ReadonlyMap and readonly types prevent accidental mutations
 - **Performance optimized**: <0.01ms per lookup on average
+- **Structured logging**: JSON-formatted logs with performance metrics
+- **Modern TypeScript**: Uses `type` over `interface` for better DX
 
 ## Installation
 
+This library is internal to the rr-product-service monorepo.
+
 ```typescript
-import { getStoreConfig } from '@/lib/storeRegistry';
+import { getStoreConfig } from '@rr/store-registry';
 ```
 
 ## Usage
@@ -24,7 +28,7 @@ import { getStoreConfig } from '@/lib/storeRegistry';
 ### Basic Store Lookup by ID
 
 ```typescript
-import { getStoreConfig } from '@/lib/storeRegistry';
+import { getStoreConfig } from '@rr/store-registry';
 
 const config = getStoreConfig({ id: '5246' });
 // Returns: { id: '5246', domain: 'target.com', pathnamePatterns: [...] }
@@ -40,7 +44,7 @@ const config = getStoreConfig({ domain: 'nike.com' });
 ### Accessing Store Patterns
 
 ```typescript
-import { COMPILED_PATTERNS } from '@/lib/storeRegistry';
+import { COMPILED_PATTERNS } from '@rr/store-registry';
 
 const targetPatterns = COMPILED_PATTERNS.get('5246');
 // Returns: [RegExp, RegExp, ...] or undefined if no patterns
@@ -49,7 +53,7 @@ const targetPatterns = COMPILED_PATTERNS.get('5246');
 ### Direct Map Access
 
 ```typescript
-import { STORE_ID_CONFIG, STORE_NAME_CONFIG } from '@/lib/storeRegistry';
+import { STORE_ID_CONFIG, STORE_NAME_CONFIG } from '@rr/store-registry';
 
 // Get store config directly from ID map
 const config = STORE_ID_CONFIG.get('5246');
@@ -64,7 +68,7 @@ const storeId = STORE_NAME_CONFIG.get('target.com');
 ### StoreConfigInterface
 
 ```typescript
-interface StoreConfigInterface {
+type StoreConfigInterface = {
   readonly id: string; // Unique store identifier
   readonly domain: string; // Primary domain (e.g., 'nike.com')
   readonly aliases?: ReadonlyArray<{
@@ -76,7 +80,7 @@ interface StoreConfigInterface {
   readonly pathnamePatterns?: RegExp[]; // URL path matching patterns
   readonly searchPatterns?: RegExp[]; // Query parameter matching patterns
   readonly transformId?: (id: string) => string; // Optional ID transformation function
-}
+};
 ```
 
 ### Example Configuration
@@ -154,7 +158,7 @@ ReadonlyMap of store IDs to their complete configuration objects.
 **Example:**
 
 ```typescript
-import { STORE_ID_CONFIG } from '@/lib/storeRegistry';
+import { STORE_ID_CONFIG } from '@rr/store-registry';
 
 // Check if store exists
 if (STORE_ID_CONFIG.has('5246')) {
@@ -180,7 +184,7 @@ ReadonlyMap of domain names to their corresponding store IDs.
 **Example:**
 
 ```typescript
-import { STORE_NAME_CONFIG } from '@/lib/storeRegistry';
+import { STORE_NAME_CONFIG } from '@rr/store-registry';
 
 // Get store ID from domain
 const storeId = STORE_NAME_CONFIG.get('nike.com');
@@ -218,7 +222,7 @@ ReadonlyMap of domain names to their configuration objects for direct lookup.
 **Example:**
 
 ```typescript
-import { STORE_DOMAIN_CONFIG } from '@/lib/storeRegistry';
+import { STORE_DOMAIN_CONFIG } from '@rr/store-registry';
 
 // Direct domain→config lookup (single Map access)
 const config = STORE_DOMAIN_CONFIG.get('nike.com');
@@ -252,7 +256,7 @@ ReadonlyMap of pre-compiled regular expressions for URL pattern matching, indexe
 **Example:**
 
 ```typescript
-import { COMPILED_PATTERNS } from '@/lib/storeRegistry';
+import { COMPILED_PATTERNS } from '@rr/store-registry';
 
 // Get patterns for a store
 const targetPatterns = COMPILED_PATTERNS.get('5246');
@@ -269,6 +273,69 @@ if (targetPatterns) {
 // Check if store has patterns
 const hasPatterns = COMPILED_PATTERNS.has('5246');
 ```
+
+## Logging
+
+The library includes structured JSON logging for debugging and observability.
+
+### Module Initialization Logging
+
+When the module loads, it logs performance metrics for map building:
+
+```json
+{
+  "level": "info",
+  "message": "Built STORE_ID_CONFIG map",
+  "context": {
+    "storeCount": 150,
+    "durationMs": "1.23",
+    "namespace": "store-registry.registry"
+  },
+  "timestamp": "2025-11-24T23:07:56.017Z"
+}
+```
+
+### Debug Logging for Failed Lookups
+
+Failed lookups are logged at debug level:
+
+```typescript
+import { getStoreConfig } from '@rr/store-registry';
+
+const config = getStoreConfig({ id: 'non-existent' });
+// Logs: {"level":"debug","message":"Store not found by ID","context":{"id":"non-existent","namespace":"store-registry.registry"},...}
+```
+
+### Custom Logger Instances
+
+Create namespaced loggers for different contexts:
+
+```typescript
+import { createLogger } from '@rr/store-registry';
+
+const customLogger = createLogger('my-service.store-lookups');
+
+customLogger.info({ storeId: '5246' }, 'Looking up store');
+customLogger.debug({ domain: 'nike.com' }, 'Domain lookup');
+customLogger.warn({ issue: 'deprecated' }, 'Using deprecated API');
+customLogger.error({ error: err }, 'Lookup failed');
+```
+
+### Log Levels
+
+- `debug` - Detailed diagnostic information (failed lookups)
+- `info` - General informational messages (map initialization)
+- `warn` - Warning messages for potential issues
+- `error` - Error messages for failures
+
+**Note:** Logs are automatically suppressed when `NODE_ENV=test` to keep test output clean.
+
+**Performance Impact:** Logging is minimal and only occurs during:
+- Module initialization (one-time)
+- Failed lookups (debug level only)
+- Custom logger usage (opt-in)
+
+Successful lookups have ZERO logging overhead for maximum performance.
 
 ## Validation Strategy
 
@@ -495,7 +562,7 @@ npm run test:coverage
 ### 1. URL Pattern Extraction
 
 ```typescript
-import { getStoreConfig } from '@/lib/storeRegistry';
+import { getStoreConfig } from '@rr/store-registry';
 
 const config = getStoreConfig({ domain: 'target.com' });
 if (config?.pathnamePatterns) {
@@ -512,7 +579,7 @@ if (config?.pathnamePatterns) {
 ### 2. Store Validation
 
 ```typescript
-import { STORE_NAME_CONFIG } from '@/lib/storeRegistry';
+import { STORE_NAME_CONFIG } from '@rr/store-registry';
 
 function isValidStore(domain: string): boolean {
   return STORE_NAME_CONFIG.has(domain);
@@ -525,7 +592,7 @@ isValidStore('unknown.com'); // false
 ### 3. Bulk Operations
 
 ```typescript
-import { STORE_ID_CONFIG } from '@/lib/storeRegistry';
+import { STORE_ID_CONFIG } from '@rr/store-registry';
 
 // Process all stores
 STORE_ID_CONFIG.forEach((config, id) => {
@@ -577,7 +644,7 @@ If migrating from `storeConfigs` to `storeRegistry`:
 import { getStoreConfig } from '@/storeConfigs';
 
 // After
-import { getStoreConfig } from '@/lib/storeRegistry';
+import { getStoreConfig } from '@rr/store-registry';
 ```
 
 2. API remains the same - no code changes needed

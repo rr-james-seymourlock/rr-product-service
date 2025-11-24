@@ -3,7 +3,10 @@
  * domain mapping, and URL pattern matching for multi-store environments.
  */
 import { storeConfigs } from './config';
+import { createLogger } from './logger';
 import type { StoreConfigInterface, StoreIdentifier } from './types';
+
+const logger = createLogger('store-registry.registry');
 
 /**
  * Builds a Map of store IDs to their configuration objects.
@@ -12,7 +15,7 @@ import type { StoreConfigInterface, StoreIdentifier } from './types';
  *
  * @returns ReadonlyMap with store IDs (primary + aliases) as keys
  */
-function buildStoreIdMap(): ReadonlyMap<string, StoreConfigInterface> {
+function buildStoreIdMap() {
   // Pre-calculate total size to avoid Map rehashing during construction
   let totalSize = 0;
   for (const config of storeConfigs) {
@@ -44,7 +47,7 @@ function buildStoreIdMap(): ReadonlyMap<string, StoreConfigInterface> {
  *
  * @returns ReadonlyMap with domains (primary + aliases) as keys
  */
-function buildStoreNameMap(): ReadonlyMap<string, string> {
+function buildStoreNameMap() {
   // Pre-calculate total size
   let totalSize = 0;
   for (const config of storeConfigs) {
@@ -75,7 +78,7 @@ function buildStoreNameMap(): ReadonlyMap<string, string> {
  *
  * @returns ReadonlyMap with domains (primary + aliases) as keys
  */
-function buildStoreDomainMap(): ReadonlyMap<string, StoreConfigInterface> {
+function buildStoreDomainMap() {
   // Pre-calculate total size
   let totalSize = 0;
   for (const config of storeConfigs) {
@@ -105,7 +108,7 @@ function buildStoreDomainMap(): ReadonlyMap<string, StoreConfigInterface> {
  *
  * @returns ReadonlyMap with store IDs as keys and pattern arrays as values
  */
-function buildCompiledPatternsMap(): ReadonlyMap<string, ReadonlyArray<RegExp>> {
+function buildCompiledPatternsMap() {
   // Pre-calculate size - only stores with patterns
   let totalSize = 0;
   for (const config of storeConfigs) {
@@ -132,7 +135,16 @@ function buildCompiledPatternsMap(): ReadonlyMap<string, ReadonlyArray<RegExp>> 
  * Built once at module load for zero per-request overhead.
  * @constant
  */
-export const STORE_ID_CONFIG: ReadonlyMap<string, StoreConfigInterface> = buildStoreIdMap();
+export const STORE_ID_CONFIG: ReadonlyMap<string, StoreConfigInterface> = (() => {
+  const startTime = performance.now();
+  const map = buildStoreIdMap();
+  const duration = performance.now() - startTime;
+  logger.info(
+    { storeCount: map.size, durationMs: duration.toFixed(2) },
+    'Built STORE_ID_CONFIG map',
+  );
+  return map;
+})();
 
 /**
  * Map of domain names to their corresponding store IDs.
@@ -141,7 +153,16 @@ export const STORE_ID_CONFIG: ReadonlyMap<string, StoreConfigInterface> = buildS
  * @constant
  * @deprecated Use STORE_DOMAIN_CONFIG for direct domain→config lookups
  */
-export const STORE_NAME_CONFIG: ReadonlyMap<string, string> = buildStoreNameMap();
+export const STORE_NAME_CONFIG: ReadonlyMap<string, string> = (() => {
+  const startTime = performance.now();
+  const map = buildStoreNameMap();
+  const duration = performance.now() - startTime;
+  logger.info(
+    { domainCount: map.size, durationMs: duration.toFixed(2) },
+    'Built STORE_NAME_CONFIG map',
+  );
+  return map;
+})();
 
 /**
  * Map of domain names to their configuration objects.
@@ -149,17 +170,32 @@ export const STORE_NAME_CONFIG: ReadonlyMap<string, string> = buildStoreNameMap(
  * Eliminates double Map access required by domain→ID→config pattern.
  * @constant
  */
-export const STORE_DOMAIN_CONFIG: ReadonlyMap<string, StoreConfigInterface> = buildStoreDomainMap();
+export const STORE_DOMAIN_CONFIG: ReadonlyMap<string, StoreConfigInterface> = (() => {
+  const startTime = performance.now();
+  const map = buildStoreDomainMap();
+  const duration = performance.now() - startTime;
+  logger.info(
+    { domainCount: map.size, durationMs: duration.toFixed(2) },
+    'Built STORE_DOMAIN_CONFIG map',
+  );
+  return map;
+})();
 
 /**
  * Pre-compiled regular expressions for URL test cases pattern matching, indexed by store ID.
  * Improves performance by avoiding runtime compilation of patterns.
  * @constant
  */
-export const COMPILED_PATTERNS: ReadonlyMap<
-  string,
-  ReadonlyArray<RegExp>
-> = buildCompiledPatternsMap();
+export const COMPILED_PATTERNS: ReadonlyMap<string, ReadonlyArray<RegExp>> = (() => {
+  const startTime = performance.now();
+  const map = buildCompiledPatternsMap();
+  const duration = performance.now() - startTime;
+  logger.info(
+    { patternCount: map.size, durationMs: duration.toFixed(2) },
+    'Built COMPILED_PATTERNS map',
+  );
+  return map;
+})();
 
 /**
  * Retrieves store configuration based on either store ID or domain name.
@@ -181,16 +217,25 @@ export const COMPILED_PATTERNS: ReadonlyMap<
  * // Lookup by domain (single Map access)
  * const config2 = getStoreConfig({ domain: 'target.com' });
  */
-export const getStoreConfig = (identifier: StoreIdentifier): StoreConfigInterface | undefined => {
+export const getStoreConfig = (identifier: StoreIdentifier) => {
   // Fast path for ID lookup - single Map access
   if (identifier.id !== undefined) {
-    return STORE_ID_CONFIG.get(identifier.id);
+    const config = STORE_ID_CONFIG.get(identifier.id);
+    if (config === undefined) {
+      logger.debug({ id: identifier.id }, 'Store not found by ID');
+    }
+    return config;
   }
 
   // Direct domain lookup - single Map access (optimized from previous double lookup)
   if (identifier.domain !== undefined) {
-    return STORE_DOMAIN_CONFIG.get(identifier.domain);
+    const config = STORE_DOMAIN_CONFIG.get(identifier.domain);
+    if (config === undefined) {
+      logger.debug({ domain: identifier.domain }, 'Store not found by domain');
+    }
+    return config;
   }
 
+  logger.debug({ identifier }, 'No ID or domain provided');
   return undefined;
 };
