@@ -1,0 +1,57 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: RR Product Service - Lambda functions for product parsing
+
+Globals:
+  Function:
+    Runtime: nodejs20.x
+    Architectures:
+      - arm64
+    Timeout: 30
+    MemorySize: 512
+    Environment:
+      Variables:
+        NODE_ENV: production
+        LOG_LEVEL: info
+
+Resources:
+  PostProductFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: es2022
+        Format: esm
+        Sourcemap: true
+        EntryPoints:
+          - src/functions/postProduct/handler.ts
+        External:
+          - '@aws-sdk/*'
+        Banner:
+          js: "import { createRequire } from 'module'; const require = createRequire(import.meta.url);"
+    Properties:
+      CodeUri: ./
+      Handler: handler.handler
+      Events:
+        PostProduct:
+          Type: Api
+          Properties:
+            Path: /product
+            Method: post
+      Tags:
+        Service: product-service
+        Environment: production
+
+Outputs:
+  PostProductApi:
+    Description: API Gateway endpoint URL for PostProduct function
+    Value: !Sub 'https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/product/'
+
+  PostProductFunction:
+    Description: PostProduct Lambda Function ARN
+    Value: !GetAtt PostProductFunction.Arn
+
+  PostProductFunctionIamRole:
+    Description: IAM Role created for PostProduct function
+    Value: !GetAtt PostProductFunctionRole.Arn
