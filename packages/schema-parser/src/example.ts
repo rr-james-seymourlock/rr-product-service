@@ -1,4 +1,4 @@
-import { parseProductSchema } from './parseProductSchema';
+import { parseProductSchema } from './parser';
 
 // Example 1: Simple Product
 const simpleProduct = {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { extractSkusFromSchema } from '../extractSkusFromSchema';
+import { extractSkusFromSchema } from '../extract-skus';
 
 // Simple Product
 const simpleProduct = {

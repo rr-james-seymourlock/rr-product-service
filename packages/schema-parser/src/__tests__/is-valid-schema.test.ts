@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { isValidProductSchema } from '../isValidProductSchema';
+import { isValidProductSchema } from '../is-valid-schema';
 
 const validProduct = {
   '@context': 'https://schema.org',

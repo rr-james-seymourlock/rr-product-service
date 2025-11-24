@@ -1,7 +1,7 @@
 import type { Product, WithContext } from 'schema-dts';
 
-import { extractSkusFromSchema } from './extractSkusFromSchema';
-import { isValidProductSchema } from './isValidProductSchema';
+import { extractSkusFromSchema } from './extract-skus';
+import { isValidProductSchema } from './is-valid-schema';
 
 export function parseProductSchema(schema: unknown): WithContext<Product> | undefined {
   const isValid = isValidProductSchema(schema);
