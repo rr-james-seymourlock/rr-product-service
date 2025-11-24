@@ -2,8 +2,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import * as storeConfigModule from '@rr/store-registry';
 
-import { extractIdsFromUrlComponents, patternExtractor } from '../extractIdsFromUrlComponents';
-import { config } from '../extractIdsFromUrlComponents.config';
+import { extractIdsFromUrlComponents, patternExtractor } from '../extractor';
+import { config } from '../config';
 
 describe('Error handling', () => {
   let consoleErrorSpy: ReturnType<typeof vi.spyOn>;

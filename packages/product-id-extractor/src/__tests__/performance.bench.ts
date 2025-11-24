@@ -2,7 +2,7 @@ import { bench, describe } from 'vitest';
 
 import { COMPILED_PATTERNS } from '@rr/store-registry';
 
-import { config } from '../extractIdsFromUrlComponents.config';
+import { config } from '../config';
 
 /**
  * Benchmark suite for regex pattern performance

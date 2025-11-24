@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { getStoreConfig } from '@rr/store-registry';
 import { parseUrlComponents } from '@rr/url-parser';
 
-import { extractIdsFromUrlComponents } from '../extractIdsFromUrlComponents';
+import { extractIdsFromUrlComponents } from '../extractor';
 
 describe('Domain-specific search patterns', () => {
   it('should extract IDs from query parameters using domain-specific searchPatterns', () => {

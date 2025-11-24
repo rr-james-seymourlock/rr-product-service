@@ -3,7 +3,7 @@ import { ZodError } from 'zod';
 
 import { parseUrlComponents } from '@rr/url-parser';
 
-import { extractIdsFromUrlComponents } from '../extractIdsFromUrlComponents';
+import { extractIdsFromUrlComponents } from '../extractor';
 
 vi.mock('@rr/store-registry');
 

@@ -1,14 +1,14 @@
 import { getStoreConfig } from '@rr/store-registry';
 import type { StoreConfigInterface } from '@rr/store-registry/types';
 
-import { config } from './extractIdsFromUrlComponents.config';
+import { config } from './config';
 import {
   type ExtractIdsInput,
   type ProductIds,
   extractIdsInputSchema,
   patternExtractorInputSchema,
   productIdsSchema,
-} from './extractIdsFromUrlComponents.schema';
+} from './types';
 
 /**
  * Internal pattern extractor without validation overhead.

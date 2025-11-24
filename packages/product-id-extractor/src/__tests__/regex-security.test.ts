@@ -3,7 +3,7 @@ import { describe, expect, test } from 'vitest';
 
 import { COMPILED_PATTERNS } from '@rr/store-registry';
 
-import { config } from '../extractIdsFromUrlComponents.config';
+import { config } from '../config';
 
 // Collect all patterns from searchPatterns, pathnamePatterns, and store configs
 const regexPatterns = [

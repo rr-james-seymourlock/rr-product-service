@@ -2,9 +2,9 @@ import { describe, expect, it } from 'vitest';
 
 import { parseUrlComponents } from '@rr/url-parser';
 
-import { extractIdsFromUrlComponents } from '../extractIdsFromUrlComponents';
-import { config } from '../extractIdsFromUrlComponents.config';
-import { END_OF_STRING_CHARS, assertProductIdsMatch } from './testUtilities';
+import { extractIdsFromUrlComponents } from '../extractor';
+import { config } from '../config';
+import { END_OF_STRING_CHARS, assertProductIdsMatch } from './test-utils';
 
 describe('Path extraction patterns', () => {
   it('should extract p type ids in paths', () => {

@@ -1,9 +1,14 @@
+// Main extraction functions
+export { extractIdsFromUrlComponents, patternExtractor } from './extractor';
+
+// Configuration
+export { config } from './config';
+
+// Types and schemas
+export type { ProductIds, ExtractIdsInput } from './types';
 export {
-  extractIdsFromUrlComponents,
-  patternExtractor,
-} from './extractIdsFromUrlComponents/extractIdsFromUrlComponents';
-export type {
-  ProductIds,
-  ExtractIdsInput,
-} from './extractIdsFromUrlComponents/extractIdsFromUrlComponents.schema';
-export { config } from './extractIdsFromUrlComponents/extractIdsFromUrlComponents.config';
+  extractIdsInputSchema,
+  productIdSchema,
+  productIdsSchema,
+  patternExtractorInputSchema,
+} from './types';

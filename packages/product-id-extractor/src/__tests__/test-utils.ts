@@ -4,7 +4,7 @@ import { expect } from 'vitest';
 
 import { parseUrlComponents } from '@rr/url-parser';
 
-import { extractIdsFromUrlComponents } from '../extractIdsFromUrlComponents';
+import { extractIdsFromUrlComponents } from '../extractor';
 
 export const END_OF_STRING_CHARS = [
   '',

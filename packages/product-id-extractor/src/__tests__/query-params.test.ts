@@ -1,6 +1,6 @@
 import { describe, it } from 'vitest';
 
-import { assertProductIdsMatch } from './testUtilities';
+import { assertProductIdsMatch } from './test-utils';
 
 describe('Query extraction patterns', () => {
   it('should extract digits in query params', () => {
