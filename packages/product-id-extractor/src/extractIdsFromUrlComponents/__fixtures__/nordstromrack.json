@@ -1,0 +1,15 @@
+{
+  "name": "Nordstrom Rack",
+  "id": 13349,
+  "domain": "nordstromrack.com",
+  "testCases": [
+    {
+      "url": "https://www.nordstromrack.com/s/7951545?origin=bag",
+      "expectedSkus": ["7951545"]
+    },
+    {
+      "url": "https://www.nordstromrack.com/s/sam-edelman-strapless-sequin-floral-dress/8156709?origin=coordinating-8156709-0-3-ValentinesDayGift-recbot-browse_results_interleave_rack&recs_placement=ValentinesDayGift&recs_strategy=browse_results_interleave_rack&recs_source=recbot&recs_page_type=home&recs_seed=0&color=BLACK%20MULTI",
+      "expectedSkus": ["8156709"]
+    }
+  ]
+}

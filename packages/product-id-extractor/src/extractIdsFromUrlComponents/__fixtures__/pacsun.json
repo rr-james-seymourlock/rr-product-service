@@ -1,0 +1,15 @@
+{
+  "name": "PacSun",
+  "id": 2161,
+  "domain": "pacsun.com",
+  "testCases": [
+    {
+      "url": "https://www.pacsun.com/pacsun/dylan-baggy-cargo-jeans-medium-indigo-0131604890112.html?dwvar_0131604890112_color=349&tileCgid=mens-pants",
+      "expectedSkus": ["0131604890112"]
+    },
+    {
+      "url": "https://www.pacsun.com/edikted/bonney-bow-detail-sweatpants-7069636.html",
+      "expectedSkus": ["7069636"]
+    }
+  ]
+}

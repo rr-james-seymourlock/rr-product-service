@@ -1,0 +1,19 @@
+{
+  "name": "JOANN",
+  "id": 8977,
+  "domain": "joann.com",
+  "testCases": [
+    {
+      "url": "https://www.joann.com/singer-heavy-duty-4452-sewing-machine/15929466.html",
+      "expectedSkus": ["15929466"]
+    },
+    {
+      "url": "https://www.joann.com/cricut-maker-3/16673535.html",
+      "expectedSkus": ["16673535"]
+    },
+    {
+      "url": "https://www.joann.com/brother-se1900-sewing-and-embroidery-machine/15936156.html",
+      "expectedSkus": ["15936156"]
+    }
+  ]
+}

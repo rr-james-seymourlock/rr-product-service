@@ -1,0 +1,55 @@
+{
+  "name": "Sephora",
+  "id": 4548,
+  "domain": "sephora.com",
+  "testCases": [
+    {
+      "url": "https://www.sephora.com/product/hermes-terre-d-hermes-collection-eau-de-toilette-cologne-set-P514147?skuId=2822393",
+      "expectedSkus": ["p514147", "514147", "2822393"]
+    },
+    {
+      "url": "https://www.sephora.com/product/november-cyber-sample-bag-3-P514596?skuId=2824647",
+      "expectedSkus": ["p514596", "514596", "2824647"]
+    },
+    {
+      "url": "https://www.sephora.com/product/water-drench-hyaluronic-cloud-hydra-gel-eye-patches-P423254?skuId=1976984",
+      "expectedSkus": ["p423254", "423254", "1976984"]
+    },
+    {
+      "url": "https://www.sephora.com/product/colorful-shadow-P430932?skuId=2710028",
+      "expectedSkus": ["p430932", "430932", "2710028"]
+    },
+    {
+      "url": "https://www.sephora.com/product/glow-stick-sunscreen-spf-50-P429953",
+      "expectedSkus": ["p429953", "429953"]
+    },
+    {
+      "url": "https://www.sephora.com/product/fine-line-felt-tip-eyeliner-P443322?skuId=2083236",
+      "expectedSkus": ["p443322", "443322", "2083236"]
+    },
+    {
+      "url": "https://www.sephora.com/product/kate-mcleod-mini-daily-stone-P484052?skuId=2584084",
+      "expectedSkus": ["p484052", "484052", "2584084"]
+    },
+    {
+      "url": "https://www.sephora.com/product/complexion-rescue-tinted-hydrating-gel-cream-P393356?skuId=1687920",
+      "expectedSkus": ["p393356", "393356", "1687920"]
+    },
+    {
+      "url": "https://www.sephora.com/product/sephora-collection-3-in-1-pencil-sharpener-P513120?skuId=2760320",
+      "expectedSkus": ["p513120", "513120", "2760320"]
+    },
+    {
+      "url": "https://www.sephora.com/product/drunk-elephant-the-littles-travel-skincare-set-P512151?skuId=2776250",
+      "expectedSkus": ["p512151", "512151", "2776250"]
+    },
+    {
+      "url": "https://www.sephora.com/product/bom-dia-jet-set-P509328?skuId=2742112",
+      "expectedSkus": ["p509328", "509328", "2742112"]
+    },
+    {
+      "url": "https://www.sephora.com/product/touchland-power-mist-hydrating-hand-sanitizer-P480529?skuId=2559649",
+      "expectedSkus": ["p480529", "480529", "2559649"]
+    }
+  ]
+}

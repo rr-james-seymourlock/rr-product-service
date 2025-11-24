@@ -1,0 +1,15 @@
+{
+  "name": "Costco",
+  "id": 16829,
+  "domain": "costco.com",
+  "testCases": [
+    {
+      "url": "https://www.costco.com/.product.1575686.html",
+      "expectedSkus": ["1575686"]
+    },
+    {
+      "url": "https://www.costco.com/.product.1888424.html",
+      "expectedSkus": ["1888424"]
+    }
+  ]
+}

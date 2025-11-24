@@ -1,0 +1,43 @@
+{
+  "name": "Banana Republic",
+  "id": 9311,
+  "domain": "bananarepublic.gap.com",
+  "testCases": [
+    {
+      "url": "https://bananarepublic.gap.com/browse/product.do?pid=5722850020003",
+      "expectedSkus": ["5722850020003"]
+    },
+    {
+      "url": "https://bananarepublic.gap.com/browse/product.do?pid=5902260220000",
+      "expectedSkus": ["5902260220000"]
+    },
+    {
+      "url": "https://bananarepublic.gap.com/browse/product.do?pid=6040420120002",
+      "expectedSkus": ["6040420120002"]
+    },
+    {
+      "url": "https://bananarepublic.gap.com/browse/product.do?pid=5433961320002",
+      "expectedSkus": ["5433961320002"]
+    },
+    {
+      "url": "https://bananarepublic.gap.com/browse/product.do?pid=6034430120002",
+      "expectedSkus": ["6034430120002"]
+    },
+    {
+      "url": "https://bananarepublic.gap.com/browse/product.do?pid=5432620320002",
+      "expectedSkus": ["5432620320002"]
+    },
+    {
+      "url": "https://bananarepublic.gap.com/browse/product.do?pid=8828460320000",
+      "expectedSkus": ["8828460320000"]
+    },
+    {
+      "url": "https://bananarepublic.gap.com/browse/product.do?pid=6741590020000",
+      "expectedSkus": ["6741590020000"]
+    },
+    {
+      "url": "https://bananarepublic.gap.com/browse/product.do?pid=6032340420002",
+      "expectedSkus": ["6032340420002"]
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "name": "Dance Wear Solutions",
+  "id": 19546,
+  "domain": "dancewearsolutions.com",
+  "testCases": [
+    {
+      "url": "https://www.dancewearsolutions.com/14278.aspx",
+      "expectedSkus": ["14278"]
+    }
+  ]
+}

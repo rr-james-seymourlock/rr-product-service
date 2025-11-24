@@ -1,0 +1,19 @@
+{
+  "name": "Crate & Barrel",
+  "id": 2442,
+  "domain": "crateandbarrel.com",
+  "testCases": [
+    {
+      "url": "https://www.crateandbarrel.com/lounge-ii-petite-93-sofa/s228511",
+      "expectedSkus": ["228511"]
+    },
+    {
+      "url": "https://www.crateandbarrel.com/le-creuset-signature-5.5-qt-round-deep-dutch-oven/s401632",
+      "expectedSkus": ["401632"]
+    },
+    {
+      "url": "https://www.crateandbarrel.com/edge-brass-floor-mirror/s533097",
+      "expectedSkus": ["533097"]
+    }
+  ]
+}

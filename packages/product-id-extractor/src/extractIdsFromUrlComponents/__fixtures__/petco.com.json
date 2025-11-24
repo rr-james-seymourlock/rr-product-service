@@ -1,0 +1,19 @@
+{
+  "name": "Petco",
+  "id": 2441,
+  "domain": "petco.com",
+  "testCases": [
+    {
+      "url": "https://www.petco.com/shop/en/petcostore/product/royal-canin-veterinary-diet-adult-selected-protein-pd-dry-dog-food-3094508",
+      "expectedSkus": ["3094508"]
+    },
+    {
+      "url": "https://www.petco.com/shop/en/petcostore/product/you-and-me-small-animal-habitat-3168061",
+      "expectedSkus": ["3168061"]
+    },
+    {
+      "url": "https://www.petco.com/shop/en/petcostore/product/cat-dancer-original-cat-toy-1245789",
+      "expectedSkus": ["1245789"]
+    }
+  ]
+}

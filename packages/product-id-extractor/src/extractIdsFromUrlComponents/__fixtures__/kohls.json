@@ -1,0 +1,15 @@
+{
+  "name": "Kohl's",
+  "id": 7206,
+  "domain": "kohls.com",
+  "testCases": [
+    {
+      "url": "https://www.kohls.com/product/prd-6824218/mens-sonoma-goods-for-life-supersoft-flannel-button-down-shirt.jsp?pfm=bdrecs-WebStore-ShoppingBag-Horizontal-b606-229&bdrecsId=8c64cda8-7622-4cb4-9007-f1cf4c3aa9ef",
+      "expectedSkus": ["6824218", "prd-6824218"]
+    },
+    {
+      "url": "https://www.kohls.com/product/prd-3840392/womens-shine-holiday-crew-socks.jsp?skuId=53297315",
+      "expectedSkus": ["53297315", "3840392", "prd-3840392"]
+    }
+  ]
+}

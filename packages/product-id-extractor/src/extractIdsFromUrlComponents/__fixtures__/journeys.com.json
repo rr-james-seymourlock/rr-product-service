@@ -1,0 +1,19 @@
+{
+  "name": "Journeys",
+  "id": 8979,
+  "domain": "journeys.com",
+  "testCases": [
+    {
+      "url": "https://www.journeys.com/product/vans-sk8-hi-skate-shoe-black-497207",
+      "expectedSkus": ["497207"]
+    },
+    {
+      "url": "https://www.journeys.com/product/converse-chuck-taylor-all-star-hi-sneaker-optical-white-9621",
+      "expectedSkus": ["9621"]
+    },
+    {
+      "url": "https://www.journeys.com/product/dr-martens-1460-boot-black-551436",
+      "expectedSkus": ["551436"]
+    }
+  ]
+}

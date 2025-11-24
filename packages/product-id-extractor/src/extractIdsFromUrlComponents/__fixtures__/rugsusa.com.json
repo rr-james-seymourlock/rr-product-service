@@ -1,0 +1,19 @@
+{
+  "name": "Rugs USA",
+  "id": 8031,
+  "domain": "rugsusa.com",
+  "testCases": [
+    {
+      "url": "https://www.rugsusa.com/rugsusa/rugs/rugs-usa-oak-sisal/black/200HJKN02B-8010.html",
+      "expectedSkus": ["200HJKN02B-8010"]
+    },
+    {
+      "url": "https://www.rugsusa.com/rugsusa/rugs/rugs-usa-ailish-botanical-washable/blush/200KFGO01B-508.html",
+      "expectedSkus": ["200KFGO01B-508"]
+    },
+    {
+      "url": "https://www.rugsusa.com/rugsusa/rugs/rugs-usa-catelyn-moroccan/ivory/200ARMN01A-8010.html",
+      "expectedSkus": ["200ARMN01A-8010"]
+    }
+  ]
+}

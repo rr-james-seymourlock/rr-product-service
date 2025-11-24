@@ -1,0 +1,19 @@
+{
+  "name": "J.Crew",
+  "id": 3865,
+  "domain": "jcrew.com",
+  "testCases": [
+    {
+      "url": "https://www.jcrew.com/p/BW453",
+      "expectedSkus": ["BW453"]
+    },
+    {
+      "url": "https://www.jcrew.com/p/AH240",
+      "expectedSkus": ["AH240"]
+    },
+    {
+      "url": "https://www.jcrew.com/p/CE246",
+      "expectedSkus": ["CE246"]
+    }
+  ]
+}

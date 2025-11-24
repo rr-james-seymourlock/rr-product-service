@@ -1,0 +1,15 @@
+{
+  "name": "Smashbox",
+  "id": 10045,
+  "domain": "smashbox.com",
+  "testCases": [
+    {
+      "url": "https://www.smashbox.com/product/17618/55057/face/contour-highlight/the-cali-contour-palette",
+      "expectedSkus": ["55057"]
+    },
+    {
+      "url": "https://www.smashbox.com/product/6029/110687/eyes/eye-shadow/always-on-mood-board-eye-shadow-palette",
+      "expectedSkus": ["110687"]
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "name": "Lillian Vernon",
+  "id": 6326,
+  "domain": "lillianvernon.com",
+  "testCases": [
+    {
+      "url": "https://www.lillianvernon.com/goods/personalized-plush-zoo-animals-play-set-z010127.html",
+      "expectedSkus": ["z010127"]
+    },
+    {
+      "url": "https://www.lillianvernon.com/goods/personalized-plush-zoo-animals-play-set-z010127.html",
+      "expectedSkus": ["z010127"]
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "name": "Acme Markets",
+  "id": 19490,
+  "domain": "acmemarkets.com",
+  "testCases": [
+    {
+      "url": "https://www.acmemarkets.com/shop/product-details.108010020.html",
+      "expectedSkus": ["108010020"]
+    }
+  ]
+}

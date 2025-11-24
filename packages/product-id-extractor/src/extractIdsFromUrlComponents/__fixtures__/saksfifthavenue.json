@@ -1,0 +1,15 @@
+{
+  "name": "Saks Fifth Avenue",
+  "id": 9154,
+  "domain": "saksfifthavenue.com",
+  "testCases": [
+    {
+      "url": "https://www.saksfifthavenue.com/product/d%C3%B4en-hettie-embroidered-ruffled-top-18508494.html",
+      "expectedSkus": ["18508494"]
+    },
+    {
+      "url": "https://www.saksfifthavenue.com/product/reiss-priya-seamed-flare-trousers-0400022005453.html?dwvar_0400022005453_color=CREAM",
+      "expectedSkus": ["0400022005453"]
+    }
+  ]
+}

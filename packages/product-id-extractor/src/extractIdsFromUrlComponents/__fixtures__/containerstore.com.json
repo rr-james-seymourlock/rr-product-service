@@ -1,0 +1,19 @@
+{
+  "name": "The Container Store",
+  "id": 2443,
+  "domain": "containerstore.com",
+  "testCases": [
+    {
+      "url": "https://www.containerstore.com/s/closet/shoe-storage/clear-drop-front-shoe-box/12d?productId=11006294",
+      "expectedSkus": ["11006294"]
+    },
+    {
+      "url": "https://www.containerstore.com/s/kitchen/food-storage/oxo-pop-containers/12d?productId=11010994",
+      "expectedSkus": ["11010994"]
+    },
+    {
+      "url": "https://www.containerstore.com/s/office/file-storage/12d?productId=11015634",
+      "expectedSkus": ["11015634"]
+    }
+  ]
+}
