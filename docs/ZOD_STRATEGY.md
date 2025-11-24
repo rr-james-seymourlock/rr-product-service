@@ -119,7 +119,6 @@ Validates configuration objects
 ```typescript
 // parseUrlComponents.config.ts (or .schema.ts)
 export const configSchema = z.object({
-  MULTI_PART_TLDS: z.set(z.string()),
   PRESERVED_SUBDOMAINS: z.set(z.string()),
   NORMALIZATION_RULES: z.object({
     defaultProtocol: z.literal('https'),

@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
 import normalizeUrl from 'normalize-url';
+import { parse as parseDomainParts } from 'tldts';
 import { config } from './parseUrlComponents.config';
 import {
   urlInputSchema,
@@ -32,18 +33,16 @@ export const parseDomain = (hostname: unknown): string => {
   const validatedHostname = hostnameSchema.parse(hostname);
 
   try {
-    const hostnameParts = validatedHostname.split('.');
+    const parsed = parseDomainParts(validatedHostname, { allowPrivateDomains: true });
+    if (parsed.isIp) {
+      return validatedHostname;
+    }
 
-    const baseDomain = config.MULTI_PART_TLDS.has(hostnameParts.slice(-2).join('.'))
-      ? hostnameParts.slice(-3).join('.')
-      : hostnameParts.slice(-2).join('.');
+    const baseDomain = parsed.domain ?? validatedHostname;
+    const subdomainParts = parsed.subdomain ? parsed.subdomain.split('.') : [];
+    const preservedSubdomain = subdomainParts.find((part) => config.PRESERVED_SUBDOMAINS.has(part));
 
-    const preservedSubdomain = hostnameParts.find((part): part is string =>
-      config.PRESERVED_SUBDOMAINS.has(part),
-    );
-
-    // Return early if no preserved subdomain or if it's already in the base domain
-    if (preservedSubdomain === undefined || baseDomain.includes(preservedSubdomain)) {
+    if (preservedSubdomain === undefined || baseDomain.startsWith(`${preservedSubdomain}.`)) {
       return baseDomain;
     }
 
@@ -155,14 +154,20 @@ export const parseUrlComponents = (url: unknown): URLComponents => {
   }
 
   try {
-    const normalized = normalizeUrl(validatedUrl, config.NORMALIZATION_RULES).toLowerCase();
-    const { href, hostname, pathname, search } = new URL(normalized);
+    const normalized = normalizeUrl(validatedUrl, config.NORMALIZATION_RULES);
+    const normalizedUrl = new URL(normalized);
+    normalizedUrl.hostname = normalizedUrl.hostname.toLowerCase();
+    const href = normalizedUrl.toString();
+    const { hostname, pathname, search } = normalizedUrl;
 
     // Extract the domain removing subdomains and supporting multi part TLD's
     const domain = parseDomain(hostname);
 
-    // Create a unique key per URL for use in Redis and for DynamoDB keys
-    const baseKey = `${domain}${pathname}${search}`;
+    // Create a unique key per URL for use in Redis and for DynamoDB keys.
+    // Pathname and search segments are normalized to lowercase for consistent deduplication.
+    const normalizedPathForKey = pathname.toLowerCase();
+    const normalizedSearchForKey = search.toLowerCase();
+    const baseKey = `${domain}${normalizedPathForKey}${normalizedSearchForKey}`;
     const key = createUrlKey(baseKey);
     const encodedHref = encodeURIComponent(href);
 

@@ -88,7 +88,7 @@ describe('Error handling', () => {
 
       expect(result).toEqual(new Set());
       expect(consoleErrorSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Error extracting patterns from source'),
+        expect.stringContaining('Error extracting patterns (source length'),
       );
       expect(consoleErrorSpy).toHaveBeenCalledWith(
         expect.stringContaining('Regex execution failed'),
@@ -113,7 +113,7 @@ describe('Error handling', () => {
 
       expect(result).toEqual(new Set());
       expect(consoleErrorSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Error extracting patterns from source'),
+        expect.stringContaining('Error extracting patterns (source length'),
       );
       expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Unknown error'));
     });
@@ -172,7 +172,9 @@ describe('Error handling', () => {
       const result = extractIdsFromUrlComponents({ urlComponents });
 
       expect(result).toEqual([]);
-      expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Error processing URL'));
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Error processing URL (length'),
+      );
       expect(consoleErrorSpy).toHaveBeenCalledWith(
         expect.stringContaining('Config retrieval failed'),
       );
@@ -200,7 +202,9 @@ describe('Error handling', () => {
       const result = extractIdsFromUrlComponents({ urlComponents });
 
       expect(result).toEqual([]);
-      expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Error processing URL'));
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Error processing URL (length'),
+      );
       expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Unknown error'));
 
       vi.restoreAllMocks();

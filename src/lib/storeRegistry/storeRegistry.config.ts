@@ -8,9 +8,43 @@ import {
   choiceOf,
   endOfString,
 } from 'ts-regex-builder';
-import type { StoreConfigInterface } from './storeRegistry.types';
+import type { StoreAlias, StoreConfigInterface } from './storeRegistry.types';
 
-export const storeConfigs: StoreConfigInterface[] = [
+const freezeAlias = (alias: StoreAlias): StoreAlias => Object.freeze({ ...alias });
+
+/**
+ * Deep freezes a store configuration to prevent runtime mutation.
+ * Critical for Lambda warm containers where configs are shared across invocations.
+ *
+ * Freezes:
+ * - Top-level config object
+ * - All arrays (aliases, patternFormats, patterns)
+ * - All alias objects within the aliases array
+ *
+ * @param config - The store configuration to freeze
+ * @returns Immutable frozen store configuration
+ */
+const freezeStoreConfig = (config: StoreConfigInterface): StoreConfigInterface => {
+  const frozenConfig: StoreConfigInterface = {
+    ...config,
+    ...(config.aliases && {
+      aliases: Object.freeze(config.aliases.map((alias) => freezeAlias(alias))),
+    }),
+    ...(config.patternFormats && {
+      patternFormats: Object.freeze([...config.patternFormats]),
+    }),
+    ...(config.pathnamePatterns && {
+      pathnamePatterns: Object.freeze([...config.pathnamePatterns]),
+    }),
+    ...(config.searchPatterns && {
+      searchPatterns: Object.freeze([...config.searchPatterns]),
+    }),
+  };
+
+  return Object.freeze(frozenConfig);
+};
+
+const mutableStoreConfigs: StoreConfigInterface[] = [
   {
     id: '5246',
     domain: 'target.com',
@@ -887,77 +921,6 @@ export const storeConfigs: StoreConfigInterface[] = [
   },
 ];
 
-// storeConfig({
-//   id: 4,
-//   domain: 'aloyoga.com',
-//   pathnamePatterns: [
-//     /products\/([a-z0-9]{4,16})-/
-//   ]
-// });
-
-// storeConfig({
-//   id: 5,
-//   domain: 'uniqlo.com',
-//   pathnamePatterns: [
-//     /products\/([a-z]{1,3}\d{3,8}-\d{1,5})/,
-//     /products\/([a-z]{1,3}\d{3,8})/
-//   ]
-// });
-
-// storeConfig({
-//   id: 6,
-//   domain: 'childrensplace.com',
-//   pathnamePatterns: [
-//     /[./-](\d{5,8}-[a-z]{2,4})(?:$|\/|\?|=|&|\$)/
-//   ]
-// });
-
-// storeConfig({
-//   id: 7,
-//   domain: 'bodenusa.com',
-//   pathnamePatterns: [
-//     /\/sty-([a-z]{1,3}\d{4,8})-/,
-//     /\/sty-([a-z]{1,3}\d{4,8}-[a-z]{2,4})/
-//   ]
-// });
-
-// storeConfig({
-//   id: 8,
-//   domain: 'carters.com',
-//   pathnamePatterns: [
-//     /[./-]?([a-z]_[a-z0-9]+)(?:$|\/|\?|=|&|\$)/
-//   ]
-// });
-
-// storeConfig({
-//   id: 9,
-//   domain: 'michaels.com',
-//   pathnamePatterns: [
-//     /(mp\d{5,16})/,
-//   ]
-// });
-
-// storeConfig({
-//   id: 10,
-//   domain: 'adidas.com',
-//   pathnamePatterns: [
-//     /[?&]forceselsize=([a-z0-9-_]+)/,
-//     /[?&]forceselsize=([a-z0-9-]+)/,
-//   ]
-// });
-
-// storeConfig({
-//   id: 11,
-//   domain: 'zappos.com',
-//   pathnamePatterns: [
-//     /asin\/([a-z0-9]{6,16})/
-//   ]
-// });
-
-// storeConfig({
-//   id: 12,
-//   domain: 'dickssportinggoods.com',
-//   pathnamePatterns: [
-//     /[/-](\d{2}[a-z0-9]{8,24})/,  // Added pattern for strings like 22wncunctxscn6zxxtex
-//   ]
-// });
+export const storeConfigs: ReadonlyArray<StoreConfigInterface> = Object.freeze(
+  mutableStoreConfigs.map((config) => freezeStoreConfig(config)),
+);

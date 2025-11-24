@@ -50,8 +50,6 @@ const NORMALIZATION_RULES: Options = {
   ],
 };
 
-const MULTI_PART_TLDS = new Set(['co.uk', 'co.jp', 'com.br', 'com.au', 'co.nz', 'org.uk']);
-
 const PRESERVED_SUBDOMAINS = new Set([
   'oldnavy',
   'bananarepublic',
@@ -65,7 +63,6 @@ const PATHNAME_EXTENSIONS = /\.(html?|php|asp|jsp|xml)$/;
 
 export const config = {
   NORMALIZATION_RULES,
-  MULTI_PART_TLDS,
   PRESERVED_SUBDOMAINS,
   PATHNAME_EXTENSIONS,
 };

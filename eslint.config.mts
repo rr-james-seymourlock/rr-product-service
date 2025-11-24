@@ -124,7 +124,7 @@ const config: Linter.Config[] = [
           format: ['camelCase', 'UPPER_CASE', 'PascalCase'],
           filter: {
             // Allow config object properties in UPPER_CASE
-            regex: '^(PATTERNS|MAX_RESULTS|TIMEOUT_MS|NORMALIZATION_RULES|MULTI_PART_TLDS|PRESERVED_SUBDOMAINS|PATHNAME_EXTENSIONS)$',
+            regex: '^(PATTERNS|MAX_RESULTS|TIMEOUT_MS|NORMALIZATION_RULES|PRESERVED_SUBDOMAINS|PATHNAME_EXTENSIONS)$',
             match: true,
           },
         },

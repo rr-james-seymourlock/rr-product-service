@@ -206,12 +206,12 @@ describe('parseUrlComponents', () => {
       expect(result.key).toHaveLength(16);
     });
 
-    it('should preserve case in pathname after lowercasing', () => {
+    it('should preserve original casing for non-hostname segments', () => {
       const url = 'https://example.com/Product/ABC-123';
       const result = parseUrlComponents(url);
 
-      // normalize-url + toLowerCase should make it all lowercase
-      expect(result.href).toBe('https://example.com/product/abc-123');
+      expect(result.href).toBe('https://example.com/Product/ABC-123');
+      expect(result.pathname).toBe('/Product/ABC-123');
     });
   });
 
@@ -382,7 +382,7 @@ describe('parseUrlComponents', () => {
       const result = parseUrlComponents(url);
 
       expect(result.hostname).toBe('192.168.1.1');
-      expect(result.domain).toBe('1.1'); // Last two parts
+      expect(result.domain).toBe('192.168.1.1');
     });
 
     it('should handle subdomains with preserved brand names not in Gap family', () => {
