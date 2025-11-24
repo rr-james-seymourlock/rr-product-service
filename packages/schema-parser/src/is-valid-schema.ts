@@ -1,5 +1,8 @@
 import { z } from 'zod';
 
+import { InvalidInputStructureError, SchemaValidationError } from './errors';
+import { logger } from './logger';
+
 const SchemaOrgBase = z.looseObject({
   '@context': z.string().optional(),
   '@type': z.union([z.string(), z.array(z.string())]).optional(),
@@ -8,12 +11,14 @@ const SchemaOrgBase = z.looseObject({
 
 export type MinimalSchemaOrg = z.infer<typeof SchemaOrgBase>;
 
-export function isValidProductSchema(schema: unknown): boolean {
+export function isValidProductSchema(schema: unknown) {
   const parsed = SchemaOrgBase.safeParse(schema);
   if (!parsed.success) {
-    throw new Error(
-      JSON.stringify({ errors: ['Invalid input structure'], details: parsed.error.issues }),
+    logger.error(
+      { details: parsed.error.issues },
+      'Invalid input structure for product schema',
     );
+    throw new InvalidInputStructureError(parsed.error.issues);
   }
   const object = parsed.data;
 
@@ -37,9 +42,12 @@ export function isValidProductSchema(schema: unknown): boolean {
       !hasContext && 'Missing or invalid @context',
       !isProductType && 'Missing or invalid @type (Product)',
       !hasName && 'Missing or invalid name',
-    ].filter(Boolean);
-    throw new Error(JSON.stringify({ errors }));
+    ].filter(Boolean) as string[];
+
+    logger.error({ errors }, 'Product schema validation failed');
+    throw new SchemaValidationError(errors);
   }
 
+  logger.debug({ schemaType: type }, 'Product schema validation successful');
   return true;
 }

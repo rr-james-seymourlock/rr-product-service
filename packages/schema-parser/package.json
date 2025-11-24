@@ -14,6 +14,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@rr/shared": "workspace:*",
     "schema-dts": "^1.1.5",
     "zod": "catalog:"
   },

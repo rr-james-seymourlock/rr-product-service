@@ -1,3 +1,4 @@
+import { logger } from './logger';
 import { parseProductSchema } from './parser';
 
 // Example 1: Simple Product
@@ -46,4 +47,4 @@ const productGroup = {
 
 // Not yet supported - ProductGroup validation not implemented
 // parseProductSchema(productGroup);
-console.log('Product group example:', productGroup);
+logger.info({ variantCount: productGroup.hasVariant.length }, 'Product group example');

@@ -2,6 +2,7 @@ import type { Product, WithContext } from 'schema-dts';
 
 import { extractSkusFromSchema } from './extract-skus';
 import { isValidProductSchema } from './is-valid-schema';
+import { logger } from './logger';
 
 export function parseProductSchema(schema: unknown): WithContext<Product> | undefined {
   const isValid = isValidProductSchema(schema);
@@ -23,6 +24,15 @@ export function parseProductSchema(schema: unknown): WithContext<Product> | unde
     description: productSchema.description,
     skus: extractSkusFromSchema(productSchema),
   };
-  console.log(product);
+
+  logger.debug(
+    {
+      name: product.name,
+      brand: product.brand,
+      skuCount: product.skus.length,
+    },
+    'Parsed product schema',
+  );
+
   return productSchema;
 }
