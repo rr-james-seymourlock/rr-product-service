@@ -9,7 +9,7 @@ import {
   wordBoundary,
 } from 'ts-regex-builder';
 
-import type { StoreAlias, StoreConfigInterface } from './storeRegistry.types';
+import type { StoreAlias, StoreConfigInterface } from './types';
 
 const freezeAlias = (alias: StoreAlias): StoreAlias => Object.freeze({ ...alias });
 

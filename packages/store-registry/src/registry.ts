@@ -2,8 +2,8 @@
  * @fileoverview Store configuration management system that handles store identification,
  * domain mapping, and URL pattern matching for multi-store environments.
  */
-import { storeConfigs } from './storeRegistry.config';
-import type { StoreConfigInterface, StoreIdentifier } from './storeRegistry.types';
+import { storeConfigs } from './config';
+import type { StoreConfigInterface, StoreIdentifier } from './types';
 
 /**
  * Builds a Map of store IDs to their configuration objects.

@@ -6,9 +6,9 @@ import {
   STORE_ID_CONFIG,
   STORE_NAME_CONFIG,
   getStoreConfig,
-} from '../storeRegistry';
-import { storeConfigs } from '../storeRegistry.config';
-import type { StoreConfigInterface } from '../storeRegistry.types';
+} from '../registry';
+import { storeConfigs } from '../config';
+import type { StoreConfigInterface } from '../types';
 
 describe('storeRegistry', () => {
   describe('getStoreConfig', () => {
