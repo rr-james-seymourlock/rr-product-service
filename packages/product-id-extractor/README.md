@@ -506,13 +506,6 @@ const ids = extractIdsFromUrlComponents({ urlComponents });
 // ['123456', 'sku789012'] (sorted, lowercased)
 ```
 
-## Error Handling
-
-- Returns empty array on extraction failures
-- Logs warnings for timeouts and result limits (dev mode only)
-- Logs errors for invalid patterns or processing failures
-- Never throws - always returns safe, empty result on error
-
 ## Dependencies
 
 - `zod` - Runtime validation (development mode only)

@@ -337,6 +337,34 @@ customLogger.error({ error: err }, 'Lookup failed');
 
 Successful lookups have ZERO logging overhead for maximum performance.
 
+## Error Handling
+
+**This library does not throw errors.** It follows a "return undefined" pattern for error cases:
+
+- `getStoreConfig()` returns `undefined` when no store is found
+- Failed lookups are logged at debug level only
+- No custom error classes needed
+
+**Design rationale:**
+- High-performance lookups (300+ RPS) benefit from avoiding exception overhead
+- Caller can check for `undefined` and handle appropriately
+- Logging provides observability without impacting performance
+
+**Example:**
+
+```typescript
+const config = getStoreConfig({ domain: 'unknown.com' });
+
+if (!config) {
+  // Handle missing store gracefully
+  console.log('Store not found, using fallback behavior');
+  return;
+}
+
+// Use config safely
+console.log(config.domain);
+```
+
 ## Validation Strategy
 
 **Compile-time validation with TypeScript:**
