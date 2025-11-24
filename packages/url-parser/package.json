@@ -1,0 +1,38 @@
+{
+  "name": "@rr/url-parser",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./config": "./src/parseUrlComponents/parseUrlComponents.config.ts",
+    "./types": "./src/parseUrlComponents/parseUrlComponents.schema.ts"
+  },
+  "scripts": {
+    "clean": "rm -rf .turbo node_modules dist",
+    "format": "prettier --check \"**/*.{ts,tsx}\"",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "normalize-url": "^8.1.0",
+    "tldts": "^7.0.18",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@rr/eslint-config": "workspace:*",
+    "@rr/prettier-config": "workspace:*",
+    "@rr/tsconfig": "workspace:*",
+    "@types/node": "catalog:",
+    "vitest": "catalog:"
+  },
+  "prettier": "@rr/prettier-config",
+  "typesVersions": {
+    "*": {
+      "*": [
+        "src/*"
+      ]
+    }
+  }
+}
