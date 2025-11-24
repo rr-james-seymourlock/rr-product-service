@@ -1,6 +1,14 @@
 import { z } from 'zod';
 
 /**
+ * Reusable schema components
+ */
+
+// Base schema primitives
+const nonEmptyString = z.string().min(1);
+const urlString = z.string().url();
+
+/**
  * Input validation schema for URL strings.
  *
  * Validates that:
@@ -68,12 +76,12 @@ export type UrlInput = z.infer<typeof urlInputSchema>;
  * ```
  */
 export const urlComponentsSchema = z.object({
-  href: z.string().url({ message: 'Invalid normalized URL' }),
-  encodedHref: z.string().min(1, 'Encoded href cannot be empty'),
-  hostname: z.string().min(1, 'Hostname cannot be empty'),
+  href: urlString.describe('Invalid normalized URL'),
+  encodedHref: nonEmptyString.describe('Encoded href cannot be empty'),
+  hostname: nonEmptyString.describe('Hostname cannot be empty'),
   pathname: z.string(), // Can be empty string
   search: z.string(), // Can be empty string
-  domain: z.string().min(1, 'Domain cannot be empty'),
+  domain: nonEmptyString.describe('Domain cannot be empty'),
   key: z
     .string()
     .length(16, 'URL key must be exactly 16 characters')
@@ -81,7 +89,7 @@ export const urlComponentsSchema = z.object({
       /^[\w-]+$/,
       'URL key must contain only alphanumeric characters, underscores, and hyphens',
     ),
-  original: z.string().min(1, 'Original URL cannot be empty'),
+  original: nonEmptyString.describe('Original URL cannot be empty'),
 });
 
 /**

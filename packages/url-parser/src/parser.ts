@@ -4,6 +4,13 @@ import { parse as parseDomainParts } from 'tldts';
 
 import { config } from './config';
 import {
+  DomainParseError,
+  InvalidUrlError,
+  UrlKeyGenerationError,
+  UrlNormalizationError,
+} from './errors';
+import { createLogger } from './logger';
+import {
   type URLComponents,
   baseKeySchema,
   hostnameSchema,
@@ -11,8 +18,7 @@ import {
   urlInputSchema,
 } from './types';
 
-// Re-export the type for backward compatibility
-export type { URLComponents };
+const logger = createLogger('url-parser.parser');
 
 /**
  * Extracts the normalized domain from a hostname.
@@ -20,7 +26,7 @@ export type { URLComponents };
  * @param hostname - Hostname to parse (e.g., 'www.shop.nike.com')
  * @returns Normalized domain (e.g., 'nike.com')
  *
- * @throws {Error} If hostname is invalid or cannot be parsed
+ * @throws {DomainParseError} If hostname cannot be parsed
  *
  * @example
  * ```typescript
@@ -29,13 +35,16 @@ export type { URLComponents };
  * parseDomain('www.oldnavy.gap.com'); // 'oldnavy.gap.com'
  * ```
  */
-export const parseDomain = (hostname: unknown): string => {
+export const parseDomain = (hostname: unknown) => {
   // Validate input
   const validatedHostname = hostnameSchema.parse(hostname);
+
+  logger.debug({ hostname: validatedHostname }, 'Parsing domain');
 
   try {
     const parsed = parseDomainParts(validatedHostname, { allowPrivateDomains: true });
     if (parsed.isIp) {
+      logger.debug({ hostname: validatedHostname }, 'Hostname is IP address');
       return validatedHostname;
     }
 
@@ -44,13 +53,24 @@ export const parseDomain = (hostname: unknown): string => {
     const preservedSubdomain = subdomainParts.find((part) => config.PRESERVED_SUBDOMAINS.has(part));
 
     if (preservedSubdomain === undefined || baseDomain.startsWith(`${preservedSubdomain}.`)) {
+      logger.debug({ hostname: validatedHostname, domain: baseDomain }, 'Extracted base domain');
       return baseDomain;
     }
 
-    return `${preservedSubdomain}.${baseDomain}`;
+    const result = `${preservedSubdomain}.${baseDomain}`;
+    logger.debug(
+      { hostname: validatedHostname, domain: result, preservedSubdomain },
+      'Extracted domain with preserved subdomain',
+    );
+    return result;
   } catch (error) {
-    throw new Error(
-      `Failed to parse domain for "${validatedHostname}": ${error instanceof Error ? error.message : 'Unknown error'}`,
+    logger.error(
+      { hostname: validatedHostname, error },
+      'Failed to parse domain',
+    );
+    throw new DomainParseError(
+      validatedHostname,
+      error instanceof Error ? error.message : 'Unknown error',
     );
   }
 };
@@ -61,7 +81,7 @@ export const parseDomain = (hostname: unknown): string => {
  * @param baseKey - String to hash (typically `${domain}${pathname}${search}`)
  * @returns 16-character URL-safe key
  *
- * @throws {Error} If baseKey is invalid or hashing fails
+ * @throws {UrlKeyGenerationError} If key generation fails
  *
  * @example
  * ```typescript
@@ -70,20 +90,27 @@ export const parseDomain = (hostname: unknown): string => {
  * createUrlKey('nike.com/product/124'); // 'aB1_cD4eF-gH5iJ_' (different)
  * ```
  */
-export const createUrlKey = (baseKey: unknown): string => {
+export const createUrlKey = (baseKey: unknown) => {
   // Validate input
   const validatedBaseKey = baseKeySchema.parse(baseKey);
 
+  logger.debug({ baseKeyLength: validatedBaseKey.length }, 'Generating URL key');
+
   try {
-    return createHash('sha1')
+    const key = createHash('sha1')
       .update(validatedBaseKey)
       .digest('base64')
       .slice(0, 16)
       .replaceAll(/[+/=]/g, '_')
       .replaceAll('/', '-');
+
+    logger.debug({ keyLength: key.length }, 'Generated URL key');
+    return key;
   } catch (error) {
-    throw new Error(
-      `Failed to create URL key for "${validatedBaseKey}": ${error instanceof Error ? error.message : 'Unknown error'}`,
+    logger.error({ baseKeyLength: validatedBaseKey.length, error }, 'Failed to generate URL key');
+    throw new UrlKeyGenerationError(
+      validatedBaseKey,
+      error instanceof Error ? error.message : 'Unknown error',
     );
   }
 };
@@ -104,8 +131,8 @@ export const createUrlKey = (baseKey: unknown): string => {
  * @param url - The URL to parse and normalize
  * @returns URLComponents object with normalized URL data
  *
- * @throws {ZodError} If URL is invalid, empty, or not HTTP(S) (development only)
- * @throws {Error} If URL cannot be parsed or normalized
+ * @throws {InvalidUrlError} If URL is invalid or cannot be parsed
+ * @throws {UrlNormalizationError} If URL normalization fails
  *
  * @example
  * ```typescript
@@ -123,7 +150,9 @@ export const createUrlKey = (baseKey: unknown): string => {
  * // }
  * ```
  */
-export const parseUrlComponents = (url: unknown): URLComponents => {
+export const parseUrlComponents = (url: unknown) => {
+  logger.info({ urlType: typeof url }, 'Parsing URL components');
+
   let validatedUrl: string;
 
   if (process.env['NODE_ENV'] === 'development') {
@@ -132,7 +161,11 @@ export const parseUrlComponents = (url: unknown): URLComponents => {
   } else {
     // Lightweight validation in production
     if (typeof url !== 'string' || url.length === 0) {
-      throw new Error('URL must be a non-empty string');
+      logger.error({ urlType: typeof url }, 'Invalid URL type');
+      throw new InvalidUrlError(
+        typeof url === 'string' ? url : String(url),
+        'URL must be a non-empty string',
+      );
     }
 
     // Native URL constructor validates format (fast, secure)
@@ -141,25 +174,37 @@ export const parseUrlComponents = (url: unknown): URLComponents => {
 
       // Block dangerous protocols
       if (testUrl.protocol !== 'http:' && testUrl.protocol !== 'https:') {
-        throw new Error(
+        logger.error({ protocol: testUrl.protocol }, 'Invalid protocol');
+        throw new InvalidUrlError(
+          url,
           `Invalid protocol: ${testUrl.protocol}. Only HTTP(S) protocols are allowed`,
         );
       }
     } catch (error) {
-      throw new Error(
-        `Invalid URL format: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      );
+      // Re-throw if already an InvalidUrlError (from protocol check)
+      if (error instanceof InvalidUrlError) {
+        throw error;
+      }
+
+      logger.error({ url, error }, 'URL validation failed');
+      throw new InvalidUrlError(url);
     }
 
     validatedUrl = url;
   }
 
   try {
+    logger.debug({ url: validatedUrl }, 'Normalizing URL');
     const normalized = normalizeUrl(validatedUrl, config.NORMALIZATION_RULES);
     const normalizedUrl = new URL(normalized);
     normalizedUrl.hostname = normalizedUrl.hostname.toLowerCase();
     const href = normalizedUrl.toString();
     const { hostname, pathname, search } = normalizedUrl;
+
+    logger.debug(
+      { originalUrl: validatedUrl, normalizedUrl: href },
+      'URL normalized successfully',
+    );
 
     // Extract the domain removing subdomains and supporting multi part TLD's
     const domain = parseDomain(hostname);
@@ -185,13 +230,27 @@ export const parseUrlComponents = (url: unknown): URLComponents => {
 
     // Validate output in development only
     if (process.env['NODE_ENV'] === 'development') {
-      return urlComponentsSchema.parse(result);
+      const validated = urlComponentsSchema.parse(result);
+      logger.info({ domain, key }, 'URL components parsed and validated');
+      return validated;
     }
 
+    logger.info({ domain, key }, 'URL components parsed successfully');
     return result as URLComponents;
   } catch (error) {
-    throw new Error(
-      `Failed to parse URL components for "${validatedUrl}": ${error instanceof Error ? error.message : 'Unknown error'}`,
+    // If error is already one of our custom errors, re-throw it
+    if (
+      error instanceof DomainParseError ||
+      error instanceof UrlKeyGenerationError ||
+      error instanceof InvalidUrlError
+    ) {
+      throw error;
+    }
+
+    logger.error({ url: validatedUrl, error }, 'Failed to parse URL components');
+    throw new UrlNormalizationError(
+      validatedUrl,
+      error instanceof Error ? error.message : 'Unknown error',
     );
   }
 };

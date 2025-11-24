@@ -1,4 +1,4 @@
-# parseUrlComponents
+# @rr/url-parser
 
 A robust URL parsing and normalization library that processes e-commerce URLs into standardized components for consistent product identification and data storage.
 
@@ -13,14 +13,17 @@ Normalizes and parses URLs into structured components, removing tracking paramet
 - **Unique Key Generation**: Creates SHA-1 based keys for Redis/DynamoDB
 - **Comprehensive Tracking Removal**: Strips 50+ UTM, marketing, and platform-specific parameters
 - **Brand Subdomain Preservation**: Maintains Gap, Old Navy, Banana Republic subdomains
-- **Error Handling**: Clear error messages with context for debugging
+- **Custom Error Classes**: Type-safe error handling with detailed context
+- **Structured Logging**: JSON-formatted logs with namespaces for debugging
+- **Type Safety**: Full TypeScript support with Zod schema validation
+- **Performance Optimized**: Lightweight validation in production, comprehensive in development
 
 ## Installation
 
-This library is internal to the rr-product-service project.
+This library is internal to the rr-product-service monorepo.
 
 ```typescript
-import { parseUrlComponents } from '@/lib/parseUrlComponents';
+import { parseUrlComponents } from '@rr/url-parser';
 ```
 
 ## Usage
@@ -28,7 +31,7 @@ import { parseUrlComponents } from '@/lib/parseUrlComponents';
 ### Basic Example
 
 ```typescript
-import { parseUrlComponents } from '@/lib/parseUrlComponents';
+import { parseUrlComponents } from '@rr/url-parser';
 
 const url = 'https://www.nike.com/t/air-max-270-mens-shoe/AH8050-001?utm_source=google';
 
@@ -40,7 +43,7 @@ const components = parseUrlComponents(url);
 //   pathname: '/t/air-max-270-mens-shoe/ah8050-001',
 //   search: '',
 //   domain: 'nike.com',
-//   key: 'abc123_defg4567',  // SHA-1 hash
+//   key: 'abc123_defg4567',  // SHA-1 hash (16 chars, URL-safe)
 //   original: 'https://www.nike.com/t/air-max-270-mens-shoe/AH8050-001?utm_source=google'
 // }
 ```
@@ -101,7 +104,10 @@ Normalizes and parses a URL into structured components.
 
 **Throws:**
 
-- `Error` - If URL cannot be parsed or normalized
+- `InvalidUrlError` - If URL is invalid, empty, or uses non-HTTP(S) protocol
+- `UrlNormalizationError` - If URL normalization fails
+- `DomainParseError` - If domain extraction fails
+- `UrlKeyGenerationError` - If key generation fails
 
 ### `parseDomain(hostname)`
 
@@ -109,25 +115,33 @@ Extracts the normalized domain from a hostname.
 
 **Parameters:**
 
-- `hostname` (string) - Hostname to parse (e.g., `www.shop.nike.com`)
+- `hostname` (unknown) - Hostname to parse (validated at runtime)
 
 **Returns:**
 
 - `string` - Normalized domain (e.g., `nike.com`)
+
+**Throws:**
+
+- `DomainParseError` - If hostname cannot be parsed
 
 **Behavior:**
 
 - Removes `www` subdomain
 - Handles multi-part TLDs (co.uk, com.au, etc.)
 - Preserves brand-specific subdomains (oldnavy, athleta, etc.)
+- Returns IP addresses as-is
 
 **Examples:**
 
 ```typescript
+import { parseDomain } from '@rr/url-parser';
+
 parseDomain('www.nike.com'); // 'nike.com'
 parseDomain('shop.target.com'); // 'target.com'
 parseDomain('www.amazon.co.uk'); // 'amazon.co.uk'
 parseDomain('www.oldnavy.gap.com'); // 'oldnavy.gap.com'
+parseDomain('192.168.1.1'); // '192.168.1.1' (IP passthrough)
 ```
 
 ### `createUrlKey(baseKey)`
@@ -136,25 +150,32 @@ Generates a unique, URL-safe key from a string.
 
 **Parameters:**
 
-- `baseKey` (string) - String to hash (typically `${domain}${pathname}${search}`)
+- `baseKey` (unknown) - String to hash (validated at runtime)
 
 **Returns:**
 
 - `string` - 16-character URL-safe key
+
+**Throws:**
+
+- `UrlKeyGenerationError` - If key generation fails
 
 **Algorithm:**
 
 1. SHA-1 hash of input string
 2. Base64 encode
 3. Take first 16 characters
-4. Replace `+/=` with `_` for URL safety
+4. Replace `+/=` with `_` and `/` with `-` for URL safety
 
 **Examples:**
 
 ```typescript
-createUrlKey('nike.com/product/123'); // 'xY9_kL3mN-pQ2wR'
-createUrlKey('nike.com/product/123'); // 'xY9_kL3mN-pQ2wR' (same input = same key)
-createUrlKey('nike.com/product/124'); // 'aB1_cD4eF-gH5iJ' (different)
+import { createUrlKey } from '@rr/url-parser';
+
+createUrlKey('nike.com/product/123'); // 'xY9_kL3mN-pQ2wR_'
+createUrlKey('nike.com/product/123'); // 'xY9_kL3mN-pQ2wR_' (deterministic)
+createUrlKey('nike.com/product/124'); // 'aB1_cD4eF-gH5iJ_' (different input)
+createUrlKey(''); // 'J_RKtr_llh3gyr-e' (empty string is valid)
 ```
 
 ## Configuration
@@ -232,14 +253,23 @@ Brand-specific subdomains that are preserved (Gap Inc. brands):
 ## Testing
 
 ```bash
-npm test -- parseUrlComponents
+# Run all tests
+pnpm --filter @rr/url-parser test
+
+# Run tests in watch mode
+pnpm --filter @rr/url-parser test:watch
+
+# Generate coverage report
+pnpm --filter @rr/url-parser test:coverage
 ```
 
-**Test Coverage:**
+**Test Coverage:** 150 tests across 5 test suites
 
-- `normalizeUrl.test.ts` - URL normalization (30 tests)
-- `parseDomain.test.ts` - Domain extraction (6 tests)
-- `createUrlKey.test.ts` - Key generation (5 tests)
+- `parser.test.ts` - URL component parsing (58 tests)
+- `normalization.test.ts` - URL normalization (30 tests)
+- `schema.test.ts` - Zod schema validation (51 tests)
+- `parse-domain.test.ts` - Domain extraction (6 tests)
+- `create-url-key.test.ts` - Key generation (5 tests)
 
 ## Examples
 
@@ -289,29 +319,189 @@ console.log(key1 === key2);
 // true (same product, different tracking = same key)
 ```
 
-## Dependencies
-
-- `normalize-url` - URL normalization library
-- `node:crypto` - SHA-1 hashing for key generation
-
 ## Error Handling
 
-The library throws descriptive errors with context:
+The library exports custom error classes for type-safe error handling:
 
 ```typescript
+import {
+  parseUrlComponents,
+  InvalidUrlError,
+  UrlNormalizationError,
+  DomainParseError,
+  UrlKeyGenerationError,
+} from '@rr/url-parser';
+
 try {
   parseUrlComponents('not a valid url');
 } catch (error) {
-  console.error(error.message);
-  // Failed to parse URL components for "not a valid url": Invalid URL
+  if (error instanceof InvalidUrlError) {
+    console.error('Invalid URL:', error.url, error.message);
+    // InvalidUrlError: Invalid URL format: not a valid url
+  } else if (error instanceof UrlNormalizationError) {
+    console.error('Normalization failed:', error.url);
+  } else if (error instanceof DomainParseError) {
+    console.error('Domain parsing failed:', error.hostname);
+  } else if (error instanceof UrlKeyGenerationError) {
+    console.error('Key generation failed:', error.baseKey);
+  }
 }
 ```
 
-All errors include:
+### Custom Error Classes
 
-- The function that failed
-- The problematic input
-- The underlying error message
+#### `InvalidUrlError`
+
+Thrown when a URL cannot be parsed or is in an invalid format.
+
+```typescript
+class InvalidUrlError extends Error {
+  constructor(
+    public readonly url: string,
+    message?: string,
+  )
+}
+```
+
+**Common causes:**
+- Empty string or non-string input
+- Invalid URL format
+- Non-HTTP(S) protocols (javascript:, data:, file:)
+
+#### `UrlNormalizationError`
+
+Thrown when URL normalization fails.
+
+```typescript
+class UrlNormalizationError extends Error {
+  constructor(
+    public readonly url: string,
+    message?: string,
+  )
+}
+```
+
+#### `DomainParseError`
+
+Thrown when a domain cannot be extracted from a hostname.
+
+```typescript
+class DomainParseError extends Error {
+  constructor(
+    public readonly hostname: string,
+    message?: string,
+  )
+}
+```
+
+#### `UrlKeyGenerationError`
+
+Thrown when URL key generation fails.
+
+```typescript
+class UrlKeyGenerationError extends Error {
+  constructor(
+    public readonly baseKey: string,
+    message?: string,
+  )
+}
+```
+
+All error classes include:
+- Descriptive error messages
+- Contextual data (the input that caused the error)
+- Proper error name for debugging
+- Full stack traces
+
+## Logging
+
+The library includes structured JSON logging for debugging and observability.
+
+### Default Logger
+
+```typescript
+import { logger } from '@rr/url-parser';
+
+// Logger outputs JSON to stdout/stderr
+// Automatically suppressed in test environment (NODE_ENV=test)
+```
+
+### Custom Logger Instances
+
+Create namespaced loggers for different contexts:
+
+```typescript
+import { createLogger } from '@rr/url-parser';
+
+const customLogger = createLogger('my-service.url-processing');
+
+customLogger.debug({ url: 'https://example.com' }, 'Processing URL');
+customLogger.info({ domain: 'example.com' }, 'Domain extracted');
+customLogger.warn({ issue: 'deprecated' }, 'Using deprecated feature');
+customLogger.error({ error: err }, 'Processing failed');
+```
+
+### Log Output Format
+
+```json
+{
+  "level": "info",
+  "message": "URL components parsed successfully",
+  "context": {
+    "domain": "nike.com",
+    "key": "xY9_kL3mN-pQ2wR_",
+    "namespace": "url-parser.parser"
+  },
+  "timestamp": "2025-11-24T23:07:56.017Z"
+}
+```
+
+### Log Levels
+
+- `debug` - Detailed diagnostic information
+- `info` - General informational messages
+- `warn` - Warning messages for potential issues
+- `error` - Error messages for failures
+
+**Note:** Logs are automatically suppressed when `NODE_ENV=test` to keep test output clean.
+
+## TypeScript Support
+
+Full TypeScript support with exported types and schemas:
+
+```typescript
+import type { URLComponents, UrlInput, Hostname, BaseKey } from '@rr/url-parser';
+import { urlComponentsSchema, urlInputSchema } from '@rr/url-parser';
+
+// Use types for type safety
+const components: URLComponents = parseUrlComponents('https://example.com');
+
+// Use schemas for runtime validation
+const validated = urlComponentsSchema.parse(components);
+```
+
+### Exported Types
+
+- `URLComponents` - Return type of parseUrlComponents
+- `UrlInput` - Validated URL string type
+- `Hostname` - Validated hostname string type
+- `BaseKey` - Validated base key string type
+- `PublicUrl` - URL type that blocks private/local IPs
+
+### Exported Schemas (Zod)
+
+- `urlInputSchema` - Validates URL strings (HTTP/HTTPS only)
+- `urlComponentsSchema` - Validates parsed URL components
+- `hostnameSchema` - Validates hostname strings
+- `baseKeySchema` - Validates base key strings
+- `publicUrlSchema` - Validates public URLs (blocks localhost, private IPs)
+
+## Dependencies
+
+- `normalize-url` - URL normalization library
+- `tldts` - TLD parsing for multi-part domain support
+- `zod` - Runtime schema validation and type inference
+- `node:crypto` - SHA-1 hashing for key generation
 
 ## Use Cases
 
@@ -336,10 +526,89 @@ This library is a standalone component designed for independent maintenance. Whe
 - **Fast**: Regex-based domain parsing and pre-configured normalization rules
 - **Deterministic**: Same input always produces same output
 - **Memory Efficient**: Uses Sets for O(1) lookups
+- **Optimized Validation**:
+  - Development: Full Zod validation (5-10μs per parse)
+  - Production: Lightweight native validation (2μs per parse)
 
-## Future Enhancements
+## Package Exports
 
-- Configurable subdomain preservation rules
-- URL validation before parsing
-- Batch URL processing API
-- Custom normalization profiles per domain
+```typescript
+// Main functions
+export { parseUrlComponents, parseDomain, createUrlKey } from '@rr/url-parser';
+
+// Configuration
+export { config } from '@rr/url-parser/config';
+
+// Types and schemas
+export type { URLComponents } from '@rr/url-parser';
+export { urlComponentsSchema } from '@rr/url-parser';
+
+// Error classes
+export {
+  InvalidUrlError,
+  DomainParseError,
+  UrlKeyGenerationError,
+  UrlNormalizationError,
+} from '@rr/url-parser';
+
+// Logger
+export { createLogger, logger } from '@rr/url-parser';
+```
+
+## Security
+
+### Protocol Filtering
+
+Only HTTP and HTTPS protocols are allowed. Dangerous protocols are blocked:
+
+```typescript
+parseUrlComponents('javascript:alert(1)'); // ✗ InvalidUrlError
+parseUrlComponents('data:text/html,<script>'); // ✗ InvalidUrlError
+parseUrlComponents('file:///etc/passwd'); // ✗ InvalidUrlError
+```
+
+### Public URL Validation (Optional)
+
+Use `publicUrlSchema` to block private/local IP addresses:
+
+```typescript
+import { publicUrlSchema } from '@rr/url-parser';
+
+publicUrlSchema.parse('https://example.com'); // ✓ Valid
+publicUrlSchema.parse('https://localhost'); // ✗ Throws ZodError
+publicUrlSchema.parse('https://192.168.1.1'); // ✗ Throws ZodError
+publicUrlSchema.parse('https://169.254.169.254'); // ✗ Blocks AWS metadata
+```
+
+## Migration Guide
+
+### Updating from Old Import Paths
+
+```typescript
+// Before (old monorepo structure)
+import { parseUrlComponents } from '@/lib/parseUrlComponents';
+
+// After (new package structure)
+import { parseUrlComponents } from '@rr/url-parser';
+```
+
+### Error Handling Updates
+
+```typescript
+// Before (generic Error)
+try {
+  parseUrlComponents(url);
+} catch (error) {
+  console.error(error.message);
+}
+
+// After (custom error classes)
+try {
+  parseUrlComponents(url);
+} catch (error) {
+  if (error instanceof InvalidUrlError) {
+    // Handle invalid URL specifically
+    console.error('Invalid URL:', error.url);
+  }
+}
+```
