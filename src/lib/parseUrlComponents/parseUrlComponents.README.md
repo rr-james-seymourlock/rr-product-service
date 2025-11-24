@@ -174,7 +174,6 @@ export const config = {
       /* 50+ tracking params */
     ],
   },
-  MULTI_PART_TLDS: ['co.uk', 'co.jp', 'com.br', 'com.au', 'co.nz', 'org.uk'],
   PRESERVED_SUBDOMAINS: [
     'oldnavy',
     'bananarepublic',
@@ -217,14 +216,7 @@ The library automatically removes 50+ tracking parameters:
 
 ### Multi-Part TLDs
 
-Supported multi-part top-level domains:
-
-- `co.uk` (United Kingdom)
-- `co.jp` (Japan)
-- `com.br` (Brazil)
-- `com.au` (Australia)
-- `co.nz` (New Zealand)
-- `org.uk` (United Kingdom)
+Domain parsing relies on [`tldts`](https://github.com/remusao/tldts) so every public suffix in the Mozilla list is supported automatically (including `.com.mx`, `.co.in`, etc.). No manual configuration is required beyond the preserved subdomain list.
 
 ### Preserved Subdomains
 
@@ -334,10 +326,9 @@ All errors include:
 This library is a standalone component designed for independent maintenance. When updating:
 
 1. Add new tracking parameters to `config.NORMALIZATION_RULES.removeQueryParameters`
-2. Add new multi-part TLDs to `config.MULTI_PART_TLDS`
-3. Add new brand subdomains to `config.PRESERVED_SUBDOMAINS`
-4. Run full test suite to verify changes
-5. Update this README with new examples
+2. Add new brand subdomains to `config.PRESERVED_SUBDOMAINS`
+3. Run full test suite to verify changes
+4. Update this README with new examples
 
 ## Performance
 
@@ -348,7 +339,6 @@ This library is a standalone component designed for independent maintenance. Whe
 
 ## Future Enhancements
 
-- Support for additional TLDs (.ca, .de, .fr)
 - Configurable subdomain preservation rules
 - URL validation before parsing
 - Batch URL processing API

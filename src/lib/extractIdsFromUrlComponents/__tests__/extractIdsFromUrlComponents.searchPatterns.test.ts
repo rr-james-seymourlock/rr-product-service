@@ -39,10 +39,7 @@ describe('Domain-specific search patterns', () => {
       storeId: 'test-search-patterns',
     });
 
-    // From pathname pattern (captures only the digits)
     expect(ids).toContain('999888');
-
-    // From search patterns
     expect(ids).toContain('query123456');
     expect(ids).toContain('sku-444333');
   });

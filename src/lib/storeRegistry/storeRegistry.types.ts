@@ -22,10 +22,10 @@ export interface StoreConfigInterface {
   /** Optional list of alternative domains and IDs that map to this store */
   readonly aliases?: ReadonlyArray<StoreAlias>;
   /** Optional examples of ID structures, not used in system but potential future for Levenshtein Distance comparisons */
-  readonly patternFormats?: string[];
+  readonly patternFormats?: ReadonlyArray<string>;
   /** Optional list of regular expressions for URL pattern matching */
-  readonly pathnamePatterns?: RegExp[];
-  readonly searchPatterns?: RegExp[];
+  readonly pathnamePatterns?: ReadonlyArray<RegExp>;
+  readonly searchPatterns?: ReadonlyArray<RegExp>;
   /**
    * Optional transform function to modify the captured ID
    * @param id The ID to transform

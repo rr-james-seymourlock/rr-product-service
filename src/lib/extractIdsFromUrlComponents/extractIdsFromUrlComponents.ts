@@ -6,6 +6,7 @@ import {
   type ProductIds,
   type ExtractIdsInput,
 } from './extractIdsFromUrlComponents.schema';
+import type { StoreConfigInterface } from '@/lib/storeRegistry/storeRegistry.types';
 import { getStoreConfig } from '@/lib/storeRegistry';
 
 /**
@@ -30,17 +31,19 @@ const patternExtractorInternal = (source: string, pattern: RegExp): Set<string> 
     while ((match = pattern.exec(source)) !== null) {
       // Check timeout every 5 iterations instead of every iteration
       if (++iterationCount % CHECK_INTERVAL === 0 && Date.now() - startTime >= config.TIMEOUT_MS) {
-        console.warn(
-          `Pattern extraction timed out after ${Date.now() - startTime}ms for source: ${source}`,
-        );
+        if (process.env['NODE_ENV'] !== 'production') {
+          console.warn(
+            `Pattern extraction timed out after ${Date.now() - startTime}ms (source length: ${source.length})`,
+          );
+        }
         break;
       }
 
       if (match[1]) {
-        matches.add(match[1]);
+        matches.add(match[1].toLowerCase());
       }
       if (match[2]) {
-        matches.add(match[2]);
+        matches.add(match[2].toLowerCase());
       }
 
       if (matches.size >= config.MAX_RESULTS) {
@@ -51,15 +54,47 @@ const patternExtractorInternal = (source: string, pattern: RegExp): Set<string> 
       }
     }
   } catch (error) {
-    console.error(
-      `Error extracting patterns from source "${source}": ${error instanceof Error ? error.message : 'Unknown error'}`,
-    );
+    if (process.env['NODE_ENV'] !== 'production') {
+      console.error(
+        `Error extracting patterns (source length: ${source.length}): ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+    }
   } finally {
     // Always reset regex state to prevent issues on next call
     pattern.lastIndex = 0;
   }
 
   return matches;
+};
+
+const addPatternMatches = ({
+  source,
+  patterns,
+  results,
+  transform,
+}: {
+  source: string;
+  patterns: ReadonlyArray<RegExp> | undefined;
+  results: Set<string>;
+  transform?: StoreConfigInterface['transformId'];
+}): void => {
+  if (!source || patterns === undefined) {
+    return;
+  }
+
+  for (const pattern of patterns) {
+    if (results.size >= config.MAX_RESULTS) {
+      return;
+    }
+
+    for (const id of patternExtractorInternal(source, pattern)) {
+      results.add(transform ? transform(id) : id);
+
+      if (results.size >= config.MAX_RESULTS) {
+        return;
+      }
+    }
+  }
 };
 
 /**
@@ -144,59 +179,54 @@ export const extractIdsFromUrlComponents = (input: ExtractIdsInput): ProductIds 
   const { urlComponents, storeId } = input;
 
   const { domain, pathname, search, href } = urlComponents;
+  const normalizedPathname = pathname ? pathname.toLowerCase() : '';
+  const normalizedSearch = search ? search.toLowerCase() : '';
   const results = new Set<string>();
 
   try {
     const domainConfig = getStoreConfig(storeId ? { domain, id: storeId } : { domain });
 
     // Check domain-specific path patterns first
-    if (domainConfig?.pathnamePatterns && pathname) {
-      for (const pattern of domainConfig.pathnamePatterns) {
-        for (const id of patternExtractorInternal(pathname, pattern)) {
-          // Apply transform function if it exists, otherwise use the original ID
-          const transformedId = domainConfig.transformId ? domainConfig.transformId(id) : id;
-          results.add(transformedId);
-        }
-      }
-    }
+    addPatternMatches({
+      source: normalizedPathname,
+      patterns: domainConfig?.pathnamePatterns,
+      results,
+      transform: domainConfig?.transformId,
+    });
 
     // Only run pathname patterns if no domain-specific pathname id's were found
-    if (results.size === 0 && pathname) {
-      // Iterate through all pathname patterns
-      for (const pattern of config.PATTERNS.pathnamePatterns) {
-        for (const id of patternExtractorInternal(pathname, pattern)) {
-          results.add(id);
-        }
-      }
+    if (results.size === 0 && normalizedPathname) {
+      addPatternMatches({
+        source: normalizedPathname,
+        patterns: config.PATTERNS.pathnamePatterns,
+        results,
+      });
     }
 
-    // Check domain-specific search patterns first
-    if (domainConfig?.searchPatterns && search) {
-      for (const pattern of domainConfig.searchPatterns) {
-        for (const id of patternExtractorInternal(search, pattern)) {
-          results.add(id);
-        }
-      }
+    if (normalizedSearch && results.size < config.MAX_RESULTS) {
+      addPatternMatches({
+        source: normalizedSearch,
+        patterns: domainConfig?.searchPatterns,
+        results,
+      });
     }
 
-    // Only run query patterns if URL contains query parameters
-    if (search) {
-      for (const id of patternExtractorInternal(search, config.PATTERNS.searchPattern)) {
-        results.add(id);
-      }
+    if (normalizedSearch && results.size < config.MAX_RESULTS) {
+      addPatternMatches({
+        source: normalizedSearch,
+        patterns: [config.PATTERNS.searchPattern],
+        results,
+      });
     }
   } catch (error) {
-    console.error(
-      `Error processing URL ${href}: ${error instanceof Error ? error.message : 'Unknown error'}`,
-    );
+    if (process.env['NODE_ENV'] !== 'production') {
+      console.error(
+        `Error processing URL (length: ${href.length}): ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+    }
   }
 
-  const sortedResults = Object.freeze([...results].sort());
-
-  // Validate output in development only (ensures regex patterns work correctly)
-  if (process.env['NODE_ENV'] === 'development') {
-    return productIdsSchema.parse(sortedResults);
-  }
-
-  return sortedResults as ProductIds;
+  const sortedResults = [...results].sort();
+  const validatedResults = productIdsSchema.parse(sortedResults);
+  return Object.freeze(validatedResults) as ProductIds;
 };
