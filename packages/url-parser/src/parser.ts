@@ -65,8 +65,8 @@ export const parseDomain = (hostname: unknown) => {
     return result;
   } catch (error) {
     logger.error(
-      { hostname: validatedHostname, error },
-      'Failed to parse domain',
+      error instanceof Error ? error : new Error('Unknown error'),
+      `Failed to parse domain: ${validatedHostname}`,
     );
     throw new DomainParseError(
       validatedHostname,
@@ -107,7 +107,10 @@ export const createUrlKey = (baseKey: unknown) => {
     logger.debug({ keyLength: key.length }, 'Generated URL key');
     return key;
   } catch (error) {
-    logger.error({ baseKeyLength: validatedBaseKey.length, error }, 'Failed to generate URL key');
+    logger.error(
+      error instanceof Error ? error : new Error('Unknown error'),
+      'Failed to generate URL key',
+    );
     throw new UrlKeyGenerationError(
       validatedBaseKey,
       error instanceof Error ? error.message : 'Unknown error',
@@ -186,7 +189,7 @@ export const parseUrlComponents = (url: unknown) => {
         throw error;
       }
 
-      logger.error({ url, error }, 'URL validation failed');
+      logger.error(error instanceof Error ? error : new Error('Unknown error'), `URL validation failed: ${url}`);
       throw new InvalidUrlError(url);
     }
 
@@ -247,7 +250,10 @@ export const parseUrlComponents = (url: unknown) => {
       throw error;
     }
 
-    logger.error({ url: validatedUrl, error }, 'Failed to parse URL components');
+    logger.error(
+      error instanceof Error ? error : new Error('Unknown error'),
+      `Failed to parse URL components: ${validatedUrl}`,
+    );
     throw new UrlNormalizationError(
       validatedUrl,
       error instanceof Error ? error.message : 'Unknown error',

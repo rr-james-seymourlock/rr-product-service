@@ -186,7 +186,7 @@ describe('Error handling', () => {
       expect(consoleErrorSpy).toHaveBeenCalled();
       const logCall = consoleErrorSpy.mock.calls[0][0];
       const logEntry = JSON.parse(logCall);
-      expect(logEntry.message).toBe('Error processing URL');
+      expect(logEntry.message).toBe('Error processing URL: https://example.com/product/p123456789');
       expect(logEntry.context.error).toBe('Config retrieval failed');
 
       vi.restoreAllMocks();
@@ -216,7 +216,7 @@ describe('Error handling', () => {
       expect(consoleErrorSpy).toHaveBeenCalled();
       const logCall = consoleErrorSpy.mock.calls[0][0];
       const logEntry = JSON.parse(logCall);
-      expect(logEntry.message).toBe('Error processing URL');
+      expect(logEntry.message).toBe('Error processing URL: https://example.com/product/p123456789');
       expect(logEntry.context.error).toBe('Unknown error');
 
       vi.restoreAllMocks();

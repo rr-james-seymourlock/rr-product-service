@@ -60,10 +60,7 @@ const patternExtractorInternal = (source: string, pattern: RegExp) => {
     }
   } catch (error) {
     logger.error(
-      {
-        sourceLength: source.length,
-        error: error instanceof Error ? error.message : 'Unknown error',
-      },
+      error instanceof Error ? error : new Error('Unknown error'),
       'Error extracting patterns',
     );
   } finally {
@@ -226,13 +223,7 @@ export const extractIdsFromUrlComponents = (input: ExtractIdsInput) => {
       });
     }
   } catch (error) {
-    logger.error(
-      {
-        hrefLength: href.length,
-        error: error instanceof Error ? error.message : 'Unknown error',
-      },
-      'Error processing URL',
-    );
+    logger.error(error instanceof Error ? error : new Error('Unknown error'), `Error processing URL: ${href}`);
   }
 
   const sortedResults = [...results].sort();
