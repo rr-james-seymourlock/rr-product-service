@@ -194,9 +194,10 @@ The `parseDomain()` function extracts base domain while preserving whitelisted s
 
 ## Technology Stack
 
-- **Runtime**: Node.js 20.x on AWS Lambda
-- **Framework**: Serverless Framework 3.x with esbuild bundling
+- **Runtime**: Node.js 22.x on AWS Lambda
+- **Framework**: AWS SAM with esbuild bundling
 - **Validation**: Zod schemas with custom Middy middleware
 - **Testing**: Vitest with coverage reporting
 - **Linting**: ESLint with TypeScript, import, regexp, sonarjs, and unicorn plugins
 - **Commits**: Conventional commits enforced via commitlint and husky hooks
+- run typecheck, lint and build after every major change to make sure everything works

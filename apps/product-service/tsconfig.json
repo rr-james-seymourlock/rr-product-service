@@ -1,0 +1,21 @@
+{
+  "extends": "@rr/tsconfig/base.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "tsBuildInfoFile": "node_modules/.cache/tsbuildinfo.json",
+    "paths": {
+      "@rr/url-parser": ["../../packages/url-parser/src"],
+      "@rr/url-parser/*": ["../../packages/url-parser/src/*"],
+      "@rr/product-id-extractor": ["../../packages/product-id-extractor/src"],
+      "@rr/product-id-extractor/*": ["../../packages/product-id-extractor/src/*"],
+      "@rr/store-registry": ["../../packages/store-registry/src"],
+      "@rr/store-registry/*": ["../../packages/store-registry/src/*"],
+      "@rr/schema-parser": ["../../packages/schema-parser/src"],
+      "@rr/schema-parser/*": ["../../packages/schema-parser/src/*"],
+      "@rr/shared": ["../../packages/shared/src"],
+      "@rr/shared/*": ["../../packages/shared/src/*"]
+    }
+  },
+  "include": ["src", "../../packages/*/src"],
+  "exclude": ["node_modules", "dist", ".serverless"]
+}

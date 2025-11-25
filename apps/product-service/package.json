@@ -1,0 +1,43 @@
+{
+  "name": "@rr/product-service",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Product service Lambda functions",
+  "scripts": {
+    "build": "node esbuild.config.mjs",
+    "dev": "sam local start-api --warm-containers EAGER",
+    "deploy": "pnpm run build && sam deploy --resolve-s3",
+    "deploy:guided": "pnpm run build && sam deploy --guided",
+    "validate": "sam validate",
+    "delete": "sam delete",
+    "logs": "sam logs --tail",
+    "invoke:local": "sam local invoke",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "format": "prettier --check \"**/*.{ts,tsx}\"",
+    "test": "echo \"Tests handled by packages\"",
+    "clean": "rm -rf .turbo dist .aws-sam"
+  },
+  "dependencies": {
+    "@middy/core": "^6.3.0",
+    "@middy/http-error-handler": "^6.3.0",
+    "@middy/http-json-body-parser": "^6.3.0",
+    "@rr/product-id-extractor": "workspace:*",
+    "@rr/schema-parser": "workspace:*",
+    "@rr/shared": "workspace:*",
+    "@rr/store-registry": "workspace:*",
+    "@rr/url-parser": "workspace:*",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@rr/eslint-config": "workspace:*",
+    "@rr/prettier-config": "workspace:*",
+    "@rr/tsconfig": "workspace:*",
+    "@types/aws-lambda": "catalog:",
+    "@types/node": "catalog:",
+    "esbuild": "^0.24.2",
+    "typescript": "catalog:"
+  },
+  "prettier": "@rr/prettier-config"
+}

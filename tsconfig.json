@@ -1,63 +1,11 @@
 {
+  "extends": "@rr/tsconfig/base.json",
   "compilerOptions": {
-    /* Language and Environment */
-    "target": "ES2023",
-    "lib": ["ES2023"],
-
-    /* Modules */
-    "module": "ES2020",
-    "moduleResolution": "bundler",
-    "resolveJsonModule": true,
-    "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true,
-    "isolatedModules": true,
-    "moduleSuffixes": [".js", ""],
-
-    /* Type Checking - Strict Mode (all enabled) */
-    "strict": true,
-    "noImplicitAny": true,
-    "strictNullChecks": true,
-    "strictFunctionTypes": true,
-    "strictBindCallApply": true,
-    "strictPropertyInitialization": true,
-    "noImplicitThis": true,
-    "useUnknownInCatchVariables": true,
-    "alwaysStrict": true,
-
-    /* Type Checking - Additional Checks */
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "exactOptionalPropertyTypes": true,
-    "noImplicitReturns": true,
-    "noFallthroughCasesInSwitch": true,
-    "noUncheckedIndexedAccess": true,
-    "noImplicitOverride": true,
-    "noPropertyAccessFromIndexSignature": true,
-    "allowUnusedLabels": false,
-    "allowUnreachableCode": false,
-
-    /* Emit */
-    "noEmit": true,
-    "sourceMap": true,
-    "declaration": true,
-    "declarationDir": "./types",
-    "outDir": ".build",
-
-    /* Interop Constraints */
-    "forceConsistentCasingInFileNames": true,
-    "verbatimModuleSyntax": true,
-
-    /* Skip Checks */
-    "skipLibCheck": true,
-
-    /* Path Mapping */
     "baseUrl": ".",
-    "rootDir": "src",
     "paths": {
-      "@/*": ["src/*"]
+      "@rr/*": ["./packages/*/src"]
     }
   },
-  "types": ["vitest/globals", "node"],
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "build", "dist", ".serverless", ".esbuild", "coverage"]
+  "include": [],
+  "exclude": ["node_modules", "dist", ".turbo", "coverage", ".serverless"]
 }

@@ -1,8 +1,8 @@
 # Dependencies
 node_modules/
+# Ignore other package manager lockfiles (this project uses pnpm)
 package-lock.json
 yarn.lock
-pnpm-lock.yaml
 
 # Build outputs
 dist/
@@ -13,6 +13,9 @@ build/
 coverage/
 .nyc_output/
 *.tsbuildinfo
+
+# Turborepo
+.turbo
 
 # Environment variables
 .env
@@ -60,7 +63,6 @@ temp/
 
 # AWS SAM
 .aws-sam/
-samconfig.toml
 
 # CDK
 cdk.out/
@@ -69,3 +71,4 @@ cdk.out/
 # Misc
 .cache/
 .history/
+/react-router-supabase-saas-kit-turbo-main

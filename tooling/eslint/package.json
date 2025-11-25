@@ -1,0 +1,30 @@
+{
+  "name": "@rr/eslint-config",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "files": [
+    "./base.js",
+    "./lambda.js"
+  ],
+  "scripts": {
+    "clean": "rm -rf .turbo node_modules"
+  },
+  "dependencies": {
+    "@types/eslint": "9.6.1",
+    "@typescript-eslint/eslint-plugin": "^8.47.0",
+    "@typescript-eslint/parser": "^8.47.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-config-turbo": "^2.6.1",
+    "eslint-import-resolver-typescript": "^4.4.4",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-regexp": "^2.10.0",
+    "eslint-plugin-sonarjs": "^3.0.5",
+    "eslint-plugin-unicorn": "^62.0.0",
+    "typescript-eslint": "^8.47.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "eslint": "^9.39.1"
+  }
+}

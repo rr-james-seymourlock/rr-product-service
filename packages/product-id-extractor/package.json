@@ -1,0 +1,41 @@
+{
+  "name": "@rr/product-id-extractor",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./config": "./src/config.ts",
+    "./types": "./src/types.ts"
+  },
+  "scripts": {
+    "clean": "rm -rf .turbo node_modules dist",
+    "format": "prettier --check \"**/*.{ts,tsx}\"",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@rr/shared": "workspace:*",
+    "@rr/store-registry": "workspace:*",
+    "ts-regex-builder": "^1.8.2",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@rr/eslint-config": "workspace:*",
+    "@rr/prettier-config": "workspace:*",
+    "@rr/tsconfig": "workspace:*",
+    "@types/node": "catalog:",
+    "@types/safe-regex": "^1.1.6",
+    "safe-regex": "^2.1.1",
+    "vitest": "catalog:"
+  },
+  "prettier": "@rr/prettier-config",
+  "typesVersions": {
+    "*": {
+      "*": [
+        "src/*"
+      ]
+    }
+  }
+}
