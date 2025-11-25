@@ -18,6 +18,7 @@
   "dependencies": {
     "@rr/shared": "workspace:*",
     "@rr/store-registry": "workspace:*",
+    "ts-regex-builder": "^1.8.2",
     "zod": "catalog:"
   },
   "devDependencies": {
@@ -25,6 +26,7 @@
     "@rr/prettier-config": "workspace:*",
     "@rr/tsconfig": "workspace:*",
     "@types/node": "catalog:",
+    "safe-regex": "^2.1.1",
     "vitest": "catalog:"
   },
   "prettier": "@rr/prettier-config",
