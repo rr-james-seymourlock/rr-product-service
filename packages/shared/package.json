@@ -19,6 +19,7 @@
     "@rr/prettier-config": "workspace:*",
     "@rr/tsconfig": "workspace:*",
     "@types/node": "catalog:",
+    "pino-pretty": "^13.1.2",
     "vitest": "catalog:"
   },
   "prettier": "@rr/prettier-config",
@@ -28,5 +29,8 @@
         "src/*"
       ]
     }
+  },
+  "dependencies": {
+    "pino": "^10.1.0"
   }
 }
