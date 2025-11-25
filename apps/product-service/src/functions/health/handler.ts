@@ -2,6 +2,7 @@ import middy from '@middy/core';
 import httpErrorHandler from '@middy/http-error-handler';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 
+import { logger } from './logger';
 import { healthResponseSchema } from './schema';
 import type { HealthResponse } from './types';
 
@@ -15,6 +16,8 @@ import type { HealthResponse } from './types';
  * @returns API Gateway response with health status
  */
 export const healthCheckHandler = (_event: APIGatewayProxyEvent): APIGatewayProxyResult => {
+  logger.debug('Health check requested');
+
   const response: HealthResponse = {
     status: 'healthy',
     service: 'rr-product-service',
@@ -25,6 +28,15 @@ export const healthCheckHandler = (_event: APIGatewayProxyEvent): APIGatewayProx
 
   // Validate response matches schema
   const validatedResponse = healthResponseSchema.parse(response);
+
+  logger.info(
+    {
+      status: validatedResponse.status,
+      version: validatedResponse.version,
+      environment: validatedResponse.environment,
+    },
+    'Health check successful',
+  );
 
   return {
     statusCode: 200,

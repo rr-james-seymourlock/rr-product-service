@@ -234,4 +234,31 @@ describe('Health Check Handler', () => {
       expect(body1.timestamp).not.toBe(body2.timestamp);
     });
   });
+
+  describe('logging', () => {
+    it('should log debug and info messages', () => {
+      const consoleLogSpy = vi.spyOn(console, 'log');
+      const event = createMockEvent();
+
+      healthCheckHandler(event);
+
+      // Should have logged debug and info messages
+      expect(consoleLogSpy).toHaveBeenCalledTimes(2);
+
+      // Check debug log
+      const debugLog = JSON.parse(consoleLogSpy.mock.calls[0][0] as string);
+      expect(debugLog.level).toBe('debug');
+      expect(debugLog.message).toBe('Health check requested');
+      expect(debugLog.context.namespace).toBe('product-service.health');
+
+      // Check info log
+      const infoLog = JSON.parse(consoleLogSpy.mock.calls[1][0] as string);
+      expect(infoLog.level).toBe('info');
+      expect(infoLog.message).toBe('Health check successful');
+      expect(infoLog.context.namespace).toBe('product-service.health');
+      expect(infoLog.context.status).toBe('healthy');
+      expect(infoLog.context.version).toBeDefined();
+      expect(infoLog.context.environment).toBeDefined();
+    });
+  });
 });
