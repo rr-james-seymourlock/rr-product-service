@@ -16,7 +16,10 @@ console.log('Building Lambda functions with esbuild...');
 
 try {
   await build({
-    entryPoints: ['src/functions/postProduct/handler.ts'],
+    entryPoints: {
+      handler: 'src/functions/postProduct/handler.ts',
+      health: 'src/functions/health/handler.ts',
+    },
     bundle: true,
     platform: 'node',
     target: 'es2023',
