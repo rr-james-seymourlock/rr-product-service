@@ -1,7 +1,9 @@
 import type { APIGatewayProxyEvent } from 'aws-lambda';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { handler } from '../handler';
+import { healthCheckHandler } from '../handler';
+import { healthResponseSchema } from '../schema';
+import type { HealthResponse } from '../types';
 
 describe('Health Check Handler', () => {
   let originalEnv: NodeJS.ProcessEnv;
@@ -34,14 +36,14 @@ describe('Health Check Handler', () => {
   describe('successful responses', () => {
     it('should return 200 status code', async () => {
       const event = createMockEvent();
-      const result = await handler(event);
+      const result = healthCheckHandler(event);
 
       expect(result.statusCode).toBe(200);
     });
 
     it('should return healthy status', async () => {
       const event = createMockEvent();
-      const result = await handler(event);
+      const result = healthCheckHandler(event);
       const body = JSON.parse(result.body);
 
       expect(body.status).toBe('healthy');
@@ -49,7 +51,7 @@ describe('Health Check Handler', () => {
 
     it('should return service name', async () => {
       const event = createMockEvent();
-      const result = await handler(event);
+      const result = healthCheckHandler(event);
       const body = JSON.parse(result.body);
 
       expect(body.service).toBe('rr-product-service');
@@ -57,7 +59,7 @@ describe('Health Check Handler', () => {
 
     it('should return timestamp in ISO format', async () => {
       const event = createMockEvent();
-      const result = await handler(event);
+      const result = healthCheckHandler(event);
       const body = JSON.parse(result.body);
 
       expect(body.timestamp).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/);
@@ -67,7 +69,7 @@ describe('Health Check Handler', () => {
     it('should return default version when SERVICE_VERSION not set', async () => {
       delete process.env.SERVICE_VERSION;
       const event = createMockEvent();
-      const result = await handler(event);
+      const result = healthCheckHandler(event);
       const body = JSON.parse(result.body);
 
       expect(body.version).toBe('1.0.0');
@@ -76,7 +78,7 @@ describe('Health Check Handler', () => {
     it('should return custom version when SERVICE_VERSION is set', async () => {
       process.env.SERVICE_VERSION = '2.5.3';
       const event = createMockEvent();
-      const result = await handler(event);
+      const result = healthCheckHandler(event);
       const body = JSON.parse(result.body);
 
       expect(body.version).toBe('2.5.3');
@@ -85,7 +87,7 @@ describe('Health Check Handler', () => {
     it('should return default environment when NODE_ENV not set', async () => {
       delete process.env.NODE_ENV;
       const event = createMockEvent();
-      const result = await handler(event);
+      const result = healthCheckHandler(event);
       const body = JSON.parse(result.body);
 
       expect(body.environment).toBe('development');
@@ -94,7 +96,7 @@ describe('Health Check Handler', () => {
     it('should return production environment when NODE_ENV is production', async () => {
       process.env.NODE_ENV = 'production';
       const event = createMockEvent();
-      const result = await handler(event);
+      const result = healthCheckHandler(event);
       const body = JSON.parse(result.body);
 
       expect(body.environment).toBe('production');
@@ -103,7 +105,7 @@ describe('Health Check Handler', () => {
     it('should return test environment when NODE_ENV is test', async () => {
       process.env.NODE_ENV = 'test';
       const event = createMockEvent();
-      const result = await handler(event);
+      const result = healthCheckHandler(event);
       const body = JSON.parse(result.body);
 
       expect(body.environment).toBe('test');
@@ -113,14 +115,39 @@ describe('Health Check Handler', () => {
   describe('response structure', () => {
     it('should return valid JSON body', async () => {
       const event = createMockEvent();
-      const result = await handler(event);
+      const result = healthCheckHandler(event);
 
       expect(() => JSON.parse(result.body)).not.toThrow();
     });
 
+    it('should match HealthResponse type structure', async () => {
+      const event = createMockEvent();
+      const result = healthCheckHandler(event);
+      const body = JSON.parse(result.body) as HealthResponse;
+
+      expect(body.status).toBeDefined();
+      expect(body.service).toBeDefined();
+      expect(body.timestamp).toBeDefined();
+      expect(body.version).toBeDefined();
+      expect(body.environment).toBeDefined();
+    });
+
+    it('should validate against healthResponseSchema', async () => {
+      const event = createMockEvent();
+      const result = healthCheckHandler(event);
+      const body = JSON.parse(result.body);
+
+      // Should not throw validation error
+      expect(() => healthResponseSchema.parse(body)).not.toThrow();
+
+      // Validate it returns the correct type
+      const validated = healthResponseSchema.parse(body);
+      expect(validated).toEqual(body);
+    });
+
     it('should include all required fields', async () => {
       const event = createMockEvent();
-      const result = await handler(event);
+      const result = healthCheckHandler(event);
       const body = JSON.parse(result.body);
 
       expect(body).toHaveProperty('status');
@@ -132,7 +159,7 @@ describe('Health Check Handler', () => {
 
     it('should only include expected fields', async () => {
       const event = createMockEvent();
-      const result = await handler(event);
+      const result = healthCheckHandler(event);
       const body = JSON.parse(result.body);
 
       const keys = Object.keys(body);
@@ -144,14 +171,14 @@ describe('Health Check Handler', () => {
   describe('event handling', () => {
     it('should handle different HTTP methods', async () => {
       const event = createMockEvent({ httpMethod: 'POST' });
-      const result = await handler(event);
+      const result = healthCheckHandler(event);
 
       expect(result.statusCode).toBe(200);
     });
 
     it('should handle different paths', async () => {
       const event = createMockEvent({ path: '/some-other-path' });
-      const result = await handler(event);
+      const result = healthCheckHandler(event);
 
       expect(result.statusCode).toBe(200);
     });
@@ -163,7 +190,7 @@ describe('Health Check Handler', () => {
           'User-Agent': 'test-agent',
         },
       });
-      const result = await handler(event);
+      const result = healthCheckHandler(event);
 
       expect(result.statusCode).toBe(200);
     });
@@ -172,7 +199,7 @@ describe('Health Check Handler', () => {
       const event = createMockEvent({
         queryStringParameters: { test: 'value' },
       });
-      const result = await handler(event);
+      const result = healthCheckHandler(event);
 
       expect(result.statusCode).toBe(200);
     });
@@ -182,8 +209,8 @@ describe('Health Check Handler', () => {
     it('should return consistent structure across multiple calls', async () => {
       const event = createMockEvent();
 
-      const result1 = await handler(event);
-      const result2 = await handler(event);
+      const result1 = healthCheckHandler(event);
+      const result2 = healthCheckHandler(event);
 
       const body1 = JSON.parse(result1.body);
       const body2 = JSON.parse(result2.body);
@@ -197,9 +224,9 @@ describe('Health Check Handler', () => {
     it('should update timestamp on each call', async () => {
       const event = createMockEvent();
 
-      const result1 = await handler(event);
+      const result1 = healthCheckHandler(event);
       await new Promise((resolve) => setTimeout(resolve, 10));
-      const result2 = await handler(event);
+      const result2 = healthCheckHandler(event);
 
       const body1 = JSON.parse(result1.body);
       const body2 = JSON.parse(result2.body);

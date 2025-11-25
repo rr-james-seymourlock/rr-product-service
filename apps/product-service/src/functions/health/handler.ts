@@ -2,16 +2,33 @@ import middy from '@middy/core';
 import httpErrorHandler from '@middy/http-error-handler';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 
-const healthCheckHandler = (_event: APIGatewayProxyEvent): APIGatewayProxyResult => {
+import { healthResponseSchema } from './schema';
+import type { HealthResponse } from './types';
+
+/**
+ * Health check handler
+ *
+ * Returns the current health status of the service.
+ * Used for monitoring, load balancer health checks, and readiness probes.
+ *
+ * @param _event - API Gateway event (unused for health checks)
+ * @returns API Gateway response with health status
+ */
+export const healthCheckHandler = (_event: APIGatewayProxyEvent): APIGatewayProxyResult => {
+  const response: HealthResponse = {
+    status: 'healthy',
+    service: 'rr-product-service',
+    timestamp: new Date().toISOString(),
+    version: process.env.SERVICE_VERSION || '1.0.0',
+    environment: process.env.NODE_ENV || 'development',
+  };
+
+  // Validate response matches schema
+  const validatedResponse = healthResponseSchema.parse(response);
+
   return {
     statusCode: 200,
-    body: JSON.stringify({
-      status: 'healthy',
-      service: 'rr-product-service',
-      timestamp: new Date().toISOString(),
-      version: process.env.SERVICE_VERSION || '1.0.0',
-      environment: process.env.NODE_ENV || 'development',
-    }),
+    body: JSON.stringify(validatedResponse),
   };
 };
 
