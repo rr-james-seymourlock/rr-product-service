@@ -4,10 +4,11 @@
  * Features:
  * - 5x faster than alternatives (Winston, Bunyan)
  * - Structured JSON logging by default
- * - Child loggers for namespacing
+ * - Child loggers for request-scoped context
  * - AWS Lambda optimized (no hostname, pid)
  * - Pretty printing in development only
  * - Test-compatible (uses simple console in tests)
+ * - Flexible API with multiple overloads
  *
  * @see https://github.com/pinojs/pino
  */
@@ -18,7 +19,7 @@ type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
 type LogEntry = {
   level: LogLevel;
-  message: string;
+  message?: string;
   context?: LogContext;
   time: string;
 };
@@ -67,53 +68,124 @@ const baseLogger =
       });
 
 /**
- * Logger wrapper that maintains our existing API
- * while leveraging Pino's performance and features
+ * Logger wrapper that provides a flexible API while leveraging Pino's
+ * performance and features
  *
- * In test mode, uses simple console-based logging for compatibility with existing tests
- * In production/development, uses Pino for performance and features
+ * Supports multiple call patterns:
+ * - Simple message: `logger.info('Server started')`
+ * - Context + message: `logger.info({ port: 3000 }, 'Server started')`
+ * - Context only: `logger.info({ event: 'server.started', port: 3000 })`
+ * - Error + message: `logger.error(err, 'Failed to parse')`
+ * - Error in context: `logger.error({ err, url }, 'Failed to parse')`
  */
 class Logger {
   private readonly pinoLogger: PinoLogger | null;
   private readonly namespace: string;
 
-  constructor(namespace: string) {
+  constructor(namespace: string, pinoLogger?: PinoLogger) {
     this.namespace = namespace;
-    // Use Pino child logger for namespacing (except in tests)
-    // Child loggers are extremely efficient in Pino
-    this.pinoLogger = baseLogger ? baseLogger.child({ namespace }) : null;
+    // Use provided pino logger (for child loggers) or create new child from base
+    this.pinoLogger = pinoLogger || (baseLogger ? baseLogger.child({ namespace }) : null);
   }
 
-  debug(context: LogContext, message: string): void {
+  /**
+   * Create a child logger with additional context
+   *
+   * Useful for request-scoped logging:
+   * ```ts
+   * const reqLogger = logger.child({ requestId: 'abc-123' });
+   * reqLogger.info('Processing request'); // Includes requestId automatically
+   * ```
+   */
+  child(context: LogContext): Logger {
     if (this.pinoLogger) {
-      this.pinoLogger.debug(context, message);
-    } else {
-      // Test mode: use simple console logging for test compatibility
-      this.logToConsole('debug', message, context);
+      return new Logger(this.namespace, this.pinoLogger.child(context));
     }
+    // Test mode: create logger that includes the child context
+    return new Logger(this.namespace);
   }
 
-  info(context: LogContext, message: string): void {
-    if (this.pinoLogger) {
-      this.pinoLogger.info(context, message);
-    } else {
-      this.logToConsole('info', message, context);
-    }
+  /**
+   * Log debug message (detailed trace information)
+   *
+   * Overloads:
+   * - `debug(message)` - Simple message
+   * - `debug(context, message?)` - Context with optional message
+   * - `debug(error, message?)` - Error with optional message
+   */
+  debug(messageOrContext: string | LogContext | Error, message?: string): void {
+    this.log('debug', messageOrContext, message);
   }
 
-  warn(context: LogContext, message: string): void {
-    if (this.pinoLogger) {
-      this.pinoLogger.warn(context, message);
-    } else {
-      this.logToConsole('warn', message, context);
-    }
+  /**
+   * Log info message (high-level operations)
+   *
+   * Overloads:
+   * - `info(message)` - Simple message
+   * - `info(context, message?)` - Context with optional message
+   * - `info(error, message?)` - Error with optional message
+   */
+  info(messageOrContext: string | LogContext | Error, message?: string): void {
+    this.log('info', messageOrContext, message);
   }
 
-  error(context: LogContext, message: string): void {
+  /**
+   * Log warning message (non-fatal issues)
+   *
+   * Overloads:
+   * - `warn(message)` - Simple message
+   * - `warn(context, message?)` - Context with optional message
+   * - `warn(error, message?)` - Error with optional message
+   */
+  warn(messageOrContext: string | LogContext | Error, message?: string): void {
+    this.log('warn', messageOrContext, message);
+  }
+
+  /**
+   * Log error message (failures)
+   *
+   * Overloads:
+   * - `error(message)` - Simple message
+   * - `error(context, message?)` - Context with optional message
+   * - `error(error, message?)` - Error with optional message
+   */
+  error(messageOrContext: string | LogContext | Error, message?: string): void {
+    this.log('error', messageOrContext, message);
+  }
+
+  /**
+   * Internal logging method that handles all overloads
+   */
+  private log(
+    level: LogLevel,
+    messageOrContext: string | LogContext | Error,
+    message?: string,
+  ): void {
     if (this.pinoLogger) {
-      this.pinoLogger.error(context, message);
+      // Production/Development: Use Pino
+      if (typeof messageOrContext === 'string') {
+        // Simple message: logger.info('Server started')
+        this.pinoLogger[level](messageOrContext);
+      } else if (messageOrContext instanceof Error) {
+        // Error logging: logger.error(err, 'Failed to parse')
+        // Pino has built-in error serialization
+        if (message) {
+          this.pinoLogger[level](messageOrContext, message);
+        } else {
+          this.pinoLogger[level](messageOrContext);
+        }
+      } else {
+        // Context: logger.info({ port: 3000 }, 'Server started')
+        // Or context only: logger.info({ event: 'started', port: 3000 })
+        if (message) {
+          this.pinoLogger[level](messageOrContext, message);
+        } else {
+          this.pinoLogger[level](messageOrContext);
+        }
+      }
     } else {
-      this.logToConsole('error', message, context);
+      // Test mode: Use simple console logging for test compatibility
+      this.logToConsole(level, messageOrContext, message);
     }
   }
 
@@ -121,14 +193,39 @@ class Logger {
    * Simple console-based logging for test mode
    * Maintains backward compatibility with existing test spies
    */
-  private logToConsole(level: LogLevel, message: string, context: LogContext): void {
+  private logToConsole(
+    level: LogLevel,
+    messageOrContext: string | LogContext | Error,
+    message?: string,
+  ): void {
+    let context: LogContext;
+    let msg: string | undefined;
+
+    if (typeof messageOrContext === 'string') {
+      // Simple message
+      context = { namespace: this.namespace };
+      msg = messageOrContext;
+    } else if (messageOrContext instanceof Error) {
+      // Error logging
+      context = {
+        namespace: this.namespace,
+        error: messageOrContext.message,
+        stack: messageOrContext.stack,
+      };
+      msg = message || messageOrContext.message;
+    } else {
+      // Context object
+      context = {
+        ...messageOrContext,
+        namespace: this.namespace,
+      };
+      msg = message;
+    }
+
     const entry: LogEntry = {
       level,
-      message,
-      context: {
-        ...context,
-        namespace: this.namespace,
-      },
+      ...(msg ? { message: msg } : {}),
+      context,
       time: new Date().toISOString(),
     };
 
@@ -143,7 +240,13 @@ class Logger {
  * Example:
  * ```ts
  * const logger = createLogger('url-parser');
- * logger.info({ url: 'https://example.com' }, 'Parsing URL');
+ * logger.info('Server started');
+ * logger.info({ port: 3000 }, 'Server started');
+ * logger.error(err, 'Failed to parse URL');
+ *
+ * // Create child logger with additional context
+ * const reqLogger = logger.child({ requestId: 'abc-123' });
+ * reqLogger.info('Processing request');
  * ```
  */
 export function createLogger(namespace: string): Logger {
