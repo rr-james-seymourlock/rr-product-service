@@ -18,6 +18,7 @@ try {
   await build({
     entryPoints: {
       health: 'src/functions/health/handler.ts',
+      'extract-product-ids': 'src/functions/extract-product-ids/handler.ts',
     },
     bundle: true,
     platform: 'node',

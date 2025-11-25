@@ -246,13 +246,15 @@ describe('Health Check Handler', () => {
       expect(consoleLogSpy).toHaveBeenCalledTimes(2);
 
       // Check debug log
-      const debugLog = JSON.parse(consoleLogSpy.mock.calls[0][0] as string);
+      expect(consoleLogSpy.mock.calls[0]).toBeDefined();
+      const debugLog = JSON.parse(consoleLogSpy.mock.calls[0]?.[0] as string);
       expect(debugLog.level).toBe('debug');
       expect(debugLog.message).toBe('Health check requested');
       expect(debugLog.context.namespace).toBe('product-service.health');
 
       // Check info log
-      const infoLog = JSON.parse(consoleLogSpy.mock.calls[1][0] as string);
+      expect(consoleLogSpy.mock.calls[1]).toBeDefined();
+      const infoLog = JSON.parse(consoleLogSpy.mock.calls[1]?.[0] as string);
       expect(infoLog.level).toBe('info');
       expect(infoLog.message).toBe('Health check successful');
       expect(infoLog.context.namespace).toBe('product-service.health');
