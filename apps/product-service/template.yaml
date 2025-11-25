@@ -30,21 +30,6 @@ Resources:
         Service: product-service
         Environment: production
 
-  PostProductFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: dist/
-      Handler: handler.handler
-      Events:
-        PostProduct:
-          Type: Api
-          Properties:
-            Path: /product
-            Method: post
-      Tags:
-        Service: product-service
-        Environment: production
-
 Outputs:
   HealthApi:
     Description: API Gateway endpoint URL for Health function
@@ -57,15 +42,3 @@ Outputs:
   HealthFunctionIamRole:
     Description: IAM Role created for Health function
     Value: !GetAtt HealthFunctionRole.Arn
-
-  PostProductApi:
-    Description: API Gateway endpoint URL for PostProduct function
-    Value: !Sub 'https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/product/'
-
-  PostProductFunction:
-    Description: PostProduct Lambda Function ARN
-    Value: !GetAtt PostProductFunction.Arn
-
-  PostProductFunctionIamRole:
-    Description: IAM Role created for PostProduct function
-    Value: !GetAtt PostProductFunctionRole.Arn
