@@ -1,8 +1,8 @@
 # Dependencies
 node_modules/
+# Ignore other package manager lockfiles (this project uses pnpm)
 package-lock.json
 yarn.lock
-pnpm-lock.yaml
 
 # Build outputs
 dist/
