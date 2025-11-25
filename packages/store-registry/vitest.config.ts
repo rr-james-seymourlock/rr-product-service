@@ -7,7 +7,6 @@ export default defineConfig({
     include: ['**/__tests__/**/*.test.ts'],
     exclude: ['**/node_modules/**', '**/dist/**'],
     globals: true,
-    setupFiles: ['../../packages/shared/src/testing/customMatchers.ts'],
     maxConcurrency: 10,
     isolate: true,
   },
