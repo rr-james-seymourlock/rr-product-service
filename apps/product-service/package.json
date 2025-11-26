@@ -20,7 +20,8 @@
     "test": "vitest run",
     "clean": "rm -rf .turbo dist .aws-sam",
     "openapi:generate": "tsx scripts/generate-openapi.ts",
-    "docs:generate": "pnpm run openapi:generate"
+    "docs:generate": "pnpm run openapi:generate",
+    "docs:serve": "node scripts/serve-docs.mjs"
   },
   "dependencies": {
     "@middy/core": "^6.3.0",

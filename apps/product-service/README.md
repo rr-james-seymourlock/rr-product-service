@@ -34,7 +34,7 @@ This will start the API at `http://localhost:3000` with warm containers for fast
 ### Available Endpoints
 
 - `GET /health` - Health check endpoint
-- `GET /create-url-analysis?url=<product-url>` - Analyze URL from URLs
+- `POST /url-analysis` - Analyze product URLs and extract IDs
 
 ### Test Locally
 
@@ -218,13 +218,33 @@ Each function is self-contained with all its dependencies in one folder.
 
 ## API Documentation
 
-Generate OpenAPI specification:
+### View Documentation
+
+View the interactive API documentation with Redoc:
 
 ```bash
-pnpm run openapi:generate
+pnpm run docs:serve
 ```
 
-This creates `docs/openapi.json` from your contract schemas, ensuring API documentation stays in sync with runtime validation.
+Then open http://localhost:8080 in your browser to explore the API with a beautiful, interactive interface.
+
+### Generate OpenAPI Specification
+
+Generate/update the OpenAPI 3.1 specification:
+
+```bash
+pnpm run docs:generate
+```
+
+This creates `docs/openapi.json` from your Zod contract schemas, ensuring API documentation stays perfectly in sync with runtime validation. No manual documentation updates needed!
+
+### Documentation Files
+
+- `docs/openapi.json` - OpenAPI 3.1 specification (auto-generated)
+- `docs/index.html` - Redoc documentation viewer
+- `docs/README.md` - API documentation guide
+
+See [docs/README.md](./docs/README.md) for more details on the API endpoints and deployment options.
 
 ## Environment Variables
 

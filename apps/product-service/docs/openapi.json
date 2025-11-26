@@ -1,0 +1,249 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "RR Product Service API",
+    "version": "1.0.0",
+    "description": "Product service API for extracting product identifiers from e-commerce URLs. Supports URL parsing, normalization, and pattern-based ID extraction for Rakuten merchant stores.",
+    "contact": {
+      "name": "RR Product Service Team"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://api.example.com/prod",
+      "description": "Production"
+    },
+    {
+      "url": "https://api.example.com/dev",
+      "description": "Development"
+    },
+    {
+      "url": "http://localhost:3000",
+      "description": "Local"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Monitoring",
+      "description": "Service health and monitoring endpoints"
+    },
+    {
+      "name": "Product Extraction",
+      "description": "Product identifier extraction endpoints"
+    }
+  ],
+  "components": {
+    "schemas": {
+      "HealthResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "healthy",
+              "unhealthy"
+            ],
+            "description": "Current health status of the service",
+            "example": "healthy"
+          },
+          "service": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Service name identifier",
+            "example": "rr-product-service"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "description": "ISO 8601 timestamp of the health check",
+            "example": "2025-11-25T20:00:00.000Z"
+          },
+          "version": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Service version",
+            "example": "1.0.0"
+          },
+          "environment": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Deployment environment",
+            "example": "production"
+          }
+        },
+        "required": [
+          "status",
+          "service",
+          "timestamp",
+          "version",
+          "environment"
+        ]
+      },
+      "CreateUrlAnalysisResponse": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "minLength": 1,
+            "description": "The original URL that was analyzed",
+            "example": "https://www.nike.com/t/air-max-90-mens-shoes-6n8tKB/CN8490-100"
+          },
+          "productIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 24,
+              "pattern": "^[\\w-]+$"
+            },
+            "maxItems": 12,
+            "description": "Array of extracted product IDs (max 12)",
+            "example": [
+              "cn8490-100",
+              "6n8tkb"
+            ]
+          },
+          "count": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 12,
+            "description": "Number of product IDs extracted",
+            "example": 2
+          }
+        },
+        "required": [
+          "url",
+          "productIds",
+          "count"
+        ]
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Error type/code",
+            "example": "ValidationError"
+          },
+          "message": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Human-readable error message",
+            "example": "url: Invalid URL format"
+          },
+          "statusCode": {
+            "type": "integer",
+            "minimum": 400,
+            "maximum": 599,
+            "description": "HTTP status code",
+            "example": 400
+          }
+        },
+        "required": [
+          "error",
+          "message",
+          "statusCode"
+        ]
+      },
+      "CreateUrlAnalysisRequest": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "minLength": 1,
+            "format": "uri",
+            "description": "Public HTTP(S) URL to extract product IDs from",
+            "example": "https://www.nike.com/t/air-max-90-mens-shoes-6n8tKB/CN8490-100"
+          },
+          "storeId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "Optional store ID to use specific extraction patterns",
+            "example": "12345"
+          }
+        },
+        "required": [
+          "url"
+        ]
+      }
+    },
+    "parameters": {}
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "summary": "Health Check",
+        "description": "Health check endpoint for monitoring and load balancer probes",
+        "tags": [
+          "Monitoring"
+        ],
+        "responses": {
+          "200": {
+            "description": "Service is healthy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/url-analysis": {
+      "post": {
+        "summary": "Analyze URL",
+        "description": "Analyzes a product URL and extracts product identifiers. Supports URLs from various e-commerce stores. Returns extracted product identifiers found in the URL path, query parameters, or fragments.",
+        "tags": [
+          "Product Extraction"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateUrlAnalysisRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully extracted product IDs",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateUrlAnalysisResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request parameters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "webhooks": {}
+}

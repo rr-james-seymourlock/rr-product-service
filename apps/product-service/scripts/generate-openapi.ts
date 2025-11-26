@@ -4,7 +4,7 @@
  * This script creates an openapi.json file from our contract schemas,
  * ensuring API documentation stays in sync with runtime validation.
  */
-import { createDocument } from '@asteasolutions/zod-to-openapi';
+import { OpenAPIRegistry, OpenApiGeneratorV31 } from '@asteasolutions/zod-to-openapi';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -19,9 +19,78 @@ import { healthResponseSchema } from '../src/functions/health/contracts';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Create OpenAPI document
-const document = createDocument({
-  openapi: '3.0.0',
+// Create registry and register schemas
+const registry = new OpenAPIRegistry();
+
+// Register health endpoint
+registry.registerPath({
+  method: 'get',
+  path: '/health',
+  summary: 'Health Check',
+  description: 'Health check endpoint for monitoring and load balancer probes',
+  tags: ['Monitoring'],
+  responses: {
+    200: {
+      description: 'Service is healthy',
+      content: {
+        'application/json': {
+          schema: healthResponseSchema,
+        },
+      },
+    },
+  },
+});
+
+// Register URL analysis endpoint
+registry.registerPath({
+  method: 'post',
+  path: '/url-analysis',
+  summary: 'Analyze URL',
+  description:
+    'Analyzes a product URL and extracts product identifiers. Supports URLs from various e-commerce stores. Returns extracted product identifiers found in the URL path, query parameters, or fragments.',
+  tags: ['Product Extraction'],
+  request: {
+    body: {
+      required: true,
+      content: {
+        'application/json': {
+          schema: createUrlAnalysisRequestSchema,
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: 'Successfully extracted product IDs',
+      content: {
+        'application/json': {
+          schema: createUrlAnalysisResponseSchema,
+        },
+      },
+    },
+    400: {
+      description: 'Invalid request parameters',
+      content: {
+        'application/json': {
+          schema: errorResponseSchema,
+        },
+      },
+    },
+    500: {
+      description: 'Internal server error',
+      content: {
+        'application/json': {
+          schema: errorResponseSchema,
+        },
+      },
+    },
+  },
+});
+
+// Generate OpenAPI document
+const generator = new OpenApiGeneratorV31(registry.definitions);
+const document = generator.generateDocument({
+  openapi: '3.1.0',
   info: {
     title: 'RR Product Service API',
     version: '1.0.0',
@@ -55,67 +124,6 @@ const document = createDocument({
       description: 'Product identifier extraction endpoints',
     },
   ],
-  paths: {
-    '/health': {
-      get: {
-        summary: 'Health Check',
-        description: 'Health check endpoint for monitoring and load balancer probes',
-        tags: ['Monitoring'],
-        responses: {
-          '200': {
-            description: 'Service is healthy',
-            content: {
-              'application/json': {
-                schema: healthResponseSchema,
-              },
-            },
-          },
-        },
-      },
-    },
-    '/url-analysis': {
-      post: {
-        summary: 'Analyze URL',
-        description:
-          'Analyzes a product URL and extracts product identifiers. Supports URLs from various e-commerce stores. Returns extracted product identifiers found in the URL path, query parameters, or fragments.',
-        tags: ['Product Extraction'],
-        requestBody: {
-          required: true,
-          content: {
-            'application/json': {
-              schema: createUrlAnalysisRequestSchema,
-            },
-          },
-        },
-        responses: {
-          '200': {
-            description: 'Successfully extracted product IDs',
-            content: {
-              'application/json': {
-                schema: createUrlAnalysisResponseSchema,
-              },
-            },
-          },
-          '400': {
-            description: 'Invalid request parameters',
-            content: {
-              'application/json': {
-                schema: errorResponseSchema,
-              },
-            },
-          },
-          '500': {
-            description: 'Internal server error',
-            content: {
-              'application/json': {
-                schema: errorResponseSchema,
-              },
-            },
-          },
-        },
-      },
-    },
-  },
 });
 
 // Write to file
