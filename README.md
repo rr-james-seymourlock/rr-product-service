@@ -223,7 +223,7 @@ Analyze a single product URL and extract product identifiers.
 ```json
 {
   "url": "https://www.nike.com/t/air-max-270/AH8050-001",
-  "storeId": "nike.com" // optional
+  "storeId": "9528" // optional - can be store ID ("9528") or domain ("nike.com")
 }
 ```
 
@@ -247,7 +247,7 @@ Analyze multiple URLs in parallel (1-100 URLs per request).
 {
   "urls": [
     { "url": "https://www.target.com/p/product/-/A-12345678" },
-    { "url": "https://www.nike.com/t/air-max/CN8490-100", "storeId": "nike.com" }
+    { "url": "https://www.nike.com/t/air-max/CN8490-100", "storeId": "9528" }
   ]
 }
 ```

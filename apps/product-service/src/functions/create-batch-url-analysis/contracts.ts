@@ -71,8 +71,9 @@ const urlItemSchema = z
       .max(100, 'Store ID is too long')
       .optional()
       .openapi({
-        description: 'Optional store ID to use specific extraction patterns',
-        example: '12345',
+        description:
+          'Optional store identifier for specific extraction patterns. Can be either a store ID (e.g., "9528") or domain (e.g., "nike.com")',
+        example: '9528',
       }),
   })
   .openapi('UrlItem');
@@ -91,7 +92,7 @@ export const createBatchUrlAnalysisRequestSchema = z
         example: [
           {
             url: 'https://www.nike.com/t/air-max-90-mens-shoes-6n8tKB/CN8490-100',
-            storeId: '12345',
+            storeId: '9528',
           },
           { url: 'https://www.target.com/p/example-product/-/A-12345678' },
         ],
