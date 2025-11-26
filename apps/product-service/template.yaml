@@ -13,6 +13,8 @@ Globals:
       Variables:
         NODE_ENV: production
         LOG_LEVEL: info
+        SYNCCENTRIC_HOST: '{{resolve:ssm:/product-service/synccentric/host}}'
+        SYNCCENTRIC_AUTH_KEY: '{{resolve:ssm-secure:/product-service/synccentric/auth-key}}'
 
 Resources:
   HealthFunction:
@@ -60,6 +62,21 @@ Resources:
         Service: product-service
         Environment: production
 
+  ConvertAsinFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: dist/
+      Handler: convert-asin.handler
+      Events:
+        ConvertAsin:
+          Type: Api
+          Properties:
+            Path: /convert-asin
+            Method: post
+      Tags:
+        Service: product-service
+        Environment: production
+
 Outputs:
   HealthApi:
     Description: API Gateway endpoint URL for Health function
@@ -96,3 +113,15 @@ Outputs:
   CreateBatchUrlAnalysisFunctionIamRole:
     Description: IAM Role created for CreateBatchUrlAnalysis function
     Value: !GetAtt CreateBatchUrlAnalysisFunctionRole.Arn
+
+  ConvertAsinApi:
+    Description: API Gateway endpoint URL for ConvertAsin function
+    Value: !Sub 'https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/convert-asin/'
+
+  ConvertAsinFunction:
+    Description: ConvertAsin Lambda Function ARN
+    Value: !GetAtt ConvertAsinFunction.Arn
+
+  ConvertAsinFunctionIamRole:
+    Description: IAM Role created for ConvertAsin function
+    Value: !GetAtt ConvertAsinFunctionRole.Arn

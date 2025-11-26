@@ -1,0 +1,11 @@
+{
+  "body": "{\"asins\": [\"B08N5WRWNW\", \"B07ZPKN6YR\"]}",
+  "headers": {
+    "Content-Type": "application/json"
+  },
+  "httpMethod": "POST",
+  "path": "/convert-asin",
+  "requestContext": {
+    "requestId": "test-request-id"
+  }
+}
