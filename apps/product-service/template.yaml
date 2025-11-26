@@ -30,17 +30,17 @@ Resources:
         Service: product-service
         Environment: production
 
-  ExtractProductIdsFunction:
+  CreateUrlAnalysisFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: dist/
-      Handler: extract-product-ids.handler
+      Handler: create-url-analysis.handler
       Events:
-        ExtractProductIds:
+        CreateUrlAnalysis:
           Type: Api
           Properties:
-            Path: /extract-product-ids
-            Method: get
+            Path: /url-analysis
+            Method: post
       Tags:
         Service: product-service
         Environment: production
@@ -58,14 +58,14 @@ Outputs:
     Description: IAM Role created for Health function
     Value: !GetAtt HealthFunctionRole.Arn
 
-  ExtractProductIdsApi:
-    Description: API Gateway endpoint URL for ExtractProductIds function
-    Value: !Sub 'https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/extract-product-ids/'
+  CreateUrlAnalysisApi:
+    Description: API Gateway endpoint URL for CreateUrlAnalysis function
+    Value: !Sub 'https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/url-analysis/'
 
-  ExtractProductIdsFunction:
-    Description: ExtractProductIds Lambda Function ARN
-    Value: !GetAtt ExtractProductIdsFunction.Arn
+  CreateUrlAnalysisFunction:
+    Description: CreateUrlAnalysis Lambda Function ARN
+    Value: !GetAtt CreateUrlAnalysisFunction.Arn
 
-  ExtractProductIdsFunctionIamRole:
-    Description: IAM Role created for ExtractProductIds function
-    Value: !GetAtt ExtractProductIdsFunctionRole.Arn
+  CreateUrlAnalysisFunctionIamRole:
+    Description: IAM Role created for CreateUrlAnalysis function
+    Value: !GetAtt CreateUrlAnalysisFunctionRole.Arn

@@ -13,7 +13,10 @@ export default defineConfig({
   resolve: {
     alias: {
       '@rr/url-parser': resolve(import.meta.dirname, '../../packages/url-parser/src'),
-      '@rr/product-id-extractor': resolve(import.meta.dirname, '../../packages/product-id-extractor/src'),
+      '@rr/product-id-extractor': resolve(
+        import.meta.dirname,
+        '../../packages/product-id-extractor/src',
+      ),
       '@rr/store-registry': resolve(import.meta.dirname, '../../packages/store-registry/src'),
       '@rr/schema-parser': resolve(import.meta.dirname, '../../packages/schema-parser/src'),
       '@rr/shared': resolve(import.meta.dirname, '../../packages/shared/src'),

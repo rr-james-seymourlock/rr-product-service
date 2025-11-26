@@ -51,7 +51,8 @@ const publicUrlSchema = z
       }
     },
     {
-      message: 'URL must point to a public address (localhost and private IP ranges are not allowed)',
+      message:
+        'URL must point to a public address (localhost and private IP ranges are not allowed)',
     },
   )
   .openapi({
@@ -60,9 +61,9 @@ const publicUrlSchema = z
   });
 
 /**
- * Request query parameters schema
+ * Request body schema for POST /url-analysis
  */
-export const extractProductIdsRequestSchema = z
+export const createUrlAnalysisRequestSchema = z
   .object({
     url: publicUrlSchema,
     storeId: z
@@ -75,15 +76,15 @@ export const extractProductIdsRequestSchema = z
         example: '12345',
       }),
   })
-  .openapi('ExtractProductIdsRequest');
+  .openapi('CreateUrlAnalysisRequest');
 
 /**
  * Success response schema
  */
-export const extractProductIdsResponseSchema = z
+export const createUrlAnalysisResponseSchema = z
   .object({
     url: z.string().min(1, 'URL is required').openapi({
-      description: 'The original URL that was processed',
+      description: 'The original URL that was analyzed',
       example: 'https://www.nike.com/t/air-max-90-mens-shoes-6n8tKB/CN8490-100',
     }),
     productIds: z
@@ -105,7 +106,7 @@ export const extractProductIdsResponseSchema = z
       example: 2,
     }),
   })
-  .openapi('ExtractProductIdsResponse');
+  .openapi('CreateUrlAnalysisResponse');
 
 /**
  * Error response schema
@@ -127,6 +128,6 @@ export const errorResponseSchema = z
   })
   .openapi('ErrorResponse');
 
-export type ExtractProductIdsRequest = z.infer<typeof extractProductIdsRequestSchema>;
-export type ExtractProductIdsResponse = z.infer<typeof extractProductIdsResponseSchema>;
+export type CreateUrlAnalysisRequest = z.infer<typeof createUrlAnalysisRequestSchema>;
+export type CreateUrlAnalysisResponse = z.infer<typeof createUrlAnalysisResponseSchema>;
 export type ErrorResponse = z.infer<typeof errorResponseSchema>;

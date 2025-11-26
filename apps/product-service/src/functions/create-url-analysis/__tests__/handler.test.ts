@@ -2,13 +2,13 @@ import type { APIGatewayProxyEvent } from 'aws-lambda';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
-  extractProductIdsResponseSchema,
+  type CreateUrlAnalysisResponse,
   type ErrorResponse,
-  type ExtractProductIdsResponse,
+  createUrlAnalysisResponseSchema,
 } from '../contracts';
-import { extractProductIdsHandler } from '../handler';
+import { createUrlAnalysisHandler } from '../handler';
 
-describe('Extract Product IDs Handler', () => {
+describe('Create URL Analysis Handler', () => {
   let originalEnv: NodeJS.ProcessEnv;
 
   beforeEach(() => {
@@ -21,14 +21,14 @@ describe('Extract Product IDs Handler', () => {
   });
 
   const createMockEvent = (
-    queryStringParameters: Record<string, string> | null = null,
+    requestBody: Record<string, unknown> | null = null,
   ): APIGatewayProxyEvent => ({
-    httpMethod: 'GET',
-    path: '/extract-product-ids',
-    headers: {},
-    queryStringParameters,
+    httpMethod: 'POST',
+    path: '/url-analysis',
+    headers: { 'Content-Type': 'application/json' },
+    queryStringParameters: null,
     pathParameters: null,
-    body: null,
+    body: requestBody ? JSON.stringify(requestBody) : null,
     isBase64Encoded: false,
     multiValueHeaders: {},
     multiValueQueryStringParameters: null,
@@ -42,7 +42,7 @@ describe('Extract Product IDs Handler', () => {
       const event = createMockEvent({
         url: 'https://www.nike.com/t/air-max-90-mens-shoes-6n8tKB/CN8490-100',
       });
-      const result = extractProductIdsHandler(event);
+      const result = createUrlAnalysisHandler(event);
 
       expect(result.statusCode).toBe(200);
     });
@@ -51,8 +51,8 @@ describe('Extract Product IDs Handler', () => {
       const event = createMockEvent({
         url: 'https://www.nike.com/t/air-max-90-mens-shoes-6n8tKB/CN8490-100',
       });
-      const result = extractProductIdsHandler(event);
-      const body = JSON.parse(result.body) as ExtractProductIdsResponse;
+      const result = createUrlAnalysisHandler(event);
+      const body = JSON.parse(result.body) as CreateUrlAnalysisResponse;
 
       expect(body.productIds).toBeDefined();
       expect(Array.isArray(body.productIds)).toBe(true);
@@ -62,8 +62,8 @@ describe('Extract Product IDs Handler', () => {
     it('should return the original URL in response', () => {
       const testUrl = 'https://www.nike.com/t/air-max-90-mens-shoes-6n8tKB/CN8490-100';
       const event = createMockEvent({ url: testUrl });
-      const result = extractProductIdsHandler(event);
-      const body = JSON.parse(result.body) as ExtractProductIdsResponse;
+      const result = createUrlAnalysisHandler(event);
+      const body = JSON.parse(result.body) as CreateUrlAnalysisResponse;
 
       expect(body.url).toBe(testUrl);
     });
@@ -72,8 +72,8 @@ describe('Extract Product IDs Handler', () => {
       const event = createMockEvent({
         url: 'https://www.nike.com/t/air-max-90-mens-shoes-6n8tKB/CN8490-100',
       });
-      const result = extractProductIdsHandler(event);
-      const body = JSON.parse(result.body) as ExtractProductIdsResponse;
+      const result = createUrlAnalysisHandler(event);
+      const body = JSON.parse(result.body) as CreateUrlAnalysisResponse;
 
       expect(body.count).toBeDefined();
       expect(typeof body.count).toBe('number');
@@ -85,7 +85,7 @@ describe('Extract Product IDs Handler', () => {
         url: 'https://www.nike.com/t/air-max-90-mens-shoes-6n8tKB/CN8490-100',
         storeId: '12345',
       });
-      const result = extractProductIdsHandler(event);
+      const result = createUrlAnalysisHandler(event);
 
       expect(result.statusCode).toBe(200);
     });
@@ -94,7 +94,7 @@ describe('Extract Product IDs Handler', () => {
       const event = createMockEvent({
         url: 'https://www.nike.com/t/air-max-90-mens-shoes-6n8tKB/CN8490-100',
       });
-      const result = extractProductIdsHandler(event);
+      const result = createUrlAnalysisHandler(event);
 
       expect(result.headers).toBeDefined();
       expect(result.headers?.['Content-Type']).toBe('application/json');
@@ -106,23 +106,23 @@ describe('Extract Product IDs Handler', () => {
       const event = createMockEvent({
         url: 'https://www.nike.com/t/air-max-90-mens-shoes-6n8tKB/CN8490-100',
       });
-      const result = extractProductIdsHandler(event);
+      const result = createUrlAnalysisHandler(event);
 
       expect(() => JSON.parse(result.body)).not.toThrow();
     });
 
-    it('should validate against extractProductIdsResponseSchema', () => {
+    it('should validate against createUrlAnalysisResponseSchema', () => {
       const event = createMockEvent({
         url: 'https://www.nike.com/t/air-max-90-mens-shoes-6n8tKB/CN8490-100',
       });
-      const result = extractProductIdsHandler(event);
+      const result = createUrlAnalysisHandler(event);
       const body = JSON.parse(result.body);
 
       // Should not throw validation error
-      expect(() => extractProductIdsResponseSchema.parse(body)).not.toThrow();
+      expect(() => createUrlAnalysisResponseSchema.parse(body)).not.toThrow();
 
       // Validate it returns the correct type
-      const validated = extractProductIdsResponseSchema.parse(body);
+      const validated = createUrlAnalysisResponseSchema.parse(body);
       expect(validated).toEqual(body);
     });
 
@@ -130,8 +130,8 @@ describe('Extract Product IDs Handler', () => {
       const event = createMockEvent({
         url: 'https://www.nike.com/t/air-max-90-mens-shoes-6n8tKB/CN8490-100',
       });
-      const result = extractProductIdsHandler(event);
-      const body = JSON.parse(result.body) as ExtractProductIdsResponse;
+      const result = createUrlAnalysisHandler(event);
+      const body = JSON.parse(result.body) as CreateUrlAnalysisResponse;
 
       expect(body).toHaveProperty('url');
       expect(body).toHaveProperty('productIds');
@@ -142,7 +142,7 @@ describe('Extract Product IDs Handler', () => {
       const event = createMockEvent({
         url: 'https://www.nike.com/t/air-max-90-mens-shoes-6n8tKB/CN8490-100',
       });
-      const result = extractProductIdsHandler(event);
+      const result = createUrlAnalysisHandler(event);
       const body = JSON.parse(result.body);
 
       const keys = Object.keys(body);
@@ -154,49 +154,49 @@ describe('Extract Product IDs Handler', () => {
   describe('validation errors', () => {
     it('should return 400 when URL is missing', () => {
       const event = createMockEvent({});
-      const result = extractProductIdsHandler(event);
+      const result = createUrlAnalysisHandler(event);
 
       expect(result.statusCode).toBe(400);
     });
 
     it('should return 400 when URL is empty', () => {
       const event = createMockEvent({ url: '' });
-      const result = extractProductIdsHandler(event);
+      const result = createUrlAnalysisHandler(event);
 
       expect(result.statusCode).toBe(400);
     });
 
     it('should return 400 when URL is invalid', () => {
       const event = createMockEvent({ url: 'not-a-valid-url' });
-      const result = extractProductIdsHandler(event);
+      const result = createUrlAnalysisHandler(event);
 
       expect(result.statusCode).toBe(400);
     });
 
     it('should return 400 when URL uses non-HTTP(S) protocol', () => {
       const event = createMockEvent({ url: 'ftp://example.com/product/123' });
-      const result = extractProductIdsHandler(event);
+      const result = createUrlAnalysisHandler(event);
 
       expect(result.statusCode).toBe(400);
     });
 
     it('should return 400 when URL points to localhost', () => {
       const event = createMockEvent({ url: 'http://localhost/product/123' });
-      const result = extractProductIdsHandler(event);
+      const result = createUrlAnalysisHandler(event);
 
       expect(result.statusCode).toBe(400);
     });
 
     it('should return 400 when URL points to private IP', () => {
       const event = createMockEvent({ url: 'http://192.168.1.1/product/123' });
-      const result = extractProductIdsHandler(event);
+      const result = createUrlAnalysisHandler(event);
 
       expect(result.statusCode).toBe(400);
     });
 
     it('should return error response structure for validation errors', () => {
       const event = createMockEvent({ url: 'invalid' });
-      const result = extractProductIdsHandler(event);
+      const result = createUrlAnalysisHandler(event);
       const body = JSON.parse(result.body) as ErrorResponse;
 
       expect(body).toHaveProperty('error');
@@ -208,7 +208,7 @@ describe('Extract Product IDs Handler', () => {
 
     it('should return descriptive error message for validation errors', () => {
       const event = createMockEvent({});
-      const result = extractProductIdsHandler(event);
+      const result = createUrlAnalysisHandler(event);
       const body = JSON.parse(result.body) as ErrorResponse;
 
       expect(body.message).toContain('url');
@@ -218,9 +218,9 @@ describe('Extract Product IDs Handler', () => {
   });
 
   describe('event handling', () => {
-    it('should handle null queryStringParameters', () => {
+    it('should handle null body', () => {
       const event = createMockEvent(null);
-      const result = extractProductIdsHandler(event);
+      const result = createUrlAnalysisHandler(event);
 
       expect(result.statusCode).toBe(400);
     });
@@ -235,17 +235,17 @@ describe('Extract Product IDs Handler', () => {
           'User-Agent': 'test-agent',
         },
       };
-      const result = extractProductIdsHandler(event);
+      const result = createUrlAnalysisHandler(event);
 
       expect(result.statusCode).toBe(200);
     });
 
-    it('should handle events with additional query parameters', () => {
+    it('should handle events with additional body properties', () => {
       const event = createMockEvent({
         url: 'https://www.nike.com/t/air-max-90-mens-shoes-6n8tKB/CN8490-100',
         extraParam: 'should-be-ignored',
       });
-      const result = extractProductIdsHandler(event);
+      const result = createUrlAnalysisHandler(event);
 
       expect(result.statusCode).toBe(200);
     });
@@ -258,7 +258,7 @@ describe('Extract Product IDs Handler', () => {
         url: 'https://www.nike.com/t/air-max-90-mens-shoes-6n8tKB/CN8490-100',
       });
 
-      extractProductIdsHandler(event);
+      createUrlAnalysisHandler(event);
 
       // Should have logged debug and info messages
       expect(consoleLogSpy.mock.calls.length).toBeGreaterThanOrEqual(2);
@@ -266,7 +266,7 @@ describe('Extract Product IDs Handler', () => {
       // Check that logs contain expected namespace
       const logs = consoleLogSpy.mock.calls.map((call) => JSON.parse(call[0] as string));
       const hasExpectedNamespace = logs.some(
-        (log) => log.context?.namespace === 'product-service.extract-product-ids',
+        (log) => log.context?.namespace === 'product-service.create-url-analysis',
       );
       expect(hasExpectedNamespace).toBe(true);
     });
@@ -275,7 +275,7 @@ describe('Extract Product IDs Handler', () => {
       const consoleWarnSpy = vi.spyOn(console, 'warn');
       const event = createMockEvent({ url: 'invalid-url' });
 
-      extractProductIdsHandler(event);
+      createUrlAnalysisHandler(event);
 
       expect(consoleWarnSpy).toHaveBeenCalled();
       expect(consoleWarnSpy.mock.calls[0]).toBeDefined();
@@ -290,8 +290,8 @@ describe('Extract Product IDs Handler', () => {
       const event = createMockEvent({
         url: 'https://example.com',
       });
-      const result = extractProductIdsHandler(event);
-      const body = JSON.parse(result.body) as ExtractProductIdsResponse;
+      const result = createUrlAnalysisHandler(event);
+      const body = JSON.parse(result.body) as CreateUrlAnalysisResponse;
 
       expect(result.statusCode).toBe(200);
       expect(body.productIds).toEqual([]);
@@ -302,7 +302,7 @@ describe('Extract Product IDs Handler', () => {
       const event = createMockEvent({
         url: 'https://example.com/product?id=abc-123_def',
       });
-      const result = extractProductIdsHandler(event);
+      const result = createUrlAnalysisHandler(event);
 
       expect(result.statusCode).toBe(200);
     });
@@ -312,7 +312,7 @@ describe('Extract Product IDs Handler', () => {
       const event = createMockEvent({
         url: `https://example.com/${longPath}`,
       });
-      const result = extractProductIdsHandler(event);
+      const result = createUrlAnalysisHandler(event);
 
       expect(result.statusCode).toBe(200);
     });

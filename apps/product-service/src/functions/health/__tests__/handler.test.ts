@@ -1,7 +1,7 @@
 import type { APIGatewayProxyEvent } from 'aws-lambda';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { healthResponseSchema, type HealthResponse } from '../contracts';
+import { type HealthResponse, healthResponseSchema } from '../contracts';
 import { healthCheckHandler } from '../handler';
 
 describe('Health Check Handler', () => {
@@ -16,7 +16,9 @@ describe('Health Check Handler', () => {
     vi.restoreAllMocks();
   });
 
-  const createMockEvent = (overrides: Partial<APIGatewayProxyEvent> = {}): APIGatewayProxyEvent => ({
+  const createMockEvent = (
+    overrides: Partial<APIGatewayProxyEvent> = {},
+  ): APIGatewayProxyEvent => ({
     httpMethod: 'GET',
     path: '/health',
     headers: {},
@@ -163,7 +165,9 @@ describe('Health Check Handler', () => {
 
       const keys = Object.keys(body);
       expect(keys).toHaveLength(5);
-      expect(keys.sort()).toEqual(['environment', 'service', 'status', 'timestamp', 'version'].sort());
+      expect(keys.sort()).toEqual(
+        ['environment', 'service', 'status', 'timestamp', 'version'].sort(),
+      );
     });
   });
 

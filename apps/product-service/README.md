@@ -34,7 +34,7 @@ This will start the API at `http://localhost:3000` with warm containers for fast
 ### Available Endpoints
 
 - `GET /health` - Health check endpoint
-- `GET /extract-product-ids?url=<product-url>` - Extract product IDs from URLs
+- `GET /create-url-analysis?url=<product-url>` - Analyze URL from URLs
 
 ### Test Locally
 
@@ -44,8 +44,8 @@ Invoke a function locally with SAM:
 # Health check
 sam local invoke HealthFunction --event src/functions/health/event.json
 
-# Extract product IDs
-sam local invoke ExtractProductIdsFunction --event src/functions/extract-product-ids/event.json
+# Analyze URL
+sam local invoke CreateUrlAnalysisFunction --event src/functions/create-url-analysis/event.json
 ```
 
 ## Testing
@@ -110,7 +110,7 @@ Watch logs in real-time:
 
 ```bash
 pnpm logs -- -n HealthFunction
-pnpm logs -- -n ExtractProductIdsFunction
+pnpm logs -- -n CreateUrlAnalysisFunction
 ```
 
 ### Delete Stack
@@ -133,7 +133,7 @@ apps/product-service/
 │       │   ├── handler.ts               # Lambda handler
 │       │   ├── logger.ts                # Function logger
 │       │   └── __tests__/               # Test suite
-│       └── extract-product-ids/         # Product ID extraction
+│       └── create-url-analysis/         # Product ID extraction
 │           ├── contracts.ts             # API schemas & types
 │           ├── event.json               # Test event
 │           ├── handler.ts               # Lambda handler
@@ -190,7 +190,7 @@ Each function is self-contained with all its dependencies in one folder.
    ```javascript
    entryPoints: {
      health: 'src/functions/health/handler.ts',
-     'extract-product-ids': 'src/functions/extract-product-ids/handler.ts',
+     'create-url-analysis': 'src/functions/create-url-analysis/handler.ts',
      'my-function': 'src/functions/myFunction/handler.ts', // Add this
    }
    ```
@@ -244,7 +244,7 @@ Globals:
 This service depends on the following workspace packages:
 
 - `@rr/url-parser` - URL parsing and normalization
-- `@rr/product-id-extractor` - Extract product IDs from URLs
+- `@rr/product-id-extractor` - Analyze URL from URLs
 - `@rr/store-registry` - Store configuration and patterns
 - `@rr/schema-parser` - Product schema validation
 - `@rr/shared` - Shared utilities (logger, types)

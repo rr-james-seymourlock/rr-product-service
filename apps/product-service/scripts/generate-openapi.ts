@@ -10,10 +10,10 @@ import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import {
+  createUrlAnalysisRequestSchema,
+  createUrlAnalysisResponseSchema,
   errorResponseSchema,
-  extractProductIdsRequestSchema,
-  extractProductIdsResponseSchema,
-} from '../src/functions/extract-product-ids/contracts';
+} from '../src/functions/create-url-analysis/contracts';
 import { healthResponseSchema } from '../src/functions/health/contracts';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -73,34 +73,26 @@ const document = createDocument({
         },
       },
     },
-    '/extract-product-ids': {
-      get: {
-        summary: 'Extract Product IDs',
+    '/url-analysis': {
+      post: {
+        summary: 'Analyze URL',
         description:
-          'Extract product IDs from a given product URL. Supports URLs from various e-commerce stores. Returns extracted product identifiers found in the URL path, query parameters, or fragments.',
+          'Analyzes a product URL and extracts product identifiers. Supports URLs from various e-commerce stores. Returns extracted product identifiers found in the URL path, query parameters, or fragments.',
         tags: ['Product Extraction'],
-        parameters: [
-          {
-            in: 'query',
-            name: 'url',
-            required: true,
-            schema: extractProductIdsRequestSchema.shape.url,
-            description: 'Product URL to extract IDs from',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: createUrlAnalysisRequestSchema,
+            },
           },
-          {
-            in: 'query',
-            name: 'storeId',
-            required: false,
-            schema: extractProductIdsRequestSchema.shape.storeId,
-            description: 'Optional store ID for specific extraction patterns',
-          },
-        ],
+        },
         responses: {
           '200': {
             description: 'Successfully extracted product IDs',
             content: {
               'application/json': {
-                schema: extractProductIdsResponseSchema,
+                schema: createUrlAnalysisResponseSchema,
               },
             },
           },

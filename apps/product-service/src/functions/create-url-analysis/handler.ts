@@ -1,37 +1,40 @@
 import middy from '@middy/core';
 import httpErrorHandler from '@middy/http-error-handler';
-import { extractIdsFromUrlComponents } from '@rr/product-id-extractor';
-import { parseUrlComponents } from '@rr/url-parser';
+import httpJsonBodyParser from '@middy/http-json-body-parser';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { ZodError } from 'zod';
 
+import { extractIdsFromUrlComponents } from '@rr/product-id-extractor';
+import { parseUrlComponents } from '@rr/url-parser';
+
 import {
-  extractProductIdsRequestSchema,
-  extractProductIdsResponseSchema,
+  type CreateUrlAnalysisResponse,
   type ErrorResponse,
-  type ExtractProductIdsResponse,
+  createUrlAnalysisRequestSchema,
+  createUrlAnalysisResponseSchema,
 } from './contracts';
 import { logger } from './logger';
 
 /**
- * Extract product IDs handler
+ * Create URL analysis handler
  *
- * Accepts a URL (and optional storeId) as query parameters, parses the URL,
+ * Accepts a URL (and optional storeId) in the request body, parses the URL,
  * extracts product IDs, and returns them in the response.
  *
- * Query Parameters:
- * - url (required): The product URL to extract IDs from
- * - storeId (optional): Store ID to use for extraction patterns
+ * Request Body:
+ * - url (required): The product URL to analyze and extract IDs from
+ * - storeId (optional): Store ID to use for specific extraction patterns
  *
- * @param event - API Gateway event with query parameters
+ * @param event - API Gateway event with JSON body
  * @returns API Gateway response with extracted product IDs or error
  */
-export const extractProductIdsHandler = (event: APIGatewayProxyEvent): APIGatewayProxyResult => {
+export const createUrlAnalysisHandler = (event: APIGatewayProxyEvent): APIGatewayProxyResult => {
   try {
-    logger.debug({ path: event.path, queryStringParameters: event.queryStringParameters }, 'Extract product IDs requested');
+    logger.debug({ path: event.path, body: event.body }, 'URL analysis requested');
 
-    // Validate query parameters
-    const { url, storeId } = extractProductIdsRequestSchema.parse(event.queryStringParameters);
+    // Parse and validate request body
+    const requestBody = typeof event.body === 'string' ? JSON.parse(event.body) : event.body;
+    const { url, storeId } = createUrlAnalysisRequestSchema.parse(requestBody);
 
     logger.info({ url, storeId }, 'Parsing URL and extracting product IDs');
 
@@ -61,13 +64,13 @@ export const extractProductIdsHandler = (event: APIGatewayProxyEvent): APIGatewa
     );
 
     // Build and validate response
-    const response: ExtractProductIdsResponse = {
+    const response: CreateUrlAnalysisResponse = {
       url,
       productIds,
       count: productIds.length,
     };
 
-    const validatedResponse = extractProductIdsResponseSchema.parse(response);
+    const validatedResponse = createUrlAnalysisResponseSchema.parse(response);
 
     return {
       statusCode: 200,
@@ -82,7 +85,7 @@ export const extractProductIdsHandler = (event: APIGatewayProxyEvent): APIGatewa
       logger.warn(
         {
           errors: error.issues,
-          queryStringParameters: event.queryStringParameters,
+          body: event.body,
         },
         'Validation error',
       );
@@ -107,9 +110,9 @@ export const extractProductIdsHandler = (event: APIGatewayProxyEvent): APIGatewa
       {
         error: error instanceof Error ? error.message : String(error),
         stack: error instanceof Error ? error.stack : undefined,
-        queryStringParameters: event.queryStringParameters,
+        body: event.body,
       },
-      'Failed to extract product IDs',
+      'Failed to analyze URL',
     );
 
     const errorResponse: ErrorResponse = {
@@ -128,4 +131,6 @@ export const extractProductIdsHandler = (event: APIGatewayProxyEvent): APIGatewa
   }
 };
 
-export const handler = middy(extractProductIdsHandler).use(httpErrorHandler());
+export const handler = middy(createUrlAnalysisHandler)
+  .use(httpJsonBodyParser())
+  .use(httpErrorHandler());
