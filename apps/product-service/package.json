@@ -17,7 +17,9 @@
     "lint": "eslint .",
     "format": "prettier --check \"**/*.{ts,tsx}\"",
     "test": "vitest run",
-    "clean": "rm -rf .turbo dist .aws-sam"
+    "clean": "rm -rf .turbo dist .aws-sam",
+    "openapi:generate": "tsx scripts/generate-openapi.ts",
+    "docs:generate": "pnpm run openapi:generate"
   },
   "dependencies": {
     "@middy/core": "^6.3.0",
@@ -31,12 +33,14 @@
     "zod": "catalog:"
   },
   "devDependencies": {
+    "@asteasolutions/zod-to-openapi": "^8.1.0",
     "@rr/eslint-config": "workspace:*",
     "@rr/prettier-config": "workspace:*",
     "@rr/tsconfig": "workspace:*",
     "@types/aws-lambda": "catalog:",
     "@types/node": "catalog:",
     "esbuild": "^0.24.2",
+    "tsx": "^4.20.6",
     "typescript": "catalog:",
     "vitest": "catalog:"
   },

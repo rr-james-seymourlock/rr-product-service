@@ -1,9 +1,12 @@
 import type { APIGatewayProxyEvent } from 'aws-lambda';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import {
+  extractProductIdsResponseSchema,
+  type ErrorResponse,
+  type ExtractProductIdsResponse,
+} from '../../../contracts/extract-product-ids';
 import { extractProductIdsHandler } from '../handler';
-import { extractProductIdsResponseSchema } from '../schema';
-import type { ErrorResponse, ExtractProductIdsResponse } from '../types';
 
 describe('Extract Product IDs Handler', () => {
   let originalEnv: NodeJS.ProcessEnv;

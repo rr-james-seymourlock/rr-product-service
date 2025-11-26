@@ -1,9 +1,8 @@
 import type { APIGatewayProxyEvent } from 'aws-lambda';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { healthResponseSchema, type HealthResponse } from '../../../contracts/health';
 import { healthCheckHandler } from '../handler';
-import { healthResponseSchema } from '../schema';
-import type { HealthResponse } from '../types';
 
 describe('Health Check Handler', () => {
   let originalEnv: NodeJS.ProcessEnv;

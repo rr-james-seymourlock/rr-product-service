@@ -5,9 +5,13 @@ import { parseUrlComponents } from '@rr/url-parser';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { ZodError } from 'zod';
 
+import {
+  extractProductIdsRequestSchema,
+  extractProductIdsResponseSchema,
+  type ErrorResponse,
+  type ExtractProductIdsResponse,
+} from '../../contracts/extract-product-ids';
 import { logger } from './logger';
-import { extractProductIdsRequestSchema, extractProductIdsResponseSchema } from './schema';
-import type { ErrorResponse, ExtractProductIdsResponse } from './types';
 
 /**
  * Extract product IDs handler

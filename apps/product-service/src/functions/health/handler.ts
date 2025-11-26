@@ -2,9 +2,8 @@ import middy from '@middy/core';
 import httpErrorHandler from '@middy/http-error-handler';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 
+import { healthResponseSchema, type HealthResponse } from '../../contracts/health';
 import { logger } from './logger';
-import { healthResponseSchema } from './schema';
-import type { HealthResponse } from './types';
 
 /**
  * Health check handler
