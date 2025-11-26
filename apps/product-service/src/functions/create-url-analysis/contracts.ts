@@ -73,7 +73,7 @@ export const createUrlAnalysisRequestSchema = z
       .optional()
       .openapi({
         description:
-          'Optional store identifier for specific extraction patterns. Can be either a store ID (e.g., "9528") or domain (e.g., "nike.com")',
+          'Optional store identifier for specific extraction patterns. If not provided, domain is extracted from URL automatically. Recommended: Pass internal Rakuten store ID (e.g., "9528") for best performance. Also accepts domain format (e.g., "nike.com")',
         example: '9528',
       }),
   })
