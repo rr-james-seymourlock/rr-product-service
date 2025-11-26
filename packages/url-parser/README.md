@@ -2,9 +2,65 @@
 
 A robust URL parsing and normalization library that processes e-commerce URLs into standardized components for consistent product identification and data storage.
 
-## Purpose
+## Overview
 
-Normalizes and parses URLs into structured components, removing tracking parameters, standardizing protocols, and extracting domain information. Generates unique keys for caching and database storage.
+### What it does
+
+The URL parser is the entry point of the product analysis pipeline. It takes raw e-commerce URLs (often cluttered with tracking parameters and inconsistent formatting) and transforms them into clean, standardized components that can be reliably processed downstream. It extracts the domain, pathname, query parameters, and generates unique identifiers for caching and deduplication.
+
+### Why it exists
+
+E-commerce URLs in the wild are messy and inconsistent:
+
+- **Tracking pollution**: URLs contain 50+ types of tracking parameters (UTM, Facebook, Google, affiliate codes)
+- **Protocol variance**: HTTP vs HTTPS for the same product
+- **Domain formatting**: `www.nike.com` vs `nike.com` vs `NIKE.COM`
+- **Query parameter order**: `?b=2&a=1` vs `?a=1&b=2` for the same URL
+- **Trailing slashes**: `/product` vs `/product/`
+- **URL fragments**: `#reviews` appended to product URLs
+
+Without normalization, the same product would generate different keys and IDs, causing:
+- Cache misses for identical products
+- Duplicate database entries
+- Skewed analytics
+- Failed pattern matching in ID extraction
+
+This package solves these problems by:
+- **Removing tracking parameters** while preserving product-identifying parameters
+- **Standardizing format** (HTTPS, lowercase, sorted query params)
+- **Extracting clean domains** with multi-part TLD support (`.co.uk`, `.com.au`)
+- **Generating deterministic keys** for Redis/DynamoDB storage
+- **Preserving brand subdomains** (Gap Inc. stores with `.gap.com` structure)
+
+### Where it's used
+
+The URL parser is the first stage of every product analysis request:
+
+```
+Raw URL → parseUrlComponents → extractIdsFromUrlComponents → Response
+           (@rr/url-parser)      (@rr/product-id-extractor)
+                  ↓
+          Clean, normalized components
+          + unique cache key
+          + domain for store lookup
+```
+
+It's called by:
+- `POST /url-analysis` - Every single URL request starts here
+- `POST /url-analysis/batch` - Batch processing normalizes all URLs first
+- `@rr/product-id-extractor` - Consumes the normalized components for pattern matching
+
+### When to use it
+
+Use this package when you need to:
+- Parse and normalize e-commerce URLs before processing
+- Extract domain names for store identification
+- Generate unique, consistent keys for caching (Redis, DynamoDB)
+- Remove tracking parameters while preserving product identifiers
+- Deduplicate product URLs across different formats
+- Validate that URLs are safe (HTTP/HTTPS only, public addresses)
+
+**Internal package**: This library is part of the rr-product-service monorepo and not published to npm.
 
 ## Features
 
