@@ -1,0 +1,11 @@
+{
+  "httpMethod": "POST",
+  "path": "/url-analysis",
+  "headers": {
+    "Content-Type": "application/json"
+  },
+  "queryStringParameters": null,
+  "pathParameters": null,
+  "body": "{\"url\":\"https://www.nike.com/t/air-max-90-mens-shoes-6n8tKB/CN8490-100\"}",
+  "isBase64Encoded": false
+}

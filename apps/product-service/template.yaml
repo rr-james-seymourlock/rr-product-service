@@ -15,30 +15,84 @@ Globals:
         LOG_LEVEL: info
 
 Resources:
-  PostProductFunction:
+  HealthFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: dist/
-      Handler: handler.handler
+      Handler: health.handler
       Events:
-        PostProduct:
+        Health:
           Type: Api
           Properties:
-            Path: /product
+            Path: /health
+            Method: get
+      Tags:
+        Service: product-service
+        Environment: production
+
+  CreateUrlAnalysisFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: dist/
+      Handler: create-url-analysis.handler
+      Events:
+        CreateUrlAnalysis:
+          Type: Api
+          Properties:
+            Path: /url-analysis
+            Method: post
+      Tags:
+        Service: product-service
+        Environment: production
+
+  CreateBatchUrlAnalysisFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: dist/
+      Handler: create-batch-url-analysis.handler
+      Events:
+        CreateBatchUrlAnalysis:
+          Type: Api
+          Properties:
+            Path: /url-analysis/batch
             Method: post
       Tags:
         Service: product-service
         Environment: production
 
 Outputs:
-  PostProductApi:
-    Description: API Gateway endpoint URL for PostProduct function
-    Value: !Sub 'https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/product/'
+  HealthApi:
+    Description: API Gateway endpoint URL for Health function
+    Value: !Sub 'https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/health/'
 
-  PostProductFunction:
-    Description: PostProduct Lambda Function ARN
-    Value: !GetAtt PostProductFunction.Arn
+  HealthFunction:
+    Description: Health Lambda Function ARN
+    Value: !GetAtt HealthFunction.Arn
 
-  PostProductFunctionIamRole:
-    Description: IAM Role created for PostProduct function
-    Value: !GetAtt PostProductFunctionRole.Arn
+  HealthFunctionIamRole:
+    Description: IAM Role created for Health function
+    Value: !GetAtt HealthFunctionRole.Arn
+
+  CreateUrlAnalysisApi:
+    Description: API Gateway endpoint URL for CreateUrlAnalysis function
+    Value: !Sub 'https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/url-analysis/'
+
+  CreateUrlAnalysisFunction:
+    Description: CreateUrlAnalysis Lambda Function ARN
+    Value: !GetAtt CreateUrlAnalysisFunction.Arn
+
+  CreateUrlAnalysisFunctionIamRole:
+    Description: IAM Role created for CreateUrlAnalysis function
+    Value: !GetAtt CreateUrlAnalysisFunctionRole.Arn
+
+  CreateBatchUrlAnalysisApi:
+    Description: API Gateway endpoint URL for CreateBatchUrlAnalysis function
+    Value: !Sub 'https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/url-analysis/batch/'
+
+  CreateBatchUrlAnalysisFunction:
+    Description: CreateBatchUrlAnalysis Lambda Function ARN
+    Value: !GetAtt CreateBatchUrlAnalysisFunction.Arn
+
+  CreateBatchUrlAnalysisFunctionIamRole:
+    Description: IAM Role created for CreateBatchUrlAnalysis function
+    Value: !GetAtt CreateBatchUrlAnalysisFunctionRole.Arn
