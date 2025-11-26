@@ -73,6 +73,11 @@ registry.registerPath({
       content: {
         'application/json': {
           schema: errorResponseSchema,
+          example: {
+            error: 'ValidationError',
+            message: 'url: Invalid URL format',
+            statusCode: 400,
+          },
         },
       },
     },
@@ -81,6 +86,11 @@ registry.registerPath({
       content: {
         'application/json': {
           schema: errorResponseSchema,
+          example: {
+            error: 'InternalServerError',
+            message: 'An unexpected error occurred',
+            statusCode: 500,
+          },
         },
       },
     },

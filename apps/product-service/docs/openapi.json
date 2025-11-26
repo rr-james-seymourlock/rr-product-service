@@ -227,6 +227,11 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": "ValidationError",
+                  "message": "url: Invalid URL format",
+                  "statusCode": 400
                 }
               }
             }
@@ -237,6 +242,11 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": "InternalServerError",
+                  "message": "An unexpected error occurred",
+                  "statusCode": 500
                 }
               }
             }
