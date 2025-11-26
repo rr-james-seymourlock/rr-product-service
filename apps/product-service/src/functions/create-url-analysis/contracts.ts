@@ -72,8 +72,9 @@ export const createUrlAnalysisRequestSchema = z
       .max(100, 'Store ID is too long')
       .optional()
       .openapi({
-        description: 'Optional store ID to use specific extraction patterns',
-        example: '12345',
+        description:
+          'Optional store identifier for specific extraction patterns. If not provided, domain is extracted from URL automatically. Recommended: Pass internal Rakuten store ID (e.g., "9528") for best performance. Also accepts domain format (e.g., "nike.com")',
+        example: '9528',
       }),
   })
   .openapi('CreateUrlAnalysisRequest');

@@ -223,9 +223,11 @@ Analyze a single product URL and extract product identifiers.
 ```json
 {
   "url": "https://www.nike.com/t/air-max-270/AH8050-001",
-  "storeId": "nike.com" // optional
+  "storeId": "9528" // optional - internal Rakuten store ID (recommended) or domain
 }
 ```
+
+**Note:** The `storeId` parameter is optional. If not provided, the domain is automatically extracted from the URL. When available, pass the internal Rakuten store ID (e.g., `"9528"` for Nike) for best performance. Domain format (e.g., `"nike.com"`) is also supported.
 
 **Response:**
 
@@ -247,10 +249,12 @@ Analyze multiple URLs in parallel (1-100 URLs per request).
 {
   "urls": [
     { "url": "https://www.target.com/p/product/-/A-12345678" },
-    { "url": "https://www.nike.com/t/air-max/CN8490-100", "storeId": "nike.com" }
+    { "url": "https://www.nike.com/t/air-max/CN8490-100", "storeId": "9528" }
   ]
 }
 ```
+
+**Note:** Each URL can optionally include a `storeId`. When available, provide the internal Rakuten store ID for best performance. Domain format is also supported. If omitted, the domain is extracted from the URL automatically.
 
 **Response:**
 
