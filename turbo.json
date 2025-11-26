@@ -33,6 +33,15 @@
     },
     "clean": {
       "cache": false
+    },
+    "docs:generate": {
+      "dependsOn": ["^topo"],
+      "outputs": ["docs/**"],
+      "inputs": ["src/**/*.ts", "scripts/generate-openapi.ts"]
+    },
+    "docs:serve": {
+      "persistent": true,
+      "cache": false
     }
   }
 }

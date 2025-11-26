@@ -23,6 +23,8 @@
     "check": "pnpm lint && pnpm typecheck && pnpm test",
     "clean": "turbo clean",
     "clean:workspaces": "git clean -xdf node_modules",
+    "docs:generate": "turbo docs:generate",
+    "docs:serve": "turbo docs:serve",
     "syncpack:list": "pnpm dlx syncpack list-mismatches",
     "syncpack:fix": "pnpm dlx syncpack fix-mismatches",
     "prepare": "husky",
