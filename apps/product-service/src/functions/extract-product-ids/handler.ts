@@ -10,7 +10,7 @@ import {
   extractProductIdsResponseSchema,
   type ErrorResponse,
   type ExtractProductIdsResponse,
-} from '../../contracts/extract-product-ids';
+} from './contracts';
 import { logger } from './logger';
 
 /**

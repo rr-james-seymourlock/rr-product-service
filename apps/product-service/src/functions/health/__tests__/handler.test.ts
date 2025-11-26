@@ -1,7 +1,7 @@
 import type { APIGatewayProxyEvent } from 'aws-lambda';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { healthResponseSchema, type HealthResponse } from '../../../contracts/health';
+import { healthResponseSchema, type HealthResponse } from '../contracts';
 import { healthCheckHandler } from '../handler';
 
 describe('Health Check Handler', () => {

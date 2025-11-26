@@ -13,8 +13,8 @@ import {
   errorResponseSchema,
   extractProductIdsRequestSchema,
   extractProductIdsResponseSchema,
-} from '../src/contracts/extract-product-ids';
-import { healthResponseSchema } from '../src/contracts/health';
+} from '../src/functions/extract-product-ids/contracts';
+import { healthResponseSchema } from '../src/functions/health/contracts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
