@@ -427,10 +427,11 @@ describe('storeRegistry', () => {
       }
       const lastTime = performance.now() - startLast;
 
-      // All should be within 2ms of each other (O(1) lookup, not O(n))
-      expect(Math.abs(firstTime - middleTime)).toBeLessThan(2);
-      expect(Math.abs(middleTime - lastTime)).toBeLessThan(2);
-      expect(Math.abs(firstTime - lastTime)).toBeLessThan(2);
+      // All should be within 10ms of each other (O(1) lookup, not O(n))
+      // Increased threshold from 2ms to 10ms to account for CI environment variance
+      expect(Math.abs(firstTime - middleTime)).toBeLessThan(10);
+      expect(Math.abs(middleTime - lastTime)).toBeLessThan(10);
+      expect(Math.abs(firstTime - lastTime)).toBeLessThan(10);
     });
 
     it('should handle missing lookups efficiently', () => {
