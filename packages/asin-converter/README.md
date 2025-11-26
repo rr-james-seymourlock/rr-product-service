@@ -90,7 +90,7 @@ import { convertAsins } from '@rr/asin-converter';
 import { convertAsins } from '@rr/asin-converter';
 
 const config = {
-  host: process.env.SYNCCENTRIC_HOST!,
+  host: process.env.SYNCCENTRIC_HOST!, // 'https://app.synccentric.com/api/v3/products'
   authKey: process.env.SYNCCENTRIC_AUTH_KEY!,
   timeout: 10000, // Optional, defaults to 10 seconds
 };
@@ -178,7 +178,7 @@ Converts ASIN identifiers to product IDs (UPC, SKU, MPN) using the Synccentric A
 
 ```typescript
 const config = {
-  host: 'https://api.synccentric.com',
+  host: 'https://app.synccentric.com/api/v3/products',
   authKey: process.env.SYNCCENTRIC_AUTH_KEY!,
   timeout: 10000,
 };
@@ -192,12 +192,12 @@ const productIds = await convertAsins(['B08N5WRWNW'], config);
 ### Environment Variables
 
 **Required:**
-- `SYNCCENTRIC_HOST` - Synccentric API base URL (e.g., 'https://api.synccentric.com')
+- `SYNCCENTRIC_HOST` - Synccentric API base URL
 - `SYNCCENTRIC_AUTH_KEY` - Authentication key for Synccentric API
 
 **Example .env:**
 ```bash
-SYNCCENTRIC_HOST=https://api.synccentric.com
+SYNCCENTRIC_HOST=https://app.synccentric.com/api/v3/products
 SYNCCENTRIC_AUTH_KEY=your-api-key-here
 ```
 
