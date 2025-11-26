@@ -2,6 +2,50 @@
 
 Extract product IDs from URL components using configurable regex patterns with store-specific customization.
 
+## Overview
+
+### What it does
+
+The product ID extractor is the core intelligence that identifies product identifiers (IDs, SKUs) from e-commerce URLs across Rakuten's merchant network. It analyzes URL components (pathname, query parameters) and applies configurable regex patterns to extract the unique identifiers that represent products.
+
+### Why it exists
+
+Different e-commerce retailers structure their URLs in vastly different ways:
+
+- **Target**: `https://www.target.com/p/product-name/-/A-12345678` (ID in pathname)
+- **Nike**: `https://www.nike.com/t/air-max/AH8050-001` (SKU at end)
+- **Best Buy**: `https://www.bestbuy.com/site/product/6535717.p?skuId=6535717` (ID in both path and query)
+- **Generic stores**: May use query parameters like `?pid=`, `?sku=`, or `?productId=`
+
+Instead of maintaining separate extraction logic for each of 4,000+ merchants, this package provides a unified, configurable system that handles:
+- **Store-specific patterns** for known retailers
+- **Generic fallback patterns** for unknown stores
+- **Safe regex execution** to prevent ReDoS attacks
+- **Performance optimization** for high-volume Lambda processing
+
+### Where it's used
+
+This package is the heart of the product service's URL analysis pipeline:
+
+```
+User Request → parseUrlComponents → extractIdsFromUrlComponents → Response
+                (@rr/url-parser)      (@rr/product-id-extractor)
+```
+
+It's called by:
+- `POST /url-analysis` - Single URL analysis endpoint
+- `POST /url-analysis/batch` - Batch URL analysis endpoint (1-100 URLs)
+
+### When to use it
+
+Use this package when you need to:
+- Extract product identifiers from any e-commerce URL
+- Support multiple retailers with different URL patterns
+- Ensure safe, performant regex execution at scale
+- Normalize and deduplicate extracted IDs
+
+**Internal package**: This library is part of the rr-product-service monorepo and not published to npm.
+
 ## Features
 
 - **Multi-pattern extraction**: Supports both pathname and query parameter patterns

@@ -2,6 +2,56 @@
 
 Store configuration management system that handles store identification, domain mapping, and URL pattern matching for multi-store environments.
 
+## Overview
+
+### What it does
+
+The store registry is a high-performance configuration management system that maintains a centralized directory of e-commerce store information. It provides instant lookups to find store configurations by either store ID or domain name, returning the patterns and rules needed to extract product identifiers from that store's URLs.
+
+### Why it exists
+
+With Rakuten operating an affiliate network of 4,000+ merchant stores, the product service needs to:
+
+1. **Identify stores from URLs** - Given `nike.com`, quickly determine this is store ID `9528`
+2. **Retrieve extraction patterns** - Get Nike-specific regex patterns for finding product IDs in their URL structure
+3. **Handle aliases** - Map international domains (`nike.co.uk`, `nike.ca`) to the same parent configuration
+4. **Support transformations** - Apply store-specific ID normalization (e.g., lowercase, prefix removal)
+5. **Scale efficiently** - Handle 1000+ requests per second with minimal overhead
+
+Instead of hardcoding store logic in multiple places, this package provides a single source of truth with:
+- **O(1) constant-time lookups** regardless of store count (80 stores or 2000 stores)
+- **Pre-compiled regex patterns** to eliminate runtime compilation overhead
+- **Immutable data structures** to prevent accidental modifications
+- **Type-safe configurations** validated at compile-time by TypeScript
+
+### Where it's used
+
+The store registry sits at the core of the URL analysis pipeline:
+
+```
+URL Input → parseUrlComponents → getStoreConfig → extractIdsFromUrlComponents → Product IDs
+              (@rr/url-parser)    (@rr/store-registry)  (@rr/product-id-extractor)
+                                          ↓
+                                   Provides store-specific
+                                   patterns and rules
+```
+
+It's called by:
+- `@rr/product-id-extractor` - To get store-specific extraction patterns
+- `POST /url-analysis` - Single URL endpoint needs store configuration
+- `POST /url-analysis/batch` - Batch endpoint needs configurations for multiple stores
+
+### When to use it
+
+Use this package when you need to:
+- Look up store configuration by store ID or domain name
+- Retrieve store-specific regex patterns for product ID extraction
+- Validate whether a domain belongs to a known store
+- Access pre-compiled patterns without runtime overhead
+- Map international domains to their parent store
+
+**Internal package**: This library is part of the rr-product-service monorepo and not published to npm.
+
 ## Features
 
 - **Fast O(1) lookups**: Map-based storage for constant-time retrieval
