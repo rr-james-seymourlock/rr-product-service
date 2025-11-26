@@ -51,7 +51,10 @@ export async function convertAsins(
   // Validate input
   const validationResult = ConvertAsinsInputSchema.safeParse(asins);
   if (!validationResult.success) {
-    logger.warn({ asins, errors: validationResult.error.issues }, 'Invalid input for ASIN conversion');
+    logger.warn(
+      { asins, errors: validationResult.error.issues },
+      'Invalid input for ASIN conversion',
+    );
     throw new InvalidInputError(`Invalid ASINs provided: ${validationResult.error.message}`);
   }
 
@@ -157,30 +160,34 @@ export async function convertAsins(
     // Extract product IDs from response
     if (!synccentricResponse.data || synccentricResponse.data.length === 0) {
       logger.info({ asins }, 'No product data in Synccentric response');
-      return [];
+      return {};
     }
 
     const firstProduct = synccentricResponse.data[0];
     if (!firstProduct) {
       logger.info({ asins }, 'No product in data array');
-      return [];
+      return {};
     }
 
     const { upc, sku, mpn } = firstProduct.attributes;
 
-    // Filter out empty values and return
-    const productIds = [upc, sku, mpn].filter((id): id is string => Boolean(id));
+    // Return structured identifiers
+    const identifiers = {
+      ...(upc && { upc }),
+      ...(sku && { sku }),
+      ...(mpn && { mpn }),
+    };
 
     logger.info(
       {
         asins,
-        productIds,
-        count: productIds.length,
+        identifiers,
+        count: Object.keys(identifiers).length,
       },
       'Successfully converted ASINs to product IDs',
     );
 
-    return productIds;
+    return identifiers;
   } catch (error) {
     // Re-throw known errors
     if (

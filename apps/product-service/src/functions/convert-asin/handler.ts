@@ -14,6 +14,7 @@ import {
 } from '@rr/asin-converter';
 
 import {
+  type ConversionResult,
   type ConvertAsinResponse,
   type ErrorResponse,
   convertAsinRequestSchema,
@@ -22,16 +23,75 @@ import {
 import { logger } from './logger';
 
 /**
+ * Process a single ASIN conversion with error handling
+ *
+ * @param asin - ASIN to convert
+ * @param config - Synccentric API configuration
+ * @returns ConversionResult with success or failure
+ */
+async function processAsin(
+  asin: string,
+  config: { host: string; authKey: string; timeout: number },
+): Promise<ConversionResult> {
+  try {
+    const identifiers = await convertAsins([asin], config);
+
+    return {
+      asin,
+      identifiers,
+      success: true,
+    };
+  } catch (error) {
+    // Handle known ASIN converter errors
+    if (error instanceof ProductNotFoundError) {
+      return {
+        asin,
+        error: 'ProductNotFoundError',
+        message: `Product not found for ASIN: ${asin}`,
+        success: false,
+      };
+    }
+
+    if (error instanceof InvalidInputError) {
+      return {
+        asin,
+        error: 'InvalidInputError',
+        message: error.message,
+        success: false,
+      };
+    }
+
+    if (error instanceof ApiRequestError || error instanceof ApiResponseError) {
+      return {
+        asin,
+        error: error.name,
+        message: error.message,
+        success: false,
+      };
+    }
+
+    // Handle unexpected errors
+    return {
+      asin,
+      error: error instanceof Error ? error.name : 'UnknownError',
+      message: error instanceof Error ? error.message : 'An unexpected error occurred',
+      success: false,
+    };
+  }
+}
+
+/**
  * Convert ASIN handler
  *
  * Accepts an array of ASINs in the request body and converts them to
- * GTINs (UPC, SKU, MPN) using the Synccentric API via @rr/asin-converter.
+ * product identifiers (UPC, SKU, MPN) using the Synccentric API via @rr/asin-converter.
+ * Each ASIN is processed independently with per-item error handling.
  *
  * Request Body:
  * - asins (required): Array of Amazon ASINs to convert (1-10 ASINs)
  *
  * @param event - API Gateway event with JSON body
- * @returns API Gateway response with converted GTINs or error
+ * @returns API Gateway response with per-item conversion results
  */
 export const convertAsinHandler = async (
   event: APIGatewayProxyEvent,
@@ -43,7 +103,7 @@ export const convertAsinHandler = async (
     const requestBody = typeof event.body === 'string' ? JSON.parse(event.body) : event.body;
     const { asins } = convertAsinRequestSchema.parse(requestBody);
 
-    logger.info({ asins, count: asins.length }, 'Converting ASINs to GTINs');
+    logger.info({ asins, count: asins.length }, 'Converting ASINs to product identifiers');
 
     // Validate required environment variables
     const synccentricHost = process.env.SYNCCENTRIC_HOST;
@@ -53,27 +113,36 @@ export const convertAsinHandler = async (
       throw new ConfigurationError('Missing required Synccentric API configuration');
     }
 
-    // Convert ASINs to GTINs
-    const gtins = await convertAsins(asins, {
-      host: synccentricHost,
-      authKey: synccentricAuthKey,
-      timeout: 10000,
-    });
+    // Process all ASINs in parallel
+    const results = await Promise.all(
+      asins.map((asin) =>
+        processAsin(asin, {
+          host: synccentricHost,
+          authKey: synccentricAuthKey,
+          timeout: 10000,
+        }),
+      ),
+    );
+
+    // Calculate summary statistics
+    const successful = results.filter((r) => r.success).length;
+    const failed = results.filter((r) => !r.success).length;
 
     logger.info(
       {
-        asins,
-        gtins,
-        count: gtins.length,
+        total: asins.length,
+        successful,
+        failed,
       },
-      'ASINs converted successfully',
+      'ASIN conversion completed',
     );
 
     // Build and validate response
     const response: ConvertAsinResponse = {
-      asins,
-      gtins,
-      count: gtins.length,
+      results,
+      total: asins.length,
+      successful,
+      failed,
     };
 
     const validatedResponse = convertAsinResponseSchema.parse(response);
@@ -111,59 +180,24 @@ export const convertAsinHandler = async (
       };
     }
 
-    // Handle product not found
-    if (error instanceof ProductNotFoundError) {
-      logger.info(
-        {
-          asins: error.asins,
-        },
-        'Product not found for ASINs',
-      );
-
-      const errorResponse: ErrorResponse = {
-        error: 'ProductNotFoundError',
-        message: error.message,
-        statusCode: 404,
-      };
-
-      return {
-        statusCode: 404,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(errorResponse),
-      };
-    }
-
-    // Handle ASIN converter errors
-    if (
-      error instanceof InvalidInputError ||
-      error instanceof ConfigurationError ||
-      error instanceof ApiRequestError ||
-      error instanceof ApiResponseError
-    ) {
+    // Handle configuration errors
+    if (error instanceof ConfigurationError) {
       logger.error(
         {
           error: error.message,
-          errorType: error.name,
           body: event.body,
         },
-        'ASIN conversion failed',
+        'Configuration error',
       );
 
       const errorResponse: ErrorResponse = {
         error: error.name,
         message: error.message,
-        statusCode:
-          error instanceof ConfigurationError
-            ? 500
-            : error instanceof ApiRequestError || error instanceof ApiResponseError
-              ? 502
-              : 400,
+        statusCode: 500,
       };
 
       return {
-        statusCode: errorResponse.statusCode,
+        statusCode: 500,
         headers: {
           'Content-Type': 'application/json',
         },

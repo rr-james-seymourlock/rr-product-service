@@ -12,6 +12,7 @@ export type {
   AsinConverterConfig,
   ConvertAsinsInput,
   ConvertAsinsOutput,
+  ProductIdentifiers,
   SynccentricError,
   SynccentricProductAttributes,
   SynccentricProductData,
@@ -21,6 +22,7 @@ export type {
 export {
   ConvertAsinsInputSchema,
   ConvertAsinsOutputSchema,
+  ProductIdentifiersSchema,
   SynccentricErrorSchema,
   SynccentricProductAttributesSchema,
   SynccentricProductDataSchema,

@@ -10,11 +10,6 @@ import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import {
-  errorResponseSchema as batchErrorResponseSchema,
-  createBatchUrlAnalysisRequestSchema,
-  createBatchUrlAnalysisResponseSchema,
-} from '../src/functions/create-batch-url-analysis/contracts';
-import {
   convertAsinRequestSchema,
   convertAsinResponseSchema,
 } from '../src/functions/convert-asin/contracts';
@@ -54,9 +49,9 @@ registry.registerPath({
 registry.registerPath({
   method: 'post',
   path: '/url-analysis',
-  summary: 'Analyze URL',
+  summary: 'Analyze URLs',
   description:
-    'Analyzes a product URL and extracts product identifiers. Supports URLs from various e-commerce stores. Returns extracted product identifiers found in the URL path, query parameters, or fragments.',
+    'Analyzes one or more product URLs and extracts product identifiers. Accepts 1-100 URLs per request. Handles partial failures gracefully - each URL is processed independently and results include success/failure status. Returns summary statistics along with individual results. Supports URLs from various e-commerce stores.',
   tags: ['Product Extraction'],
   request: {
     body: {
@@ -84,62 +79,6 @@ registry.registerPath({
           schema: errorResponseSchema,
           example: {
             error: 'ValidationError',
-            message: 'url: Invalid URL format',
-            statusCode: 400,
-          },
-        },
-      },
-    },
-    500: {
-      description: 'Internal server error',
-      content: {
-        'application/json': {
-          schema: errorResponseSchema,
-          example: {
-            error: 'InternalServerError',
-            message: 'An unexpected error occurred',
-            statusCode: 500,
-          },
-        },
-      },
-    },
-  },
-});
-
-// Register batch URL analysis endpoint
-registry.registerPath({
-  method: 'post',
-  path: '/url-analysis/batch',
-  summary: 'Analyze URLs in Batch',
-  description:
-    'Analyzes multiple product URLs in parallel and extracts product identifiers. Accepts 1-100 URLs per request. Handles partial failures gracefully - each URL is processed independently and results include success/failure status. Returns summary statistics along with individual results.',
-  tags: ['Product Extraction'],
-  request: {
-    body: {
-      required: true,
-      content: {
-        'application/json': {
-          schema: createBatchUrlAnalysisRequestSchema,
-        },
-      },
-    },
-  },
-  responses: {
-    200: {
-      description: 'Batch processing completed (may include partial failures)',
-      content: {
-        'application/json': {
-          schema: createBatchUrlAnalysisResponseSchema,
-        },
-      },
-    },
-    400: {
-      description: 'Invalid request parameters',
-      content: {
-        'application/json': {
-          schema: batchErrorResponseSchema,
-          example: {
-            error: 'ValidationError',
             message: 'urls: At least one URL is required',
             statusCode: 400,
           },
@@ -150,7 +89,7 @@ registry.registerPath({
       description: 'Internal server error',
       content: {
         'application/json': {
-          schema: batchErrorResponseSchema,
+          schema: errorResponseSchema,
           example: {
             error: 'InternalServerError',
             message: 'An unexpected error occurred',
@@ -166,9 +105,9 @@ registry.registerPath({
 registry.registerPath({
   method: 'post',
   path: '/convert-asin',
-  summary: 'Convert ASIN to GTIN',
+  summary: 'Convert ASIN to Product IDs',
   description:
-    'Converts Amazon Standard Identification Numbers (ASINs) to Global Trade Item Numbers (GTINs) including UPC, SKU, and MPN. Uses the Synccentric product database API. Accepts 1-10 ASINs per request and returns all available product identifiers.',
+    'Converts Amazon Standard Identification Numbers (ASINs) to product identifiers including UPC, SKU, and MPN. Uses the Synccentric product database API. Accepts 1-10 ASINs per request and returns all available product identifiers. Handles partial failures gracefully - each ASIN is processed independently and results include success/failure status.',
   tags: ['Product Extraction'],
   request: {
     body: {
@@ -182,7 +121,7 @@ registry.registerPath({
   },
   responses: {
     200: {
-      description: 'Successfully converted ASINs to GTINs',
+      description: 'Successfully converted ASINs to product identifiers',
       content: {
         'application/json': {
           schema: convertAsinResponseSchema,
@@ -198,19 +137,6 @@ registry.registerPath({
             error: 'ValidationError',
             message: 'asins: Array must contain at least 1 element(s)',
             statusCode: 400,
-          },
-        },
-      },
-    },
-    404: {
-      description: 'Product not found in Synccentric database',
-      content: {
-        'application/json': {
-          schema: errorResponseSchema,
-          example: {
-            error: 'ProductNotFoundError',
-            message: 'Product not found for ASINs: B0EXAMPLE',
-            statusCode: 404,
           },
         },
       },

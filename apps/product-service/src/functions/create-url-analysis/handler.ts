@@ -8,66 +8,97 @@ import { extractIdsFromUrlComponents } from '@rr/product-id-extractor';
 import { parseUrlComponents } from '@rr/url-parser';
 
 import {
+  type AnalysisResult,
   type CreateUrlAnalysisResponse,
   type ErrorResponse,
+  type UrlItem,
   createUrlAnalysisRequestSchema,
   createUrlAnalysisResponseSchema,
 } from './contracts';
 import { logger } from './logger';
 
 /**
- * Create URL analysis handler
+ * Process a single URL and return result (success or failure)
+ */
+async function processUrl(item: UrlItem): Promise<AnalysisResult> {
+  try {
+    const { url, storeId } = item;
+
+    // Parse URL components
+    const urlComponents = parseUrlComponents(url);
+
+    // Extract product IDs
+    const productIds = extractIdsFromUrlComponents({ urlComponents, storeId });
+
+    return {
+      url,
+      productIds,
+      count: productIds.length,
+      success: true,
+    };
+  } catch (error) {
+    // Return failure result instead of throwing
+    return {
+      url: item.url,
+      error: error instanceof Error ? error.name : 'UnknownError',
+      message: error instanceof Error ? error.message : 'An unexpected error occurred',
+      success: false,
+    };
+  }
+}
+
+/**
+ * URL analysis handler
  *
- * Accepts a URL (and optional storeId) in the request body, parses the URL,
- * extracts product IDs, and returns them in the response.
+ * Accepts an array of URLs (with optional storeIds) in the request body,
+ * processes them in parallel, and returns results for each URL.
+ * Handles partial failures gracefully - some URLs may succeed while others fail.
  *
  * Request Body:
- * - url (required): The product URL to analyze and extract IDs from
- * - storeId (optional): Store ID to use for specific extraction patterns
+ * - urls (required): Array of URL objects (1-100 items)
+ *   - url (required): The product URL to analyze
+ *   - storeId (optional): Store ID to use for specific extraction patterns
  *
  * @param event - API Gateway event with JSON body
- * @returns API Gateway response with extracted product IDs or error
+ * @returns API Gateway response with results
  */
-export const createUrlAnalysisHandler = (event: APIGatewayProxyEvent): APIGatewayProxyResult => {
+export const createUrlAnalysisHandler = async (
+  event: APIGatewayProxyEvent,
+): Promise<APIGatewayProxyResult> => {
   try {
     logger.debug({ path: event.path, body: event.body }, 'URL analysis requested');
 
     // Parse and validate request body
     const requestBody = typeof event.body === 'string' ? JSON.parse(event.body) : event.body;
-    const { url, storeId } = createUrlAnalysisRequestSchema.parse(requestBody);
+    const { urls } = createUrlAnalysisRequestSchema.parse(requestBody);
 
-    logger.info({ url, storeId }, 'Parsing URL and extracting product IDs');
+    logger.info({ count: urls.length }, 'Processing URL analysis');
 
-    // Parse URL components
-    const urlComponents = parseUrlComponents(url);
+    // Process all URLs in parallel
+    const startTime = Date.now();
+    const results = await Promise.all(urls.map(processUrl));
+    const durationMs = Date.now() - startTime;
 
-    logger.debug(
-      {
-        domain: urlComponents.domain,
-        pathname: urlComponents.pathname,
-        search: urlComponents.search,
-      },
-      'URL parsed successfully',
-    );
-
-    // Extract product IDs
-    const productIds = extractIdsFromUrlComponents({ urlComponents, storeId });
+    // Calculate summary statistics
+    const successful = results.filter((r) => r.success).length;
+    const failed = results.filter((r) => !r.success).length;
 
     logger.info(
       {
-        url,
-        domain: urlComponents.domain,
-        count: productIds.length,
-        storeId,
+        total: urls.length,
+        successful,
+        failed,
+        durationMs,
       },
-      'Product IDs extracted successfully',
+      'URL analysis completed',
     );
 
     // Build and validate response
     const response: CreateUrlAnalysisResponse = {
-      url,
-      productIds,
-      count: productIds.length,
+      results,
+      total: urls.length,
+      successful,
+      failed,
     };
 
     const validatedResponse = createUrlAnalysisResponseSchema.parse(response);

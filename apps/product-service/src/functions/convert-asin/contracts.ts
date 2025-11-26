@@ -27,34 +27,118 @@ export const convertAsinRequestSchema = z
       .min(1, 'At least one ASIN is required')
       .max(10, 'Maximum 10 ASINs allowed per request')
       .openapi({
-        description: 'Array of Amazon ASINs to convert to GTINs (UPC, SKU, MPN)',
+        description: 'Array of Amazon ASINs to convert to product identifiers (UPC, SKU, MPN)',
         example: ['B08N5WRWNW', 'B07ZPKN6YR'],
       }),
   })
   .openapi('ConvertAsinRequest');
 
 /**
- * Success response schema
+ * Success result for a single ASIN conversion
+ */
+const successResultSchema = z
+  .object({
+    asin: z.string().length(10).openapi({
+      description: 'The ASIN that was converted',
+      example: 'B08N5WRWNW',
+    }),
+    identifiers: z
+      .object({
+        upc: z.string().optional().openapi({
+          description: 'Universal Product Code',
+          example: '012345678905',
+        }),
+        sku: z.string().optional().openapi({
+          description: 'Stock Keeping Unit',
+          example: 'SKU-123',
+        }),
+        mpn: z.string().optional().openapi({
+          description: 'Manufacturer Part Number',
+          example: 'MPN-456',
+        }),
+      })
+      .openapi({
+        description: 'Structured product identifiers (UPC, SKU, MPN)',
+        example: {
+          upc: '012345678905',
+          sku: 'SKU-123',
+          mpn: 'MPN-456',
+        },
+      }),
+    success: z.literal(true).openapi({
+      description: 'Indicates successful conversion',
+      example: true,
+    }),
+  })
+  .openapi('SuccessResult');
+
+/**
+ * Failure result for a single ASIN conversion
+ */
+const failureResultSchema = z
+  .object({
+    asin: z.string().length(10).openapi({
+      description: 'The ASIN that failed conversion',
+      example: 'B0EXAMPLE',
+    }),
+    error: z.string().min(1).openapi({
+      description: 'Error type/code',
+      example: 'ProductNotFoundError',
+    }),
+    message: z.string().min(1).openapi({
+      description: 'Human-readable error message',
+      example: 'Product not found for ASIN: B0EXAMPLE',
+    }),
+    success: z.literal(false).openapi({
+      description: 'Indicates failed conversion',
+      example: false,
+    }),
+  })
+  .openapi('FailureResult');
+
+/**
+ * Result for a single ASIN conversion (either success or failure)
+ */
+const conversionResultSchema = z.union([successResultSchema, failureResultSchema]).openapi('ConversionResult');
+
+/**
+ * Success response schema with per-item results
  */
 export const convertAsinResponseSchema = z
   .object({
-    asins: z
-      .array(z.string().length(10))
-      .readonly()
+    results: z
+      .array(conversionResultSchema)
       .openapi({
-        description: 'Original ASINs that were requested',
-        example: ['B08N5WRWNW'],
+        description: 'Array of conversion results, one per input ASIN',
+        example: [
+          {
+            asin: 'B08N5WRWNW',
+            identifiers: {
+              upc: '012345678905',
+              sku: 'SKU-123',
+              mpn: 'MPN-456',
+            },
+            success: true,
+          },
+          {
+            asin: 'B0EXAMPLE',
+            error: 'ProductNotFoundError',
+            message: 'Product not found for ASIN: B0EXAMPLE',
+            success: false,
+          },
+        ],
       }),
-    gtins: z
-      .array(z.string().min(1).max(50))
-      .readonly()
-      .openapi({
-        description: 'Array of converted product identifiers (UPC, SKU, MPN)',
-        example: ['012345678905', 'SKU-123', 'MPN-456'],
-      }),
-    count: z.number().int().min(0).openapi({
-      description: 'Number of GTINs/product IDs returned',
-      example: 3,
+    total: z.number().int().min(0).openapi({
+      description: 'Total number of ASINs processed',
+      example: 2,
+    }),
+    successful: z.number().int().min(0).openapi({
+      description: 'Number of successfully converted ASINs',
+      example: 1,
+    }),
+    failed: z.number().int().min(0).openapi({
+      description: 'Number of failed conversions',
+      example: 1,
     }),
   })
   .openapi('ConvertAsinResponse');
@@ -81,4 +165,7 @@ export const errorResponseSchema = z
 
 export type ConvertAsinRequest = z.infer<typeof convertAsinRequestSchema>;
 export type ConvertAsinResponse = z.infer<typeof convertAsinResponseSchema>;
+export type SuccessResult = z.infer<typeof successResultSchema>;
+export type FailureResult = z.infer<typeof failureResultSchema>;
+export type ConversionResult = z.infer<typeof conversionResultSchema>;
 export type ErrorResponse = z.infer<typeof errorResponseSchema>;
