@@ -8,6 +8,7 @@
 import { createServer } from 'node:http';
 import { URL } from 'node:url';
 import { createBatchUrlAnalysisHandler } from './src/functions/create-batch-url-analysis/handler.ts';
+import { convertAsinHandler } from './src/functions/convert-asin/handler.ts';
 import { healthCheckHandler } from './src/functions/health/handler.ts';
 import { createUrlAnalysisHandler } from './src/functions/create-url-analysis/handler.ts';
 
@@ -43,6 +44,15 @@ const ROUTES = [
     example: `curl -X POST "http://localhost:${PORT}/url-analysis/batch" \\
      -H "Content-Type: application/json" \\
      -d '{"urls":[{"url":"https://www.nike.com/t/air-max-90-mens-shoes-6n8tKB/CN8490-100"},{"url":"https://www.target.com/p/example-product/-/A-12345678"}]}'`,
+  },
+  {
+    method: 'POST',
+    path: '/convert-asin',
+    handler: convertAsinHandler,
+    description: 'Convert Amazon ASINs to GTINs (UPC, SKU, MPN)',
+    example: `curl -X POST "http://localhost:${PORT}/convert-asin" \\
+     -H "Content-Type: application/json" \\
+     -d '{"asins":["B0FQFB8FMG"]}'`,
   },
 ];
 

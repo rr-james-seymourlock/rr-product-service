@@ -1,0 +1,36 @@
+{
+  "name": "@rr/asin-converter",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "clean": "rm -rf .turbo node_modules dist",
+    "format": "prettier --check \"**/*.{ts,tsx}\"",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@rr/shared": "workspace:*",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@rr/eslint-config": "workspace:*",
+    "@rr/prettier-config": "workspace:*",
+    "@rr/tsconfig": "workspace:*",
+    "@types/node": "catalog:",
+    "vitest": "catalog:"
+  },
+  "prettier": "@rr/prettier-config",
+  "typesVersions": {
+    "*": {
+      "*": [
+        "src/*"
+      ]
+    }
+  }
+}

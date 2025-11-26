@@ -160,8 +160,8 @@
             "type": "string",
             "minLength": 1,
             "maxLength": 100,
-            "description": "Optional store ID to use specific extraction patterns",
-            "example": "12345"
+            "description": "Optional store identifier for specific extraction patterns. If not provided, domain is extracted from URL automatically. Recommended: Pass internal Rakuten store ID (e.g., \"9528\") for best performance. Also accepts domain format (e.g., \"nike.com\")",
+            "example": "9528"
           }
         },
         "required": [
@@ -329,8 +329,8 @@
             "type": "string",
             "minLength": 1,
             "maxLength": 100,
-            "description": "Optional store ID to use specific extraction patterns",
-            "example": "12345"
+            "description": "Optional store identifier for specific extraction patterns. If not provided, domain is extracted from URL automatically. Recommended: Pass internal Rakuten store ID (e.g., \"9528\") for best performance. Also accepts domain format (e.g., \"nike.com\")",
+            "example": "9528"
           }
         },
         "required": [
@@ -351,7 +351,7 @@
             "example": [
               {
                 "url": "https://www.nike.com/t/air-max-90-mens-shoes-6n8tKB/CN8490-100",
-                "storeId": "12345"
+                "storeId": "9528"
               },
               {
                 "url": "https://www.target.com/p/example-product/-/A-12345678"
@@ -361,6 +361,74 @@
         },
         "required": [
           "urls"
+        ]
+      },
+      "ConvertAsinResponse": {
+        "type": "object",
+        "properties": {
+          "asins": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 10,
+              "maxLength": 10
+            },
+            "description": "Original ASINs that were requested",
+            "example": [
+              "B08N5WRWNW"
+            ]
+          },
+          "gtins": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 50
+            },
+            "description": "Array of converted product identifiers (UPC, SKU, MPN)",
+            "example": [
+              "012345678905",
+              "SKU-123",
+              "MPN-456"
+            ]
+          },
+          "count": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Number of GTINs/product IDs returned",
+            "example": 3
+          }
+        },
+        "required": [
+          "asins",
+          "gtins",
+          "count"
+        ]
+      },
+      "ConvertAsinRequest": {
+        "type": "object",
+        "properties": {
+          "asins": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 10,
+              "maxLength": 10,
+              "pattern": "^[A-Z0-9]{10}$",
+              "description": "Amazon Standard Identification Number (10 alphanumeric characters)",
+              "example": "B08N5WRWNW"
+            },
+            "minItems": 1,
+            "maxItems": 10,
+            "description": "Array of Amazon ASINs to convert to GTINs (UPC, SKU, MPN)",
+            "example": [
+              "B08N5WRWNW",
+              "B07ZPKN6YR"
+            ]
+          }
+        },
+        "required": [
+          "asins"
         ]
       }
     },
@@ -557,6 +625,82 @@
                   "error": "InternalServerError",
                   "message": "An unexpected error occurred",
                   "statusCode": 500
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/convert-asin": {
+      "post": {
+        "summary": "Convert ASIN to GTIN",
+        "description": "Converts Amazon Standard Identification Numbers (ASINs) to Global Trade Item Numbers (GTINs) including UPC, SKU, and MPN. Uses the Synccentric product database API. Accepts 1-10 ASINs per request and returns all available product identifiers.",
+        "tags": [
+          "Product Extraction"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConvertAsinRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully converted ASINs to GTINs",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConvertAsinResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request parameters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": "ValidationError",
+                  "message": "asins: Array must contain at least 1 element(s)",
+                  "statusCode": 400
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Product not found in Synccentric database",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": "ProductNotFoundError",
+                  "message": "Product not found for ASINs: B0EXAMPLE",
+                  "statusCode": 404
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error or API error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": "ApiRequestError",
+                  "message": "Synccentric API request failed: 500 Internal Server Error",
+                  "statusCode": 502
                 }
               }
             }

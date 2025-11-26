@@ -68,6 +68,9 @@ importers:
       '@middy/http-json-body-parser':
         specifier: ^6.3.0
         version: 6.4.5
+      '@rr/asin-converter':
+        specifier: workspace:*
+        version: link:../../packages/asin-converter
       '@rr/product-id-extractor':
         specifier: workspace:*
         version: link:../../packages/product-id-extractor
@@ -114,6 +117,31 @@ importers:
       typescript:
         specifier: 'catalog:'
         version: 5.9.3
+      vitest:
+        specifier: 'catalog:'
+        version: 4.0.10(@types/node@24.10.1)(jiti@2.6.1)(tsx@4.20.6)(yaml@2.8.1)
+
+  packages/asin-converter:
+    dependencies:
+      '@rr/shared':
+        specifier: workspace:*
+        version: link:../shared
+      zod:
+        specifier: 'catalog:'
+        version: 4.1.12
+    devDependencies:
+      '@rr/eslint-config':
+        specifier: workspace:*
+        version: link:../../tooling/eslint
+      '@rr/prettier-config':
+        specifier: workspace:*
+        version: link:../../tooling/prettier
+      '@rr/tsconfig':
+        specifier: workspace:*
+        version: link:../../tooling/typescript
+      '@types/node':
+        specifier: 'catalog:'
+        version: 24.10.1
       vitest:
         specifier: 'catalog:'
         version: 4.0.10(@types/node@24.10.1)(jiti@2.6.1)(tsx@4.20.6)(yaml@2.8.1)

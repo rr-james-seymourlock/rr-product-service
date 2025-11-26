@@ -15,6 +15,10 @@ import {
   createBatchUrlAnalysisResponseSchema,
 } from '../src/functions/create-batch-url-analysis/contracts';
 import {
+  convertAsinRequestSchema,
+  convertAsinResponseSchema,
+} from '../src/functions/convert-asin/contracts';
+import {
   createUrlAnalysisRequestSchema,
   createUrlAnalysisResponseSchema,
   errorResponseSchema,
@@ -151,6 +155,75 @@ registry.registerPath({
             error: 'InternalServerError',
             message: 'An unexpected error occurred',
             statusCode: 500,
+          },
+        },
+      },
+    },
+  },
+});
+
+// Register ASIN conversion endpoint
+registry.registerPath({
+  method: 'post',
+  path: '/convert-asin',
+  summary: 'Convert ASIN to GTIN',
+  description:
+    'Converts Amazon Standard Identification Numbers (ASINs) to Global Trade Item Numbers (GTINs) including UPC, SKU, and MPN. Uses the Synccentric product database API. Accepts 1-10 ASINs per request and returns all available product identifiers.',
+  tags: ['Product Extraction'],
+  request: {
+    body: {
+      required: true,
+      content: {
+        'application/json': {
+          schema: convertAsinRequestSchema,
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: 'Successfully converted ASINs to GTINs',
+      content: {
+        'application/json': {
+          schema: convertAsinResponseSchema,
+        },
+      },
+    },
+    400: {
+      description: 'Invalid request parameters',
+      content: {
+        'application/json': {
+          schema: errorResponseSchema,
+          example: {
+            error: 'ValidationError',
+            message: 'asins: Array must contain at least 1 element(s)',
+            statusCode: 400,
+          },
+        },
+      },
+    },
+    404: {
+      description: 'Product not found in Synccentric database',
+      content: {
+        'application/json': {
+          schema: errorResponseSchema,
+          example: {
+            error: 'ProductNotFoundError',
+            message: 'Product not found for ASINs: B0EXAMPLE',
+            statusCode: 404,
+          },
+        },
+      },
+    },
+    500: {
+      description: 'Internal server error or API error',
+      content: {
+        'application/json': {
+          schema: errorResponseSchema,
+          example: {
+            error: 'ApiRequestError',
+            message: 'Synccentric API request failed: 500 Internal Server Error',
+            statusCode: 502,
           },
         },
       },
