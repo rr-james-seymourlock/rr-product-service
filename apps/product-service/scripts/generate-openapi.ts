@@ -10,6 +10,11 @@ import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import {
+  errorResponseSchema as batchErrorResponseSchema,
+  createBatchUrlAnalysisRequestSchema,
+  createBatchUrlAnalysisResponseSchema,
+} from '../src/functions/create-batch-url-analysis/contracts';
+import {
   createUrlAnalysisRequestSchema,
   createUrlAnalysisResponseSchema,
   errorResponseSchema,
@@ -86,6 +91,62 @@ registry.registerPath({
       content: {
         'application/json': {
           schema: errorResponseSchema,
+          example: {
+            error: 'InternalServerError',
+            message: 'An unexpected error occurred',
+            statusCode: 500,
+          },
+        },
+      },
+    },
+  },
+});
+
+// Register batch URL analysis endpoint
+registry.registerPath({
+  method: 'post',
+  path: '/url-analysis/batch',
+  summary: 'Analyze URLs in Batch',
+  description:
+    'Analyzes multiple product URLs in parallel and extracts product identifiers. Accepts 1-100 URLs per request. Handles partial failures gracefully - each URL is processed independently and results include success/failure status. Returns summary statistics along with individual results.',
+  tags: ['Product Extraction'],
+  request: {
+    body: {
+      required: true,
+      content: {
+        'application/json': {
+          schema: createBatchUrlAnalysisRequestSchema,
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: 'Batch processing completed (may include partial failures)',
+      content: {
+        'application/json': {
+          schema: createBatchUrlAnalysisResponseSchema,
+        },
+      },
+    },
+    400: {
+      description: 'Invalid request parameters',
+      content: {
+        'application/json': {
+          schema: batchErrorResponseSchema,
+          example: {
+            error: 'ValidationError',
+            message: 'urls: At least one URL is required',
+            statusCode: 400,
+          },
+        },
+      },
+    },
+    500: {
+      description: 'Internal server error',
+      content: {
+        'application/json': {
+          schema: batchErrorResponseSchema,
           example: {
             error: 'InternalServerError',
             message: 'An unexpected error occurred',

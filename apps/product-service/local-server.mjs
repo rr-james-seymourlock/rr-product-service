@@ -7,6 +7,7 @@
  */
 import { createServer } from 'node:http';
 import { URL } from 'node:url';
+import { createBatchUrlAnalysisHandler } from './src/functions/create-batch-url-analysis/handler.ts';
 import { healthCheckHandler } from './src/functions/health/handler.ts';
 import { createUrlAnalysisHandler } from './src/functions/create-url-analysis/handler.ts';
 
@@ -33,6 +34,15 @@ const ROUTES = [
     example: `curl -X POST "http://localhost:${PORT}/url-analysis" \\
      -H "Content-Type: application/json" \\
      -d '{"url":"https://www.nike.com/t/air-max-90/CN8490-100"}'`,
+  },
+  {
+    method: 'POST',
+    path: '/url-analysis/batch',
+    handler: createBatchUrlAnalysisHandler,
+    description: 'Batch analyze URLs and extract product IDs',
+    example: `curl -X POST "http://localhost:${PORT}/url-analysis/batch" \\
+     -H "Content-Type: application/json" \\
+     -d '{"urls":[{"url":"https://www.nike.com/t/air-max-90-mens-shoes-6n8tKB/CN8490-100"},{"url":"https://www.target.com/p/example-product/-/A-12345678"}]}'`,
   },
 ];
 
@@ -88,12 +98,12 @@ const handleRequest = (req, res) => {
     req.on('data', (chunk) => {
       body += chunk.toString();
     });
-    req.on('end', () => {
+    req.on('end', async () => {
       const route = findRoute(method, pathname);
 
       if (route) {
         const event = createApiGatewayEvent(req, pathname, body);
-        const result = route.handler(event);
+        const result = await route.handler(event);
         sendResponse(res, result);
       } else {
         sendResponse(res, {

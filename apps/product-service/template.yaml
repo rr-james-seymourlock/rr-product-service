@@ -45,6 +45,21 @@ Resources:
         Service: product-service
         Environment: production
 
+  CreateBatchUrlAnalysisFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: dist/
+      Handler: create-batch-url-analysis.handler
+      Events:
+        CreateBatchUrlAnalysis:
+          Type: Api
+          Properties:
+            Path: /url-analysis/batch
+            Method: post
+      Tags:
+        Service: product-service
+        Environment: production
+
 Outputs:
   HealthApi:
     Description: API Gateway endpoint URL for Health function
@@ -69,3 +84,15 @@ Outputs:
   CreateUrlAnalysisFunctionIamRole:
     Description: IAM Role created for CreateUrlAnalysis function
     Value: !GetAtt CreateUrlAnalysisFunctionRole.Arn
+
+  CreateBatchUrlAnalysisApi:
+    Description: API Gateway endpoint URL for CreateBatchUrlAnalysis function
+    Value: !Sub 'https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/url-analysis/batch/'
+
+  CreateBatchUrlAnalysisFunction:
+    Description: CreateBatchUrlAnalysis Lambda Function ARN
+    Value: !GetAtt CreateBatchUrlAnalysisFunction.Arn
+
+  CreateBatchUrlAnalysisFunctionIamRole:
+    Description: IAM Role created for CreateBatchUrlAnalysis function
+    Value: !GetAtt CreateBatchUrlAnalysisFunctionRole.Arn

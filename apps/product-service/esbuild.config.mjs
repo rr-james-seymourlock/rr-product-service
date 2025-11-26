@@ -19,6 +19,7 @@ try {
     entryPoints: {
       health: 'src/functions/health/handler.ts',
       'create-url-analysis': 'src/functions/create-url-analysis/handler.ts',
+      'create-batch-url-analysis': 'src/functions/create-batch-url-analysis/handler.ts',
     },
     bundle: true,
     platform: 'node',
