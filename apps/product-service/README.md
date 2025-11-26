@@ -31,23 +31,43 @@ pnpm dev
 
 This will start the API at `http://localhost:3000` with warm containers for faster response times.
 
+### Available Endpoints
+
+- `GET /health` - Health check endpoint
+- `GET /extract-product-ids?url=<product-url>` - Extract product IDs from URLs
+
 ### Test Locally
 
-Invoke a function locally:
+Invoke a function locally with SAM:
 
 ```bash
-pnpm invoke:local PostProductFunction --event events/post-product.json
+# Health check
+sam local invoke HealthFunction --event src/functions/health/event.json
+
+# Extract product IDs
+sam local invoke ExtractProductIdsFunction --event src/functions/extract-product-ids/event.json
+```
+
+## Testing
+
+Run the test suite:
+
+```bash
+pnpm test              # Run all tests
+pnpm test:watch        # Watch mode
+pnpm typecheck         # TypeScript type checking
+pnpm lint              # ESLint
 ```
 
 ## Building
 
-Build the Lambda functions:
+Build the Lambda functions with esbuild:
 
 ```bash
 pnpm build
 ```
 
-This uses SAM's built-in esbuild support to bundle TypeScript code with all workspace dependencies.
+This bundles TypeScript code with all workspace dependencies into optimized Lambda packages.
 
 ## Deployment
 
@@ -89,7 +109,8 @@ pnpm validate
 Watch logs in real-time:
 
 ```bash
-pnpm logs -- -n PostProductFunction
+pnpm logs -- -n HealthFunction
+pnpm logs -- -n ExtractProductIdsFunction
 ```
 
 ### Delete Stack
@@ -105,56 +126,105 @@ pnpm delete
 ```
 apps/product-service/
 ├── src/
-│   ├── functions/
-│   │   └── postProduct/        # Lambda function
-│   │       ├── handler.ts      # Function entry point
-│   │       └── schema.ts       # Request validation
-│   └── middleware/
-│       └── zodValidator.ts     # Shared middleware
-├── template.yaml               # SAM template (CloudFormation)
-├── samconfig.toml              # SAM deployment config
+│   └── functions/
+│       ├── health/                      # Health check function
+│       │   ├── contracts.ts             # API schemas & types
+│       │   ├── event.json               # Test event
+│       │   ├── handler.ts               # Lambda handler
+│       │   ├── logger.ts                # Function logger
+│       │   └── __tests__/               # Test suite
+│       └── extract-product-ids/         # Product ID extraction
+│           ├── contracts.ts             # API schemas & types
+│           ├── event.json               # Test event
+│           ├── handler.ts               # Lambda handler
+│           ├── logger.ts                # Function logger
+│           └── __tests__/               # Test suite
+├── scripts/
+│   └── generate-openapi.ts              # OpenAPI spec generator
+├── template.yaml                        # SAM template
+├── esbuild.config.mjs                   # Build configuration
+├── samconfig.toml                       # SAM deployment config
 └── package.json
 ```
 
 ## Adding New Functions
 
+Each function is self-contained with all its dependencies in one folder.
+
 1. Create a new function directory:
 
    ```bash
-   mkdir -p src/functions/getProduct
+   mkdir -p src/functions/myFunction
    ```
 
-2. Add handler and schema:
+2. Add required files following the pattern:
 
    ```typescript
-   // src/functions/getProduct/handler.ts
-   export const handler = async (event) => { ... }
+   // contracts.ts - API schemas with OpenAPI metadata
+   import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
+   import { z } from 'zod';
+
+   extendZodWithOpenApi(z);
+
+   export const myRequestSchema = z.object({
+     // ... your schema
+   }).openapi('MyRequest');
+
+   // handler.ts - Lambda handler
+   import middy from '@middy/core';
+   import httpErrorHandler from '@middy/http-error-handler';
+
+   export const myFunctionHandler = (event) => { ... };
+   export const handler = middy(myFunctionHandler).use(httpErrorHandler());
+
+   // logger.ts - Function logger
+   import { createLogger } from '@rr/shared/utils';
+   export const logger = createLogger('product-service.my-function');
+
+   // event.json - Test event for SAM local
+   { "httpMethod": "GET", "path": "/my-path", ... }
    ```
 
-3. Update `template.yaml`:
+3. Update `esbuild.config.mjs`:
+
+   ```javascript
+   entryPoints: {
+     health: 'src/functions/health/handler.ts',
+     'extract-product-ids': 'src/functions/extract-product-ids/handler.ts',
+     'my-function': 'src/functions/myFunction/handler.ts', // Add this
+   }
+   ```
+
+4. Update `template.yaml`:
 
    ```yaml
-   GetProductFunction:
+   MyFunction:
      Type: AWS::Serverless::Function
-     Metadata:
-       BuildMethod: esbuild
-       BuildProperties:
-         EntryPoints:
-           - src/functions/getProduct/handler.ts
      Properties:
-       Handler: handler.handler
+       CodeUri: dist/
+       Handler: my-function.handler
        Events:
-         GetProduct:
+         MyEvent:
            Type: Api
            Properties:
-             Path: /product/{id}
+             Path: /my-path
              Method: get
    ```
 
-4. Build and deploy:
+5. Build and deploy:
    ```bash
    pnpm build && pnpm deploy
    ```
+
+## API Documentation
+
+Generate OpenAPI specification:
+
+```bash
+pnpm run openapi:generate
+```
+
+This creates `docs/openapi.json` from your contract schemas, ensuring API documentation stays in sync with runtime validation.
 
 ## Environment Variables
 
@@ -169,10 +239,6 @@ Globals:
         LOG_LEVEL: info
 ```
 
-## Testing
-
-Tests are managed at the package level. See individual packages in `packages/` for test suites.
-
 ## Packages Used
 
 This service depends on the following workspace packages:
@@ -181,10 +247,11 @@ This service depends on the following workspace packages:
 - `@rr/product-id-extractor` - Extract product IDs from URLs
 - `@rr/store-registry` - Store configuration and patterns
 - `@rr/schema-parser` - Product schema validation
-- `@rr/shared` - Shared utilities and types
+- `@rr/shared` - Shared utilities (logger, types)
 
 ## Resources
 
 - [AWS SAM Documentation](https://docs.aws.amazon.com/serverless-application-model/)
 - [AWS SAM CLI Reference](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-sam-cli-command-reference.html)
-- [SAM TypeScript Examples](https://github.com/aws-samples/aws-sam-typescript-layers-example)
+- [Middy.js Middleware](https://middy.js.org/)
+- [Zod Validation](https://zod.dev/)
