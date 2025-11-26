@@ -19,9 +19,8 @@ Amazon and Zappos (owned by Amazon) use ASINs as their primary product identifie
 To work with products from Amazon and Zappos in a broader ecosystem, we need to convert ASINs to standard identifiers:
 
 ```
-ASIN (B08N5WRWNW) → UPC (012345678905)
-                  → SKU (VENDOR-SKU-123)
-                  → MPN (MODEL-XYZ)
+ASIN (B0FQFB8FMG) → UPC (195950543698)
+                  → SKU (MFHP4LL/A)
 ```
 
 This enables:
@@ -102,7 +101,7 @@ const productIds = await convertAsins(['B08N5WRWNW'], config);
 ### Converting Multiple ASINs
 
 ```typescript
-const asins = ['B08N5WRWNW', 'B07ZPKN6YR', 'B09ABCDEFG'];
+const asins = ['B0FQFB8FMG'];
 const productIds = await convertAsins(asins, config);
 
 // Returns all product IDs found for the first matching product

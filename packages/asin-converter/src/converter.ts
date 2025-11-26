@@ -40,8 +40,8 @@ const DEFAULT_LOCALE = 'US';
  *   timeout: 10000,
  * };
  *
- * const productIds = await convertAsins(['B08N5WRWNW', 'B07ZPKN6YR'], config);
- * // Returns: ['012345678905', 'SKU-123', 'MPN-456']
+ * const productIds = await convertAsins(['B0FQFB8FMG'], config);
+ * // Returns: ['195950543698', 'MFHP4LL/A']
  * ```
  */
 export async function convertAsins(
@@ -66,8 +66,11 @@ export async function convertAsins(
   const timeout = config.timeout ?? DEFAULT_TIMEOUT;
   const asinsAsParams = asins.join(',');
 
+  // Ensure base URL ends with / for proper path appending
+  const baseUrl = config.host.endsWith('/') ? config.host : `${config.host}/`;
+
   // Build API URL
-  const url = new URL('/search', config.host);
+  const url = new URL('search', baseUrl);
   url.searchParams.set('identifier', asinsAsParams);
   url.searchParams.set('type', 'asin');
   url.searchParams.set('locale', DEFAULT_LOCALE);

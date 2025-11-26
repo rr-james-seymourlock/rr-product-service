@@ -7,7 +7,7 @@
   "scripts": {
     "build": "node esbuild.config.mjs",
     "dev": "sam local start-api --warm-containers EAGER",
-    "dev:local": "tsx --tsconfig tsconfig.json local-server.mjs",
+    "dev:local": "tsx --tsconfig tsconfig.json --env-file=../../.env local-server.mjs",
     "deploy": "pnpm run build && sam deploy --resolve-s3",
     "deploy:guided": "pnpm run build && sam deploy --guided",
     "validate": "sam validate",

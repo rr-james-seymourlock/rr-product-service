@@ -52,7 +52,7 @@ const ROUTES = [
     description: 'Convert Amazon ASINs to GTINs (UPC, SKU, MPN)',
     example: `curl -X POST "http://localhost:${PORT}/convert-asin" \\
      -H "Content-Type: application/json" \\
-     -d '{"asins":["B08N5WRWNW"]}'`,
+     -d '{"asins":["B0FQFB8FMG"]}'`,
   },
 ];
 

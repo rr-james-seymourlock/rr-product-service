@@ -68,6 +68,9 @@ importers:
       '@middy/http-json-body-parser':
         specifier: ^6.3.0
         version: 6.4.5
+      '@rr/asin-converter':
+        specifier: workspace:*
+        version: link:../../packages/asin-converter
       '@rr/product-id-extractor':
         specifier: workspace:*
         version: link:../../packages/product-id-extractor
