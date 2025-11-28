@@ -47,7 +47,7 @@ describe('convertAsins', () => {
 
       const result = await convertAsins(['B08N5WRWNW'], mockConfig);
 
-      expect(result).toEqual(['012345678905', 'SKU-123', 'MPN-456']);
+      expect(result).toEqual({ upc: '012345678905', sku: 'SKU-123', mpn: 'MPN-456' });
       expect(mockFetch).toHaveBeenCalledTimes(1);
       expect(mockFetch).toHaveBeenCalledWith(
         expect.stringContaining('/search?identifier=B08N5WRWNW&type=asin&locale=US'),
@@ -81,7 +81,7 @@ describe('convertAsins', () => {
 
       const result = await convertAsins(['B08N5WRWNW'], mockConfig);
 
-      expect(result).toEqual(['012345678905']);
+      expect(result).toEqual({ upc: '012345678905' });
     });
 
     it('should handle multiple ASINs in request', async () => {
@@ -111,7 +111,7 @@ describe('convertAsins', () => {
       );
     });
 
-    it('should return empty array when no product data in response', async () => {
+    it('should return empty object when no product data in response', async () => {
       const mockResponse = {
         data: [],
       };
@@ -124,7 +124,7 @@ describe('convertAsins', () => {
 
       const result = await convertAsins(['B08N5WRWNW'], mockConfig);
 
-      expect(result).toEqual([]);
+      expect(result).toEqual({});
     });
   });
 
