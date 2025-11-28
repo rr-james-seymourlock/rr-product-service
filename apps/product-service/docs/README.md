@@ -47,16 +47,23 @@ Health check endpoint for monitoring and load balancer probes.
 }
 ```
 
-### POST /url-analysis
+### POST /product-identifiers/urls
 
-Analyzes a product URL and extracts product identifiers.
+Extracts product identifiers from one or more product URLs using pattern-based rule sets. Accepts 1-100 URLs per request with per-item success/failure handling.
 
 **Request:**
 
 ```json
 {
-  "url": "https://www.nike.com/t/air-max-90-mens-shoes-6n8tKB/CN8490-100",
-  "storeId": "optional-store-id"
+  "urls": [
+    {
+      "url": "https://www.nike.com/t/air-max-90-mens-shoes-6n8tKB/CN8490-100",
+      "storeId": "9528"
+    },
+    {
+      "url": "https://www.target.com/p/example-product/-/A-12345678"
+    }
+  ]
 }
 ```
 
@@ -64,9 +71,65 @@ Analyzes a product URL and extracts product identifiers.
 
 ```json
 {
-  "url": "https://www.nike.com/t/air-max-90-mens-shoes-6n8tKB/CN8490-100",
-  "productIds": ["cn8490-100"],
-  "count": 1
+  "results": [
+    {
+      "url": "https://www.nike.com/t/air-max-90-mens-shoes-6n8tKB/CN8490-100",
+      "storeId": "9528",
+      "productIds": ["cn8490-100", "6n8tkb"],
+      "count": 2,
+      "success": true
+    },
+    {
+      "url": "https://www.target.com/p/example-product/-/A-12345678",
+      "storeId": "5246",
+      "productIds": ["12345678"],
+      "count": 1,
+      "success": true
+    }
+  ],
+  "total": 2,
+  "successful": 2,
+  "failed": 0
+}
+```
+
+### POST /product-identifiers/asins
+
+Converts Amazon Standard Identification Numbers (ASINs) to product identifiers including GTINs (UPC/EAN), MPN, and SKU. Uses the Synccentric product database API. Accepts 1-10 ASINs per request with per-item success/failure handling.
+
+**Request:**
+
+```json
+{
+  "asins": ["B08N5WRWNW", "B07ZPKN6YR"]
+}
+```
+
+**Response:**
+
+```json
+{
+  "results": [
+    {
+      "asin": "B08N5WRWNW",
+      "identifiers": {
+        "upc": "012345678905",
+        "sku": "SKU-123",
+        "mpn": "MPN-456"
+      },
+      "success": true
+    },
+    {
+      "asin": "B07ZPKN6YR",
+      "identifiers": {
+        "upc": "987654321098"
+      },
+      "success": true
+    }
+  ],
+  "total": 2,
+  "successful": 2,
+  "failed": 0
 }
 ```
 

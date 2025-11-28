@@ -12,7 +12,7 @@ describe('extractIdsFromUrlComponents', () => {
     const url = 'https://example.com/page';
     const urlComponents = parseUrlComponents(url);
     const result = extractIdsFromUrlComponents({ urlComponents });
-    expect(result).toEqual([]);
+    expect(result.productIds).toEqual([]);
   });
 
   describe('development mode validation', () => {
@@ -76,8 +76,8 @@ describe('extractIdsFromUrlComponents', () => {
 
     const result = extractIdsFromUrlComponents({ urlComponents });
 
-    expect(Object.isFrozen(result)).toBe(true);
-    expect(result).toContain('123456');
-    expect(result).toContain('prod-123456');
+    expect(Object.isFrozen(result.productIds)).toBe(true);
+    expect(result.productIds).toContain('123456');
+    expect(result.productIds).toContain('prod-123456');
   });
 });

@@ -61,9 +61,9 @@ const publicUrlSchema = z
   });
 
 /**
- * Request body schema for POST /url-analysis
+ * Single URL item in request
  */
-export const createUrlAnalysisRequestSchema = z
+const urlItemSchema = z
   .object({
     url: publicUrlSchema,
     storeId: z
@@ -77,16 +77,42 @@ export const createUrlAnalysisRequestSchema = z
         example: '9528',
       }),
   })
+  .openapi('UrlItem');
+
+/**
+ * Request body schema for POST /url-analysis
+ */
+export const createUrlAnalysisRequestSchema = z
+  .object({
+    urls: z
+      .array(urlItemSchema)
+      .min(1, 'At least one URL is required')
+      .max(100, 'Maximum 100 URLs per request')
+      .openapi({
+        description: 'Array of URLs to analyze (1-100 per request)',
+        example: [
+          {
+            url: 'https://www.nike.com/t/air-max-90-mens-shoes-6n8tKB/CN8490-100',
+            storeId: '9528',
+          },
+          { url: 'https://www.target.com/p/example-product/-/A-12345678' },
+        ],
+      }),
+  })
   .openapi('CreateUrlAnalysisRequest');
 
 /**
- * Success response schema
+ * Successful URL analysis result
  */
-export const createUrlAnalysisResponseSchema = z
+const successResultSchema = z
   .object({
-    url: z.string().min(1, 'URL is required').openapi({
+    url: z.string().min(1).openapi({
       description: 'The original URL that was analyzed',
       example: 'https://www.nike.com/t/air-max-90-mens-shoes-6n8tKB/CN8490-100',
+    }),
+    storeId: z.string().min(1).optional().openapi({
+      description: 'Store ID determined from URL domain or provided in request. Used for pattern matching.',
+      example: '9528',
     }),
     productIds: z
       .array(
@@ -105,6 +131,77 @@ export const createUrlAnalysisResponseSchema = z
     count: z.number().int().min(0).max(12).openapi({
       description: 'Number of product IDs extracted',
       example: 2,
+    }),
+    success: z.literal(true).openapi({
+      description: 'Indicates successful processing',
+      example: true,
+    }),
+  })
+  .openapi('SuccessResult');
+
+/**
+ * Failed URL analysis result
+ */
+const failureResultSchema = z
+  .object({
+    url: z.string().min(1).openapi({
+      description: 'The original URL that failed',
+      example: 'https://invalid-url',
+    }),
+    error: z.string().min(1).openapi({
+      description: 'Error type/code',
+      example: 'ValidationError',
+    }),
+    message: z.string().min(1).openapi({
+      description: 'Human-readable error message',
+      example: 'url: Invalid URL format',
+    }),
+    success: z.literal(false).openapi({
+      description: 'Indicates failed processing',
+      example: false,
+    }),
+  })
+  .openapi('FailureResult');
+
+/**
+ * Union of success and failure results
+ */
+const resultSchema = z.union([successResultSchema, failureResultSchema]).openapi('AnalysisResult');
+
+/**
+ * Success response schema
+ */
+export const createUrlAnalysisResponseSchema = z
+  .object({
+    results: z.array(resultSchema).openapi({
+      description: 'Array of analysis results, one per input URL',
+      example: [
+        {
+          url: 'https://www.nike.com/t/air-max-90-mens-shoes-6n8tKB/CN8490-100',
+          storeId: '9528',
+          productIds: ['cn8490-100', '6n8tkb'],
+          count: 2,
+          success: true,
+        },
+        {
+          url: 'https://invalid-url',
+          error: 'ValidationError',
+          message: 'url: Invalid URL format',
+          success: false,
+        },
+      ],
+    }),
+    total: z.number().int().min(0).openapi({
+      description: 'Total number of URLs processed',
+      example: 2,
+    }),
+    successful: z.number().int().min(0).openapi({
+      description: 'Number of successfully processed URLs',
+      example: 1,
+    }),
+    failed: z.number().int().min(0).openapi({
+      description: 'Number of failed URLs',
+      example: 1,
     }),
   })
   .openapi('CreateUrlAnalysisResponse');
@@ -132,3 +229,7 @@ export const errorResponseSchema = z
 export type CreateUrlAnalysisRequest = z.infer<typeof createUrlAnalysisRequestSchema>;
 export type CreateUrlAnalysisResponse = z.infer<typeof createUrlAnalysisResponseSchema>;
 export type ErrorResponse = z.infer<typeof errorResponseSchema>;
+export type UrlItem = z.infer<typeof urlItemSchema>;
+export type AnalysisResult = z.infer<typeof resultSchema>;
+export type SuccessResult = z.infer<typeof successResultSchema>;
+export type FailureResult = z.infer<typeof failureResultSchema>;

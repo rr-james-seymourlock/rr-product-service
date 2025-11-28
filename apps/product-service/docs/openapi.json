@@ -28,8 +28,8 @@
       "description": "Service health and monitoring endpoints"
     },
     {
-      "name": "Product Extraction",
-      "description": "Product identifier extraction endpoints"
+      "name": "Product Identifier Extraction",
+      "description": "Extract product identifiers from URLs and ASINs"
     }
   ],
   "components": {
@@ -79,95 +79,6 @@
           "environment"
         ]
       },
-      "CreateUrlAnalysisResponse": {
-        "type": "object",
-        "properties": {
-          "url": {
-            "type": "string",
-            "minLength": 1,
-            "description": "The original URL that was analyzed",
-            "example": "https://www.nike.com/t/air-max-90-mens-shoes-6n8tKB/CN8490-100"
-          },
-          "productIds": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "minLength": 1,
-              "maxLength": 24,
-              "pattern": "^[\\w-]+$"
-            },
-            "maxItems": 12,
-            "description": "Array of extracted product IDs (max 12)",
-            "example": [
-              "cn8490-100",
-              "6n8tkb"
-            ]
-          },
-          "count": {
-            "type": "integer",
-            "minimum": 0,
-            "maximum": 12,
-            "description": "Number of product IDs extracted",
-            "example": 2
-          }
-        },
-        "required": [
-          "url",
-          "productIds",
-          "count"
-        ]
-      },
-      "ErrorResponse": {
-        "type": "object",
-        "properties": {
-          "error": {
-            "type": "string",
-            "minLength": 1,
-            "description": "Error type/code",
-            "example": "ValidationError"
-          },
-          "message": {
-            "type": "string",
-            "minLength": 1,
-            "description": "Human-readable error message",
-            "example": "url: Invalid URL format"
-          },
-          "statusCode": {
-            "type": "integer",
-            "minimum": 400,
-            "maximum": 599,
-            "description": "HTTP status code",
-            "example": 400
-          }
-        },
-        "required": [
-          "error",
-          "message",
-          "statusCode"
-        ]
-      },
-      "CreateUrlAnalysisRequest": {
-        "type": "object",
-        "properties": {
-          "url": {
-            "type": "string",
-            "minLength": 1,
-            "format": "uri",
-            "description": "Public HTTP(S) URL to extract product IDs from",
-            "example": "https://www.nike.com/t/air-max-90-mens-shoes-6n8tKB/CN8490-100"
-          },
-          "storeId": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 100,
-            "description": "Optional store identifier for specific extraction patterns. If not provided, domain is extracted from URL automatically. Recommended: Pass internal Rakuten store ID (e.g., \"9528\") for best performance. Also accepts domain format (e.g., \"nike.com\")",
-            "example": "9528"
-          }
-        },
-        "required": [
-          "url"
-        ]
-      },
       "SuccessResult": {
         "type": "object",
         "properties": {
@@ -176,6 +87,12 @@
             "minLength": 1,
             "description": "The original URL that was analyzed",
             "example": "https://www.nike.com/t/air-max-90-mens-shoes-6n8tKB/CN8490-100"
+          },
+          "storeId": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Store ID determined from URL domain or provided in request. Used for pattern matching.",
+            "example": "9528"
           },
           "productIds": {
             "type": "array",
@@ -252,7 +169,7 @@
           "success"
         ]
       },
-      "BatchResult": {
+      "AnalysisResult": {
         "anyOf": [
           {
             "$ref": "#/components/schemas/SuccessResult"
@@ -262,18 +179,19 @@
           }
         ]
       },
-      "CreateBatchUrlAnalysisResponse": {
+      "CreateUrlAnalysisResponse": {
         "type": "object",
         "properties": {
           "results": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/BatchResult"
+              "$ref": "#/components/schemas/AnalysisResult"
             },
             "description": "Array of analysis results, one per input URL",
             "example": [
               {
                 "url": "https://www.nike.com/t/air-max-90-mens-shoes-6n8tKB/CN8490-100",
+                "storeId": "9528",
                 "productIds": [
                   "cn8490-100",
                   "6n8tkb"
@@ -315,6 +233,35 @@
           "failed"
         ]
       },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Error type/code",
+            "example": "ValidationError"
+          },
+          "message": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Human-readable error message",
+            "example": "url: Invalid URL format"
+          },
+          "statusCode": {
+            "type": "integer",
+            "minimum": 400,
+            "maximum": 599,
+            "description": "HTTP status code",
+            "example": 400
+          }
+        },
+        "required": [
+          "error",
+          "message",
+          "statusCode"
+        ]
+      },
       "UrlItem": {
         "type": "object",
         "properties": {
@@ -337,7 +284,7 @@
           "url"
         ]
       },
-      "CreateBatchUrlAnalysisRequest": {
+      "CreateUrlAnalysisRequest": {
         "type": "object",
         "properties": {
           "urls": {
@@ -347,7 +294,7 @@
             },
             "minItems": 1,
             "maxItems": 100,
-            "description": "Array of URLs to analyze (max 100 per request)",
+            "description": "Array of URLs to analyze (1-100 per request)",
             "example": [
               {
                 "url": "https://www.nike.com/t/air-max-90-mens-shoes-6n8tKB/CN8490-100",
@@ -363,46 +310,156 @@
           "urls"
         ]
       },
-      "ConvertAsinResponse": {
+      "AsinSuccessResult": {
         "type": "object",
         "properties": {
-          "asins": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "minLength": 10,
-              "maxLength": 10
-            },
-            "description": "Original ASINs that were requested",
-            "example": [
-              "B08N5WRWNW"
-            ]
+          "asin": {
+            "type": "string",
+            "minLength": 10,
+            "maxLength": 10,
+            "description": "The ASIN that was converted",
+            "example": "B08N5WRWNW"
           },
-          "gtins": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "minLength": 1,
-              "maxLength": 50
+          "identifiers": {
+            "type": "object",
+            "properties": {
+              "upc": {
+                "type": "string",
+                "description": "Universal Product Code",
+                "example": "012345678905"
+              },
+              "sku": {
+                "type": "string",
+                "description": "Stock Keeping Unit",
+                "example": "SKU-123"
+              },
+              "mpn": {
+                "type": "string",
+                "description": "Manufacturer Part Number",
+                "example": "MPN-456"
+              }
             },
-            "description": "Array of converted product identifiers (UPC, SKU, MPN)",
-            "example": [
-              "012345678905",
-              "SKU-123",
-              "MPN-456"
-            ]
+            "description": "Structured product identifiers (UPC, SKU, MPN)",
+            "example": {
+              "upc": "012345678905",
+              "sku": "SKU-123",
+              "mpn": "MPN-456"
+            }
           },
-          "count": {
-            "type": "integer",
-            "minimum": 0,
-            "description": "Number of GTINs/product IDs returned",
-            "example": 3
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ],
+            "description": "Indicates successful conversion",
+            "example": true
           }
         },
         "required": [
-          "asins",
-          "gtins",
-          "count"
+          "asin",
+          "identifiers",
+          "success"
+        ]
+      },
+      "AsinFailureResult": {
+        "type": "object",
+        "properties": {
+          "asin": {
+            "type": "string",
+            "minLength": 10,
+            "maxLength": 10,
+            "description": "The ASIN that failed conversion",
+            "example": "B0EXAMPLE"
+          },
+          "error": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Error type/code",
+            "example": "ProductNotFoundError"
+          },
+          "message": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Human-readable error message",
+            "example": "Product not found for ASIN: B0EXAMPLE"
+          },
+          "success": {
+            "type": "boolean",
+            "enum": [
+              false
+            ],
+            "description": "Indicates failed conversion",
+            "example": false
+          }
+        },
+        "required": [
+          "asin",
+          "error",
+          "message",
+          "success"
+        ]
+      },
+      "AsinConversionResult": {
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/AsinSuccessResult"
+          },
+          {
+            "$ref": "#/components/schemas/AsinFailureResult"
+          }
+        ]
+      },
+      "ConvertAsinResponse": {
+        "type": "object",
+        "properties": {
+          "results": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AsinConversionResult"
+            },
+            "description": "Array of conversion results, one per input ASIN",
+            "example": [
+              {
+                "asin": "B08N5WRWNW",
+                "identifiers": {
+                  "upc": "012345678905",
+                  "sku": "SKU-123",
+                  "mpn": "MPN-456"
+                },
+                "success": true
+              },
+              {
+                "asin": "B0EXAMPLE",
+                "error": "ProductNotFoundError",
+                "message": "Product not found for ASIN: B0EXAMPLE",
+                "success": false
+              }
+            ]
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Total number of ASINs processed",
+            "example": 2
+          },
+          "successful": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Number of successfully converted ASINs",
+            "example": 1
+          },
+          "failed": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Number of failed conversions",
+            "example": 1
+          }
+        },
+        "required": [
+          "results",
+          "total",
+          "successful",
+          "failed"
         ]
       },
       "ConvertAsinRequest": {
@@ -420,7 +477,7 @@
             },
             "minItems": 1,
             "maxItems": 10,
-            "description": "Array of Amazon ASINs to convert to GTINs (UPC, SKU, MPN)",
+            "description": "Array of Amazon ASINs to convert to product identifiers (UPC, SKU, MPN)",
             "example": [
               "B08N5WRWNW",
               "B07ZPKN6YR"
@@ -456,12 +513,12 @@
         }
       }
     },
-    "/url-analysis": {
+    "/product-identifiers/urls": {
       "post": {
-        "summary": "Analyze URL",
-        "description": "Analyzes a product URL and extracts product identifiers. Supports URLs from various e-commerce stores. Returns extracted product identifiers found in the URL path, query parameters, or fragments.",
+        "summary": "Extract Product Identifiers from URLs",
+        "description": "Extracts product identifiers from one or more product URLs using pattern-based rule sets. Accepts 1-100 URLs per request. Handles partial failures gracefully - each URL is processed independently and results include success/failure status. Returns summary statistics along with individual results. Supports URLs from various e-commerce stores.",
         "tags": [
-          "Product Extraction"
+          "Product Identifier Extraction"
         ],
         "requestBody": {
           "required": true,
@@ -493,7 +550,7 @@
                 },
                 "example": {
                   "error": "ValidationError",
-                  "message": "url: Invalid URL format",
+                  "message": "urls: At least one URL is required",
                   "statusCode": 400
                 }
               }
@@ -517,127 +574,12 @@
         }
       }
     },
-    "/url-analysis/batch": {
+    "/product-identifiers/asins": {
       "post": {
-        "summary": "Analyze URLs in Batch",
-        "description": "Analyzes multiple product URLs in parallel and extracts product identifiers. Accepts 1-100 URLs per request. Handles partial failures gracefully - each URL is processed independently and results include success/failure status. Returns summary statistics along with individual results.",
+        "summary": "Convert ASINs to Product Identifiers",
+        "description": "Converts Amazon Standard Identification Numbers (ASINs) to product identifiers including GTINs (UPC/EAN), MPN, and SKU. Uses the Synccentric product database API. Accepts 1-10 ASINs per request and returns all available product identifiers. Handles partial failures gracefully - each ASIN is processed independently and results include success/failure status.",
         "tags": [
-          "Product Extraction"
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateBatchUrlAnalysisRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Batch processing completed (may include partial failures)",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CreateBatchUrlAnalysisResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid request parameters",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "allOf": [
-                    {
-                      "$ref": "#/components/schemas/ErrorResponse"
-                    },
-                    {
-                      "properties": {
-                        "error": {
-                          "type": "string",
-                          "minLength": 1,
-                          "description": "Error type/code",
-                          "example": "ValidationError"
-                        },
-                        "message": {
-                          "type": "string",
-                          "minLength": 1,
-                          "description": "Human-readable error message",
-                          "example": "urls: At least one URL is required"
-                        },
-                        "statusCode": {
-                          "type": "integer",
-                          "minimum": 400,
-                          "maximum": 599,
-                          "description": "HTTP status code",
-                          "example": 400
-                        }
-                      }
-                    }
-                  ]
-                },
-                "example": {
-                  "error": "ValidationError",
-                  "message": "urls: At least one URL is required",
-                  "statusCode": 400
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal server error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "allOf": [
-                    {
-                      "$ref": "#/components/schemas/ErrorResponse"
-                    },
-                    {
-                      "properties": {
-                        "error": {
-                          "type": "string",
-                          "minLength": 1,
-                          "description": "Error type/code",
-                          "example": "ValidationError"
-                        },
-                        "message": {
-                          "type": "string",
-                          "minLength": 1,
-                          "description": "Human-readable error message",
-                          "example": "urls: At least one URL is required"
-                        },
-                        "statusCode": {
-                          "type": "integer",
-                          "minimum": 400,
-                          "maximum": 599,
-                          "description": "HTTP status code",
-                          "example": 400
-                        }
-                      }
-                    }
-                  ]
-                },
-                "example": {
-                  "error": "InternalServerError",
-                  "message": "An unexpected error occurred",
-                  "statusCode": 500
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/convert-asin": {
-      "post": {
-        "summary": "Convert ASIN to GTIN",
-        "description": "Converts Amazon Standard Identification Numbers (ASINs) to Global Trade Item Numbers (GTINs) including UPC, SKU, and MPN. Uses the Synccentric product database API. Accepts 1-10 ASINs per request and returns all available product identifiers.",
-        "tags": [
-          "Product Extraction"
+          "Product Identifier Extraction"
         ],
         "requestBody": {
           "required": true,
@@ -651,7 +593,7 @@
         },
         "responses": {
           "200": {
-            "description": "Successfully converted ASINs to GTINs",
+            "description": "Successfully converted ASINs to product identifiers",
             "content": {
               "application/json": {
                 "schema": {
@@ -675,21 +617,6 @@
               }
             }
           },
-          "404": {
-            "description": "Product not found in Synccentric database",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                },
-                "example": {
-                  "error": "ProductNotFoundError",
-                  "message": "Product not found for ASINs: B0EXAMPLE",
-                  "statusCode": 404
-                }
-              }
-            }
-          },
           "500": {
             "description": "Internal server error or API error",
             "content": {
@@ -700,7 +627,7 @@
                 "example": {
                   "error": "ApiRequestError",
                   "message": "Synccentric API request failed: 500 Internal Server Error",
-                  "statusCode": 502
+                  "statusCode": 500
                 }
               }
             }

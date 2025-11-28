@@ -7,7 +7,6 @@
  */
 import { createServer } from 'node:http';
 import { URL } from 'node:url';
-import { createBatchUrlAnalysisHandler } from './src/functions/create-batch-url-analysis/handler.ts';
 import { convertAsinHandler } from './src/functions/convert-asin/handler.ts';
 import { healthCheckHandler } from './src/functions/health/handler.ts';
 import { createUrlAnalysisHandler } from './src/functions/create-url-analysis/handler.ts';
@@ -29,28 +28,19 @@ const ROUTES = [
   },
   {
     method: 'POST',
-    path: '/url-analysis',
+    path: '/product-identifiers/urls',
     handler: createUrlAnalysisHandler,
-    description: 'Analyze URL and extract product IDs',
-    example: `curl -X POST "http://localhost:${PORT}/url-analysis" \\
-     -H "Content-Type: application/json" \\
-     -d '{"url":"https://www.nike.com/t/air-max-90/CN8490-100"}'`,
-  },
-  {
-    method: 'POST',
-    path: '/url-analysis/batch',
-    handler: createBatchUrlAnalysisHandler,
-    description: 'Batch analyze URLs and extract product IDs',
-    example: `curl -X POST "http://localhost:${PORT}/url-analysis/batch" \\
+    description: 'Extract product identifiers from URLs (1-100 URLs)',
+    example: `curl -X POST "http://localhost:${PORT}/product-identifiers/urls" \\
      -H "Content-Type: application/json" \\
      -d '{"urls":[{"url":"https://www.nike.com/t/air-max-90-mens-shoes-6n8tKB/CN8490-100"},{"url":"https://www.target.com/p/example-product/-/A-12345678"}]}'`,
   },
   {
     method: 'POST',
-    path: '/convert-asin',
+    path: '/product-identifiers/asins',
     handler: convertAsinHandler,
-    description: 'Convert Amazon ASINs to GTINs (UPC, SKU, MPN)',
-    example: `curl -X POST "http://localhost:${PORT}/convert-asin" \\
+    description: 'Convert ASINs to product identifiers (GTINs/UPC, MPN, SKU)',
+    example: `curl -X POST "http://localhost:${PORT}/product-identifiers/asins" \\
      -H "Content-Type: application/json" \\
      -d '{"asins":["B0FQFB8FMG"]}'`,
   },

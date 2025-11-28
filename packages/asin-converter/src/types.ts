@@ -46,8 +46,16 @@ export const ConvertAsinsInputSchema = z.array(z.string().min(1)).min(1);
 
 export type ConvertAsinsInput = z.infer<typeof ConvertAsinsInputSchema>;
 
-// Output: Array of extracted product IDs (UPC, SKU, MPN)
-export const ConvertAsinsOutputSchema = z.array(z.string());
+// Output: Structured product identifiers (UPC, SKU, MPN)
+export const ProductIdentifiersSchema = z.object({
+  upc: z.string().optional(),
+  sku: z.string().optional(),
+  mpn: z.string().optional(),
+});
+
+export type ProductIdentifiers = z.infer<typeof ProductIdentifiersSchema>;
+
+export const ConvertAsinsOutputSchema = ProductIdentifiersSchema;
 
 export type ConvertAsinsOutput = z.infer<typeof ConvertAsinsOutputSchema>;
 

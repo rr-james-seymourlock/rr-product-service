@@ -191,22 +191,36 @@ describe('Type Schemas', () => {
   });
 
   describe('ConvertAsinsOutputSchema', () => {
-    it('should validate array of product IDs', () => {
-      const valid = ['012345678905', 'SKU-123', 'MPN-456'];
+    it('should validate object with product identifiers', () => {
+      const valid = { upc: '012345678905', sku: 'SKU-123', mpn: 'MPN-456' };
 
       const result = ConvertAsinsOutputSchema.safeParse(valid);
       expect(result.success).toBe(true);
     });
 
-    it('should validate empty array', () => {
-      const valid: string[] = [];
+    it('should validate empty object', () => {
+      const valid = {};
 
       const result = ConvertAsinsOutputSchema.safeParse(valid);
       expect(result.success).toBe(true);
     });
 
-    it('should reject non-array input', () => {
+    it('should validate object with partial identifiers', () => {
+      const valid = { upc: '012345678905' };
+
+      const result = ConvertAsinsOutputSchema.safeParse(valid);
+      expect(result.success).toBe(true);
+    });
+
+    it('should reject non-object input', () => {
       const invalid = 'SKU-123';
+
+      const result = ConvertAsinsOutputSchema.safeParse(invalid);
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject array input', () => {
+      const invalid = ['012345678905', 'SKU-123'];
 
       const result = ConvertAsinsOutputSchema.safeParse(invalid);
       expect(result.success).toBe(false);

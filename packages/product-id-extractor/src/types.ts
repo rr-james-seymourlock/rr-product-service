@@ -44,6 +44,17 @@ export const productIdsSchema = z
 export type ProductIds = z.infer<typeof productIdsSchema>;
 
 /**
+ * Schema for extractIdsFromUrlComponents output validation.
+ * Returns product IDs along with the resolved store ID.
+ */
+export const extractIdsResultSchema = z.object({
+  productIds: productIdsSchema,
+  storeId: z.string().min(1).optional(),
+});
+
+export type ExtractIdsResult = z.infer<typeof extractIdsResultSchema>;
+
+/**
  * Schema for patternExtractor input validation.
  * Validates source string and RegExp pattern.
  */
