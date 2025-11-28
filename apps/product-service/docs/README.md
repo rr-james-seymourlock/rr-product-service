@@ -74,12 +74,14 @@ Extracts product identifiers from one or more product URLs using pattern-based r
   "results": [
     {
       "url": "https://www.nike.com/t/air-max-90-mens-shoes-6n8tKB/CN8490-100",
+      "storeId": "9528",
       "productIds": ["cn8490-100", "6n8tkb"],
       "count": 2,
       "success": true
     },
     {
       "url": "https://www.target.com/p/example-product/-/A-12345678",
+      "storeId": "5246",
       "productIds": ["12345678"],
       "count": 1,
       "success": true

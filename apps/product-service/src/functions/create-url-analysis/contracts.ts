@@ -110,6 +110,10 @@ const successResultSchema = z
       description: 'The original URL that was analyzed',
       example: 'https://www.nike.com/t/air-max-90-mens-shoes-6n8tKB/CN8490-100',
     }),
+    storeId: z.string().min(1).optional().openapi({
+      description: 'Store ID determined from URL domain or provided in request. Used for pattern matching.',
+      example: '9528',
+    }),
     productIds: z
       .array(
         z
