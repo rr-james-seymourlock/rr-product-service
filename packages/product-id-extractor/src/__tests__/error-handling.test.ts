@@ -181,7 +181,7 @@ describe('Error handling', () => {
 
       const result = extractIdsFromUrlComponents({ urlComponents });
 
-      expect(result).toEqual([]);
+      expect(result.productIds).toEqual([]);
       // Check for JSON log output
       expect(consoleErrorSpy).toHaveBeenCalled();
       const logCall = consoleErrorSpy.mock.calls[0][0];
@@ -211,7 +211,7 @@ describe('Error handling', () => {
 
       const result = extractIdsFromUrlComponents({ urlComponents });
 
-      expect(result).toEqual([]);
+      expect(result.productIds).toEqual([]);
       // Check for JSON log output
       expect(consoleErrorSpy).toHaveBeenCalled();
       const logCall = consoleErrorSpy.mock.calls[0][0];

@@ -142,7 +142,7 @@ describe('Path extraction patterns', () => {
 
     const urlComponents = parseUrlComponents(url);
 
-    const ids = [...extractIdsFromUrlComponents({ urlComponents })]
+    const ids = [...extractIdsFromUrlComponents({ urlComponents }).productIds]
       .map((sku) => sku.toLowerCase())
       .sort();
 

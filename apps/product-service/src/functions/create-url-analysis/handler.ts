@@ -5,7 +5,6 @@ import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { ZodError } from 'zod';
 
 import { extractIdsFromUrlComponents } from '@rr/product-id-extractor';
-import { getStoreConfig } from '@rr/store-registry';
 import { parseUrlComponents } from '@rr/url-parser';
 
 import {
@@ -28,13 +27,8 @@ async function processUrl(item: UrlItem): Promise<AnalysisResult> {
     // Parse URL components
     const urlComponents = parseUrlComponents(url);
 
-    // Extract product IDs
-    const productIds = extractIdsFromUrlComponents({ urlComponents, storeId });
-
-    // Get store configuration to retrieve the resolved storeId
-    const { domain } = urlComponents;
-    const storeConfig = getStoreConfig(storeId ? { domain, id: storeId } : { domain });
-    const resolvedStoreId = storeConfig?.id;
+    // Extract product IDs and get resolved storeId (single getStoreConfig call)
+    const { productIds, storeId: resolvedStoreId } = extractIdsFromUrlComponents({ urlComponents, storeId });
 
     return {
       url,

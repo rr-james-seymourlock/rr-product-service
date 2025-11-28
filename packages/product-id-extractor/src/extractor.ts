@@ -5,8 +5,10 @@ import { config } from './config';
 import { createLogger } from './logger';
 import {
   type ExtractIdsInput,
+  type ExtractIdsResult,
   type ProductIds,
   extractIdsInputSchema,
+  extractIdsResultSchema,
   patternExtractorInputSchema,
   productIdsSchema,
 } from './types';
@@ -150,10 +152,12 @@ export const patternExtractor = (input: unknown) => {
  * - Fallback to generic patterns
  * - Query parameter extraction
  * - Safe error handling
+ * - Returns resolved store ID from store-registry
  *
  * Performance:
  * - Development: Full Zod validation (catch integration bugs)
  * - Production: No validation (trust upstream parseUrlComponents)
+ * - Single getStoreConfig call (returns both productIds and storeId)
  *
  * Extraction order:
  * 1. Domain-specific pathname patterns (with optional transformId)
@@ -162,18 +166,18 @@ export const patternExtractor = (input: unknown) => {
  * 4. Generic search patterns
  *
  * @param input - Object containing URL components and optional store ID
- * @returns Frozen, sorted array of product IDs (max 12)
+ * @returns Object with frozen, sorted array of product IDs (max 12) and optional resolved store ID
  *
  * @throws {ZodError} If input or output validation fails (development only)
  *
  * @example
  * ```typescript
  * const urlComponents = parseUrlComponents('https://nike.com/product/abc-123');
- * const ids = extractIdsFromUrlComponents({ urlComponents });
- * // Returns: ['abc-123'] (frozen array)
+ * const { productIds, storeId } = extractIdsFromUrlComponents({ urlComponents });
+ * // Returns: { productIds: ['abc-123'], storeId: '9528' }
  * ```
  */
-export const extractIdsFromUrlComponents = (input: ExtractIdsInput) => {
+export const extractIdsFromUrlComponents = (input: ExtractIdsInput): ExtractIdsResult => {
   // Validate in development to catch integration bugs
   if (process.env['NODE_ENV'] === 'development') {
     extractIdsInputSchema.parse(input);
@@ -186,9 +190,11 @@ export const extractIdsFromUrlComponents = (input: ExtractIdsInput) => {
   const normalizedPathname = pathname ? pathname.toLowerCase() : '';
   const normalizedSearch = search ? search.toLowerCase() : '';
   const results = new Set<string>();
+  let resolvedStoreId: string | undefined;
 
   try {
     const domainConfig = getStoreConfig(storeId ? { domain, id: storeId } : { domain });
+    resolvedStoreId = domainConfig?.id;
 
     // Check domain-specific path patterns first
     addPatternMatches({
@@ -227,6 +233,18 @@ export const extractIdsFromUrlComponents = (input: ExtractIdsInput) => {
   }
 
   const sortedResults = [...results].sort();
-  const validatedResults = productIdsSchema.parse(sortedResults);
-  return Object.freeze(validatedResults) as ProductIds;
+  const validatedProductIds = productIdsSchema.parse(sortedResults);
+  const frozenProductIds = Object.freeze(validatedProductIds) as ProductIds;
+
+  const result: ExtractIdsResult = {
+    productIds: frozenProductIds,
+    ...(resolvedStoreId && { storeId: resolvedStoreId }),
+  };
+
+  // Validate output in development
+  if (process.env['NODE_ENV'] === 'development') {
+    extractIdsResultSchema.parse(result);
+  }
+
+  return result;
 };

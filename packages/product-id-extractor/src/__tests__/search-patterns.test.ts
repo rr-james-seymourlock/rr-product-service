@@ -15,7 +15,7 @@ describe('Domain-specific search patterns', () => {
       storeId: 'test-search-patterns',
     });
 
-    expect(ids).toContain('abc123def');
+    expect(ids.productIds).toContain('abc123def');
   });
 
   it('should extract multiple IDs from multiple search patterns', () => {
@@ -27,8 +27,8 @@ describe('Domain-specific search patterns', () => {
       storeId: 'test-search-patterns',
     });
 
-    expect(ids).toContain('prod123456');
-    expect(ids).toContain('sku-987654');
+    expect(ids.productIds).toContain('prod123456');
+    expect(ids.productIds).toContain('sku-987654');
   });
 
   it('should extract IDs from both pathname and search patterns', () => {
@@ -41,9 +41,9 @@ describe('Domain-specific search patterns', () => {
       storeId: 'test-search-patterns',
     });
 
-    expect(ids).toContain('999888');
-    expect(ids).toContain('query123456');
-    expect(ids).toContain('sku-444333');
+    expect(ids.productIds).toContain('999888');
+    expect(ids.productIds).toContain('query123456');
+    expect(ids.productIds).toContain('sku-444333');
   });
 
   it('should handle URLs with search patterns but no pathname matches', () => {
@@ -55,7 +55,7 @@ describe('Domain-specific search patterns', () => {
       storeId: 'test-search-patterns',
     });
 
-    expect(ids).toContain('searchonly123');
+    expect(ids.productIds).toContain('searchonly123');
   });
 
   it('should verify test store has searchPatterns configured', () => {
@@ -76,7 +76,7 @@ describe('Domain-specific search patterns', () => {
       storeId: 'test-search-patterns',
     });
 
-    expect(ids).toContain('complex-id_123');
+    expect(ids.productIds).toContain('complex-id_123');
   });
 
   it('should respect minimum length requirements in search patterns', () => {
@@ -90,8 +90,8 @@ describe('Domain-specific search patterns', () => {
     });
 
     // Both should be rejected (too short)
-    expect(ids).not.toContain('abc');
-    expect(ids).not.toContain('xyz');
+    expect(ids.productIds).not.toContain('abc');
+    expect(ids.productIds).not.toContain('xyz');
   });
 
   it('should extract IDs from search patterns that meet minimum length', () => {
@@ -103,8 +103,8 @@ describe('Domain-specific search patterns', () => {
       storeId: 'test-search-patterns',
     });
 
-    expect(ids).toContain('abcdef'); // Meets 6 char minimum for productId
-    expect(ids).toContain('wxyz'); // Meets 4 char minimum for sku
+    expect(ids.productIds).toContain('abcdef'); // Meets 6 char minimum for productId
+    expect(ids.productIds).toContain('wxyz'); // Meets 4 char minimum for sku
   });
 
   it('should extract IDs from only search patterns when no pathname match', () => {
@@ -119,8 +119,8 @@ describe('Domain-specific search patterns', () => {
     });
 
     // Should extract from search patterns only
-    expect(ids.length).toBeGreaterThan(0);
-    expect(ids).toContain('search123456');
-    expect(ids).toContain('search-abc');
+    expect(ids.productIds.length).toBeGreaterThan(0);
+    expect(ids.productIds).toContain('search123456');
+    expect(ids.productIds).toContain('search-abc');
   });
 });

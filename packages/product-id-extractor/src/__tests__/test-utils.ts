@@ -46,7 +46,7 @@ export const assertProductIdsMatch = ({
   const urlComponents = parseUrlComponents(url);
 
   // Extract and normalize product IDs
-  const actualIds = [...extractIdsFromUrlComponents({ urlComponents })]
+  const actualIds = [...extractIdsFromUrlComponents({ urlComponents }).productIds]
     .map((sku) => sku.toLowerCase())
     .sort();
 
