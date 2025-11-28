@@ -81,7 +81,7 @@ async function processAsin(
 }
 
 /**
- * Convert ASIN handler
+ * Convert ASINs to product identifiers handler
  *
  * Accepts an array of ASINs in the request body and converts them to
  * product identifiers (UPC, SKU, MPN) using the Synccentric API via @rr/asin-converter.

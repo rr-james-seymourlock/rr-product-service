@@ -149,7 +149,7 @@ registry.registerPath({
           example: {
             error: 'ApiRequestError',
             message: 'Synccentric API request failed: 500 Internal Server Error',
-            statusCode: 502,
+            statusCode: 500,
           },
         },
       },

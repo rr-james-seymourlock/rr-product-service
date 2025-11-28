@@ -36,7 +36,7 @@ export const convertAsinRequestSchema = z
 /**
  * Success result for a single ASIN conversion
  */
-const successResultSchema = z
+const asinSuccessResultSchema = z
   .object({
     asin: z.string().length(10).openapi({
       description: 'The ASIN that was converted',
@@ -70,12 +70,12 @@ const successResultSchema = z
       example: true,
     }),
   })
-  .openapi('SuccessResult');
+  .openapi('AsinSuccessResult');
 
 /**
  * Failure result for a single ASIN conversion
  */
-const failureResultSchema = z
+const asinFailureResultSchema = z
   .object({
     asin: z.string().length(10).openapi({
       description: 'The ASIN that failed conversion',
@@ -94,12 +94,12 @@ const failureResultSchema = z
       example: false,
     }),
   })
-  .openapi('FailureResult');
+  .openapi('AsinFailureResult');
 
 /**
  * Result for a single ASIN conversion (either success or failure)
  */
-const conversionResultSchema = z.union([successResultSchema, failureResultSchema]).openapi('ConversionResult');
+const asinConversionResultSchema = z.union([asinSuccessResultSchema, asinFailureResultSchema]).openapi('AsinConversionResult');
 
 /**
  * Success response schema with per-item results
@@ -107,7 +107,7 @@ const conversionResultSchema = z.union([successResultSchema, failureResultSchema
 export const convertAsinResponseSchema = z
   .object({
     results: z
-      .array(conversionResultSchema)
+      .array(asinConversionResultSchema)
       .openapi({
         description: 'Array of conversion results, one per input ASIN',
         example: [
@@ -165,7 +165,7 @@ export const errorResponseSchema = z
 
 export type ConvertAsinRequest = z.infer<typeof convertAsinRequestSchema>;
 export type ConvertAsinResponse = z.infer<typeof convertAsinResponseSchema>;
-export type SuccessResult = z.infer<typeof successResultSchema>;
-export type FailureResult = z.infer<typeof failureResultSchema>;
-export type ConversionResult = z.infer<typeof conversionResultSchema>;
+export type AsinSuccessResult = z.infer<typeof asinSuccessResultSchema>;
+export type AsinFailureResult = z.infer<typeof asinFailureResultSchema>;
+export type ConversionResult = z.infer<typeof asinConversionResultSchema>;
 export type ErrorResponse = z.infer<typeof errorResponseSchema>;

@@ -48,7 +48,7 @@ async function processUrl(item: UrlItem): Promise<AnalysisResult> {
 }
 
 /**
- * URL analysis handler
+ * Extract product identifiers from URLs handler
  *
  * Accepts an array of URLs (with optional storeIds) in the request body,
  * processes them in parallel, and returns results for each URL.
@@ -56,7 +56,7 @@ async function processUrl(item: UrlItem): Promise<AnalysisResult> {
  *
  * Request Body:
  * - urls (required): Array of URL objects (1-100 items)
- *   - url (required): The product URL to analyze
+ *   - url (required): The product URL to extract identifiers from
  *   - storeId (optional): Store ID to use for specific extraction patterns
  *
  * @param event - API Gateway event with JSON body
@@ -66,13 +66,13 @@ export const createUrlAnalysisHandler = async (
   event: APIGatewayProxyEvent,
 ): Promise<APIGatewayProxyResult> => {
   try {
-    logger.debug({ path: event.path, body: event.body }, 'URL analysis requested');
+    logger.debug({ path: event.path, body: event.body }, 'Product identifier extraction from URLs requested');
 
     // Parse and validate request body
     const requestBody = typeof event.body === 'string' ? JSON.parse(event.body) : event.body;
     const { urls } = createUrlAnalysisRequestSchema.parse(requestBody);
 
-    logger.info({ count: urls.length }, 'Processing URL analysis');
+    logger.info({ count: urls.length }, 'Extracting product identifiers from URLs');
 
     // Process all URLs in parallel
     const startTime = Date.now();
@@ -90,7 +90,7 @@ export const createUrlAnalysisHandler = async (
         failed,
         durationMs,
       },
-      'URL analysis completed',
+      'Product identifier extraction completed',
     );
 
     // Build and validate response
@@ -143,7 +143,7 @@ export const createUrlAnalysisHandler = async (
         stack: error instanceof Error ? error.stack : undefined,
         body: event.body,
       },
-      'Failed to analyze URL',
+      'Failed to extract product identifiers from URLs',
     );
 
     const errorResponse: ErrorResponse = {

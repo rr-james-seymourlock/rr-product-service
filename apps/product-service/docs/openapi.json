@@ -303,108 +303,102 @@
           "urls"
         ]
       },
-      "ConversionResult": {
+      "AsinSuccessResult": {
+        "type": "object",
+        "properties": {
+          "asin": {
+            "type": "string",
+            "minLength": 10,
+            "maxLength": 10,
+            "description": "The ASIN that was converted",
+            "example": "B08N5WRWNW"
+          },
+          "identifiers": {
+            "type": "object",
+            "properties": {
+              "upc": {
+                "type": "string",
+                "description": "Universal Product Code",
+                "example": "012345678905"
+              },
+              "sku": {
+                "type": "string",
+                "description": "Stock Keeping Unit",
+                "example": "SKU-123"
+              },
+              "mpn": {
+                "type": "string",
+                "description": "Manufacturer Part Number",
+                "example": "MPN-456"
+              }
+            },
+            "description": "Structured product identifiers (UPC, SKU, MPN)",
+            "example": {
+              "upc": "012345678905",
+              "sku": "SKU-123",
+              "mpn": "MPN-456"
+            }
+          },
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ],
+            "description": "Indicates successful conversion",
+            "example": true
+          }
+        },
+        "required": [
+          "asin",
+          "identifiers",
+          "success"
+        ]
+      },
+      "AsinFailureResult": {
+        "type": "object",
+        "properties": {
+          "asin": {
+            "type": "string",
+            "minLength": 10,
+            "maxLength": 10,
+            "description": "The ASIN that failed conversion",
+            "example": "B0EXAMPLE"
+          },
+          "error": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Error type/code",
+            "example": "ProductNotFoundError"
+          },
+          "message": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Human-readable error message",
+            "example": "Product not found for ASIN: B0EXAMPLE"
+          },
+          "success": {
+            "type": "boolean",
+            "enum": [
+              false
+            ],
+            "description": "Indicates failed conversion",
+            "example": false
+          }
+        },
+        "required": [
+          "asin",
+          "error",
+          "message",
+          "success"
+        ]
+      },
+      "AsinConversionResult": {
         "anyOf": [
           {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/SuccessResult"
-              },
-              {
-                "properties": {
-                  "asin": {
-                    "type": "string",
-                    "minLength": 10,
-                    "maxLength": 10,
-                    "description": "The ASIN that was converted",
-                    "example": "B08N5WRWNW"
-                  },
-                  "identifiers": {
-                    "type": "object",
-                    "properties": {
-                      "upc": {
-                        "type": "string",
-                        "description": "Universal Product Code",
-                        "example": "012345678905"
-                      },
-                      "sku": {
-                        "type": "string",
-                        "description": "Stock Keeping Unit",
-                        "example": "SKU-123"
-                      },
-                      "mpn": {
-                        "type": "string",
-                        "description": "Manufacturer Part Number",
-                        "example": "MPN-456"
-                      }
-                    },
-                    "description": "Structured product identifiers (UPC, SKU, MPN)",
-                    "example": {
-                      "upc": "012345678905",
-                      "sku": "SKU-123",
-                      "mpn": "MPN-456"
-                    }
-                  },
-                  "success": {
-                    "type": "boolean",
-                    "enum": [
-                      true
-                    ],
-                    "description": "Indicates successful conversion",
-                    "example": true
-                  }
-                },
-                "required": [
-                  "asin",
-                  "identifiers",
-                  "success"
-                ]
-              }
-            ]
+            "$ref": "#/components/schemas/AsinSuccessResult"
           },
           {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/FailureResult"
-              },
-              {
-                "properties": {
-                  "asin": {
-                    "type": "string",
-                    "minLength": 10,
-                    "maxLength": 10,
-                    "description": "The ASIN that failed conversion",
-                    "example": "B0EXAMPLE"
-                  },
-                  "error": {
-                    "type": "string",
-                    "minLength": 1,
-                    "description": "Error type/code",
-                    "example": "ProductNotFoundError"
-                  },
-                  "message": {
-                    "type": "string",
-                    "minLength": 1,
-                    "description": "Human-readable error message",
-                    "example": "Product not found for ASIN: B0EXAMPLE"
-                  },
-                  "success": {
-                    "type": "boolean",
-                    "enum": [
-                      false
-                    ],
-                    "description": "Indicates failed conversion",
-                    "example": false
-                  }
-                },
-                "required": [
-                  "asin",
-                  "error",
-                  "message",
-                  "success"
-                ]
-              }
-            ]
+            "$ref": "#/components/schemas/AsinFailureResult"
           }
         ]
       },
@@ -414,7 +408,7 @@
           "results": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/ConversionResult"
+              "$ref": "#/components/schemas/AsinConversionResult"
             },
             "description": "Array of conversion results, one per input ASIN",
             "example": [
@@ -626,7 +620,7 @@
                 "example": {
                   "error": "ApiRequestError",
                   "message": "Synccentric API request failed: 500 Internal Server Error",
-                  "statusCode": 502
+                  "statusCode": 500
                 }
               }
             }
