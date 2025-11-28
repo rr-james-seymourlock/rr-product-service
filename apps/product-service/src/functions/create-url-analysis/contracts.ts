@@ -178,6 +178,7 @@ export const createUrlAnalysisResponseSchema = z
       example: [
         {
           url: 'https://www.nike.com/t/air-max-90-mens-shoes-6n8tKB/CN8490-100',
+          storeId: '9528',
           productIds: ['cn8490-100', '6n8tkb'],
           count: 2,
           success: true,
