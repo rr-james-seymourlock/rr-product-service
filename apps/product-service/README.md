@@ -34,7 +34,8 @@ This will start the API at `http://localhost:3000` with warm containers for fast
 ### Available Endpoints
 
 - `GET /health` - Health check endpoint
-- `POST /url-analysis` - Analyze product URLs and extract IDs
+- `POST /product-identifiers/urls` - Extract product identifiers from URLs
+- `POST /product-identifiers/asins` - Convert ASINs to product identifiers
 
 ### Test Locally
 
