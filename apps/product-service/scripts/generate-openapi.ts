@@ -45,14 +45,14 @@ registry.registerPath({
   },
 });
 
-// Register URL analysis endpoint
+// Register URL product identifier extraction endpoint
 registry.registerPath({
   method: 'post',
-  path: '/url-analysis',
-  summary: 'Analyze URLs',
+  path: '/product-identifiers/urls',
+  summary: 'Extract Product Identifiers from URLs',
   description:
-    'Analyzes one or more product URLs and extracts product identifiers. Accepts 1-100 URLs per request. Handles partial failures gracefully - each URL is processed independently and results include success/failure status. Returns summary statistics along with individual results. Supports URLs from various e-commerce stores.',
-  tags: ['Product Extraction'],
+    'Extracts product identifiers from one or more product URLs using pattern-based rule sets. Accepts 1-100 URLs per request. Handles partial failures gracefully - each URL is processed independently and results include success/failure status. Returns summary statistics along with individual results. Supports URLs from various e-commerce stores.',
+  tags: ['Product Identifier Extraction'],
   request: {
     body: {
       required: true,
@@ -101,14 +101,14 @@ registry.registerPath({
   },
 });
 
-// Register ASIN conversion endpoint
+// Register ASIN to product identifier conversion endpoint
 registry.registerPath({
   method: 'post',
-  path: '/convert-asin',
-  summary: 'Convert ASIN to Product IDs',
+  path: '/product-identifiers/asins',
+  summary: 'Convert ASINs to Product Identifiers',
   description:
-    'Converts Amazon Standard Identification Numbers (ASINs) to product identifiers including UPC, SKU, and MPN. Uses the Synccentric product database API. Accepts 1-10 ASINs per request and returns all available product identifiers. Handles partial failures gracefully - each ASIN is processed independently and results include success/failure status.',
-  tags: ['Product Extraction'],
+    'Converts Amazon Standard Identification Numbers (ASINs) to product identifiers including GTINs (UPC/EAN), MPN, and SKU. Uses the Synccentric product database API. Accepts 1-10 ASINs per request and returns all available product identifiers. Handles partial failures gracefully - each ASIN is processed independently and results include success/failure status.',
+  tags: ['Product Identifier Extraction'],
   request: {
     body: {
       required: true,
@@ -190,8 +190,8 @@ const document = generator.generateDocument({
       description: 'Service health and monitoring endpoints',
     },
     {
-      name: 'Product Extraction',
-      description: 'Product identifier extraction endpoints',
+      name: 'Product Identifier Extraction',
+      description: 'Extract product identifiers from URLs and ASINs',
     },
   ],
 });

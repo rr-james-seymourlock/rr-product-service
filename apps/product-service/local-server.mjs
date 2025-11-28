@@ -28,19 +28,19 @@ const ROUTES = [
   },
   {
     method: 'POST',
-    path: '/url-analysis',
+    path: '/product-identifiers/urls',
     handler: createUrlAnalysisHandler,
-    description: 'Analyze URLs and extract product IDs (1-100 URLs)',
-    example: `curl -X POST "http://localhost:${PORT}/url-analysis" \\
+    description: 'Extract product identifiers from URLs (1-100 URLs)',
+    example: `curl -X POST "http://localhost:${PORT}/product-identifiers/urls" \\
      -H "Content-Type: application/json" \\
      -d '{"urls":[{"url":"https://www.nike.com/t/air-max-90-mens-shoes-6n8tKB/CN8490-100"},{"url":"https://www.target.com/p/example-product/-/A-12345678"}]}'`,
   },
   {
     method: 'POST',
-    path: '/convert-asin',
+    path: '/product-identifiers/asins',
     handler: convertAsinHandler,
-    description: 'Convert Amazon ASINs to product identifiers (UPC, SKU, MPN)',
-    example: `curl -X POST "http://localhost:${PORT}/convert-asin" \\
+    description: 'Convert ASINs to product identifiers (GTINs/UPC, MPN, SKU)',
+    example: `curl -X POST "http://localhost:${PORT}/product-identifiers/asins" \\
      -H "Content-Type: application/json" \\
      -d '{"asins":["B0FQFB8FMG"]}'`,
   },

@@ -28,8 +28,8 @@
       "description": "Service health and monitoring endpoints"
     },
     {
-      "name": "Product Extraction",
-      "description": "Product identifier extraction endpoints"
+      "name": "Product Identifier Extraction",
+      "description": "Extract product identifiers from URLs and ASINs"
     }
   ],
   "components": {
@@ -512,12 +512,12 @@
         }
       }
     },
-    "/url-analysis": {
+    "/product-identifiers/urls": {
       "post": {
-        "summary": "Analyze URLs",
-        "description": "Analyzes one or more product URLs and extracts product identifiers. Accepts 1-100 URLs per request. Handles partial failures gracefully - each URL is processed independently and results include success/failure status. Returns summary statistics along with individual results. Supports URLs from various e-commerce stores.",
+        "summary": "Extract Product Identifiers from URLs",
+        "description": "Extracts product identifiers from one or more product URLs using pattern-based rule sets. Accepts 1-100 URLs per request. Handles partial failures gracefully - each URL is processed independently and results include success/failure status. Returns summary statistics along with individual results. Supports URLs from various e-commerce stores.",
         "tags": [
-          "Product Extraction"
+          "Product Identifier Extraction"
         ],
         "requestBody": {
           "required": true,
@@ -573,12 +573,12 @@
         }
       }
     },
-    "/convert-asin": {
+    "/product-identifiers/asins": {
       "post": {
-        "summary": "Convert ASIN to Product IDs",
-        "description": "Converts Amazon Standard Identification Numbers (ASINs) to product identifiers including UPC, SKU, and MPN. Uses the Synccentric product database API. Accepts 1-10 ASINs per request and returns all available product identifiers. Handles partial failures gracefully - each ASIN is processed independently and results include success/failure status.",
+        "summary": "Convert ASINs to Product Identifiers",
+        "description": "Converts Amazon Standard Identification Numbers (ASINs) to product identifiers including GTINs (UPC/EAN), MPN, and SKU. Uses the Synccentric product database API. Accepts 1-10 ASINs per request and returns all available product identifiers. Handles partial failures gracefully - each ASIN is processed independently and results include success/failure status.",
         "tags": [
-          "Product Extraction"
+          "Product Identifier Extraction"
         ],
         "requestBody": {
           "required": true,
