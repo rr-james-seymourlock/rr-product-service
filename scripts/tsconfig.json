@@ -1,0 +1,11 @@
+{
+  "extends": "@rr/tsconfig/base.json",
+  "compilerOptions": {
+    "baseUrl": "..",
+    "paths": {
+      "@rr/*": ["./packages/*/src"]
+    }
+  },
+  "include": ["./**/*.ts"],
+  "exclude": ["node_modules"]
+}

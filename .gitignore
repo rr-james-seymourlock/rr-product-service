@@ -72,3 +72,13 @@ cdk.out/
 .cache/
 .history/
 /react-router-supabase-saas-kit-turbo-main
+
+# Local analysis data (Snowflake exports)
+scripts/data/*.csv
+scripts/data/*.json
+!scripts/data/example.csv
+
+# Script-generated reports
+scripts/reports/*.txt
+scripts/reports/*.json
+!scripts/reports/example-report.txt

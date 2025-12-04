@@ -1,0 +1,149 @@
+URL,STORE_ID,STORE_NAME,URL_IDS_CSV,PRODUCT_IDS
+https://www.target.com/p/A-12345678,5246,Target,12345678,"[""5246-12345678""]"
+https://www.target.com/p/A-23456789,5246,Target,23456789,"[""5246-23456789""]"
+https://www.target.com/p/A-34567890,5246,Target,34567890,[]
+https://www.target.com/p/A-45678901,5246,Target,45678901,[]
+https://www.target.com/p/A-56789012,5246,Target,56789012,"[""5246-56789012""]"
+https://www.target.com/p/A-67890123,5246,Target,67890123,[]
+https://www.target.com/p/A-78901234,5246,Target,78901234,"[""5246-78901234""]"
+https://www.target.com/p/A-89012345,5246,Target,89012345,[]
+https://www.target.com/p/A-90123456,5246,Target,90123456,"[""5246-90123456""]"
+https://www.target.com/p/A-01234567,5246,Target,01234567,[]
+https://www.jcrew.com/p/AB123,3865,J.Crew,AB123,"[""3865-AB123""]"
+https://www.jcrew.com/p/BC234,3865,J.Crew,BC234,"[""3865-BC234""]"
+https://www.jcrew.com/p/CD345,3865,J.Crew,CD345,"[""3865-CD345""]"
+https://www.jcrew.com/p/DE456,3865,J.Crew,DE456,"[""3865-DE456""]"
+https://www.jcrew.com/p/EF567,3865,J.Crew,EF567,"[""3865-EF567""]"
+https://www.jcrew.com/p/FG678,3865,J.Crew,FG678,"[""3865-FG678""]"
+https://www.jcrew.com/p/GH789,3865,J.Crew,GH789,"[""3865-GH789""]"
+https://www.jcrew.com/p/HI890,3865,J.Crew,HI890,"[""3865-HI890""]"
+https://www.jcrew.com/p/IJ901,3865,J.Crew,IJ901,"[""3865-IJ901""]"
+https://www.jcrew.com/p/JK012,3865,J.Crew,JK012,"[""3865-JK012""]"
+https://www.nike.com/t/air-max-90-DH8010-100,9528,Nike,DH8010-100,"[""9528-DH8010-100""]"
+https://www.nike.com/t/air-force-1-CW2288-111,9528,Nike,CW2288-111,"[""9528-CW2288-111""]"
+https://www.nike.com/t/dunk-low-DD1391-100,9528,Nike,DD1391-100,[]
+https://www.nike.com/t/blazer-mid-77-BQ6806-100,9528,Nike,BQ6806-100,[]
+https://www.nike.com/t/air-jordan-1-DZ5485-612,9528,Nike,DZ5485-612,"[""9528-DZ5485-612""]"
+https://www.nike.com/t/pegasus-40-DV3853-001,9528,Nike,DV3853-001,[]
+https://www.nike.com/t/metcon-9-DZ2617-001,9528,Nike,,[]
+https://www.nike.com/t/infinity-run-4-DR2670-001,9528,Nike,,[]
+https://www.lowes.com/pd/product/5001234567,10722,Lowe's,5001234567,"[""10722-5001234567""]"
+https://www.lowes.com/pd/product/5002345678,10722,Lowe's,5002345678,"[""10722-5002345678""]"
+https://www.lowes.com/pd/product/5003456789,10722,Lowe's,5003456789,"[""10722-5003456789""]"
+https://www.lowes.com/pd/product/5004567890,10722,Lowe's,5004567890,[]
+https://www.lowes.com/pd/product/5005678901,10722,Lowe's,5005678901,[]
+https://www.lowes.com/pd/product/5006789012,10722,Lowe's,,[]
+https://www.lowes.com/pd/product/5007890123,10722,Lowe's,,[]
+https://www.lowes.com/pd/product/5008901234,10722,Lowe's,5008901234,"[""10722-5008901234""]"
+https://www.lowes.com/pd/product/5009012345,10722,Lowe's,5009012345,[]
+https://www.lowes.com/pd/product/5000123456,10722,Lowe's,5000123456,"[""10722-5000123456""]"
+https://www.ulta.com/p/product-pimprod123456,4207,Ulta Beauty,pimprod123456,"[""4207-pimprod123456""]"
+https://www.ulta.com/p/product-pimprod234567,4207,Ulta Beauty,pimprod234567,[]
+https://www.ulta.com/p/product-pimprod345678,4207,Ulta Beauty,pimprod345678,[]
+https://www.ulta.com/p/product-pimprod456789,4207,Ulta Beauty,pimprod456789,[]
+https://www.ulta.com/p/product-pimprod567890,4207,Ulta Beauty,pimprod567890,"[""4207-pimprod567890""]"
+https://www.ulta.com/p/product-pimprod678901,4207,Ulta Beauty,pimprod678901,[]
+https://www.ulta.com/p/product-pimprod789012,4207,Ulta Beauty,pimprod789012,[]
+https://www.ulta.com/p/product-pimprod890123,4207,Ulta Beauty,pimprod890123,[]
+https://www.ulta.com/p/product-pimprod901234,4207,Ulta Beauty,pimprod901234,[]
+https://www.ulta.com/p/product-pimprod012345,4207,Ulta Beauty,pimprod012345,[]
+https://www.qvc.com/product.A123456.html,8378,QVC,A123456,"[""8378-A123456""]"
+https://www.qvc.com/product.B234567.html,8378,QVC,B234567,"[""8378-B234567""]"
+https://www.qvc.com/product.C345678.html,8378,QVC,C345678,"[""8378-C345678""]"
+https://www.qvc.com/product.D456789.html,8378,QVC,D456789,"[""8378-D456789""]"
+https://www.qvc.com/product.E567890.html,8378,QVC,E567890,"[""8378-E567890""]"
+https://www.qvc.com/product.F678901.html,8378,QVC,F678901,"[""8378-F678901""]"
+https://www.qvc.com/product.G789012.html,8378,QVC,G789012,"[""8378-G789012""]"
+https://www.qvc.com/product.H890123.html,8378,QVC,H890123,"[""8378-H890123""]"
+https://www.qvc.com/product.I901234.html,8378,QVC,I901234,[]
+https://www.qvc.com/product.J012345.html,8378,QVC,J012345,[]
+https://www.lampsplus.com/products/123456,8380,Lamps Plus,,[]
+https://www.lampsplus.com/products/234567,8380,Lamps Plus,,[]
+https://www.lampsplus.com/products/345678,8380,Lamps Plus,,[]
+https://www.lampsplus.com/products/456789,8380,Lamps Plus,,[]
+https://www.lampsplus.com/products/567890,8380,Lamps Plus,567890,[]
+https://www.lampsplus.com/products/678901,8380,Lamps Plus,,[]
+https://www.lampsplus.com/products/789012,8380,Lamps Plus,,[]
+https://www.lampsplus.com/products/890123,8380,Lamps Plus,,[]
+https://www.lampsplus.com/products/901234,8380,Lamps Plus,,[]
+https://www.lampsplus.com/products/012345,8380,Lamps Plus,,[]
+https://www.magneticme.com/products/abc123,20571,Magnetic Me,,[]
+https://www.magneticme.com/products/def456,20571,Magnetic Me,,[]
+https://www.magneticme.com/products/ghi789,20571,Magnetic Me,,[]
+https://www.magneticme.com/products/jkl012,20571,Magnetic Me,,[]
+https://www.magneticme.com/products/mno345,20571,Magnetic Me,,[]
+https://www.magneticme.com/products/pqr678,20571,Magnetic Me,,[]
+https://www.magneticme.com/products/stu901,20571,Magnetic Me,,[]
+https://www.magneticme.com/products/vwx234,20571,Magnetic Me,,[]
+https://www.magneticme.com/products/yza567,20571,Magnetic Me,,[]
+https://www.magneticme.com/products/bcd890,20571,Magnetic Me,,[]
+https://www.gap.com/browse/product.do?pid=123456789,3864,Gap,123456789,"[""3864-123456789""]"
+https://www.gap.com/browse/product.do?pid=234567890,3864,Gap,234567890,"[""3864-234567890""]"
+https://www.gap.com/browse/product.do?pid=345678901,3864,Gap,345678901,"[""3864-345678901""]"
+https://www.gap.com/browse/product.do?pid=456789012,3864,Gap,456789012,"[""3864-456789012""]"
+https://www.gap.com/browse/product.do?pid=567890123,3864,Gap,567890123,"[""3864-567890123""]"
+https://www.gap.com/browse/product.do?pid=678901234,3864,Gap,678901234,"[""3864-678901234""]"
+https://www.gap.com/browse/product.do?pid=789012345,3864,Gap,789012345,"[""3864-789012345""]"
+https://www.gap.com/browse/product.do?pid=890123456,3864,Gap,890123456,[]
+https://www.gap.com/browse/product.do?pid=901234567,3864,Gap,901234567,[]
+https://www.gap.com/browse/product.do?pid=012345678,3864,Gap,012345678,[]
+https://www.oldnavy.com/browse/product.do?pid=111222333,3726,Old Navy,111222333,"[""3726-111222333""]"
+https://www.oldnavy.com/browse/product.do?pid=222333444,3726,Old Navy,222333444,"[""3726-222333444""]"
+https://www.oldnavy.com/browse/product.do?pid=333444555,3726,Old Navy,333444555,"[""3726-333444555""]"
+https://www.oldnavy.com/browse/product.do?pid=444555666,3726,Old Navy,444555666,"[""3726-444555666""]"
+https://www.oldnavy.com/browse/product.do?pid=555666777,3726,Old Navy,555666777,"[""3726-555666777""]"
+https://www.oldnavy.com/browse/product.do?pid=666777888,3726,Old Navy,666777888,"[""3726-666777888""]"
+https://www.oldnavy.com/browse/product.do?pid=777888999,3726,Old Navy,777888999,"[""3726-777888999""]"
+https://www.oldnavy.com/browse/product.do?pid=888999000,3726,Old Navy,888999000,"[""3726-888999000""]"
+https://www.oldnavy.com/browse/product.do?pid=999000111,3726,Old Navy,999000111,[]
+https://www.oldnavy.com/browse/product.do?pid=000111222,3726,Old Navy,000111222,[]
+https://www.vitacost.com/product-123456,3509,Vitacost,,[]
+https://www.vitacost.com/product-234567,3509,Vitacost,,[]
+https://www.vitacost.com/product-345678,3509,Vitacost,,[]
+https://www.vitacost.com/product-456789,3509,Vitacost,,[]
+https://www.vitacost.com/product-567890,3509,Vitacost,,[]
+https://www.vitacost.com/product-678901,3509,Vitacost,,[]
+https://www.vitacost.com/product-789012,3509,Vitacost,,[]
+https://www.vitacost.com/product-890123,3509,Vitacost,,[]
+https://www.vitacost.com/product-901234,3509,Vitacost,,[]
+https://www.vitacost.com/product-012345,3509,Vitacost,,[]
+https://www.temu.com/goods.html?goods_id=601102335483389,21176,TEMU,"601102335483389, 17604201006243",[]
+https://www.temu.com/goods.html?goods_id=601102335483390,21176,TEMU,601102335483390,[]
+https://www.temu.com/goods.html?goods_id=601102335483391,21176,TEMU,601102335483391,[]
+https://www.temu.com/goods.html?goods_id=601102335483392,21176,TEMU,601102335483392,[]
+https://www.temu.com/goods.html?goods_id=601102335483393,21176,TEMU,601102335483393,[]
+https://www.temu.com/goods.html?goods_id=601102335483394,21176,TEMU,601102335483394,[]
+https://www.temu.com/goods.html?goods_id=601102335483395,21176,TEMU,601102335483395,[]
+https://www.temu.com/goods.html?goods_id=601102335483396,21176,TEMU,601102335483396,[]
+https://www.temu.com/goods.html?goods_id=601102335483397,21176,TEMU,601102335483397,[]
+https://www.temu.com/goods.html?goods_id=601102335483398,21176,TEMU,601102335483398,[]
+https://www.bestbuy.com/site/product/6543210,4767,Best Buy,6543210,"[""4767-6543210""]"
+https://www.bestbuy.com/site/product/6543211,4767,Best Buy,6543211,"[""4767-6543211""]"
+https://www.bestbuy.com/site/product/6543212,4767,Best Buy,6543212,[]
+https://www.bestbuy.com/site/product/6543213,4767,Best Buy,6543213,[]
+https://www.bestbuy.com/site/product/6543214,4767,Best Buy,6543214,[]
+https://www.bestbuy.com/site/product/6543215,4767,Best Buy,6543215,"[""4767-6543215""]"
+https://www.bestbuy.com/site/product/6543216,4767,Best Buy,6543216,[]
+https://www.bestbuy.com/site/product/6543217,4767,Best Buy,6543217,[]
+https://www.bestbuy.com/site/product/6543218,4767,Best Buy,6543218,[]
+https://www.bestbuy.com/site/product/6543219,4767,Best Buy,6543219,"[""4767-6543219""]"
+https://www.macys.com/shop/product/abc123,8333,Macy's,abc123,"[""8333-abc123""]"
+https://www.macys.com/shop/product/def456,8333,Macy's,def456,"[""8333-def456""]"
+https://www.macys.com/shop/product/ghi789,8333,Macy's,ghi789,[]
+https://www.macys.com/shop/product/jkl012,8333,Macy's,jkl012,[]
+https://www.macys.com/shop/product/mno345,8333,Macy's,mno345,"[""8333-mno345""]"
+https://www.macys.com/shop/product/pqr678,8333,Macy's,pqr678,[]
+https://www.macys.com/shop/product/stu901,8333,Macy's,stu901,[]
+https://www.macys.com/shop/product/vwx234,8333,Macy's,vwx234,"[""8333-vwx234""]"
+https://www.macys.com/shop/product/yza567,8333,Macy's,yza567,[]
+https://www.macys.com/shop/product/bcd890,8333,Macy's,bcd890,[]
+https://www.samsung.com/us/product/SM-G998UZKAXAA,12109,Samsung,SM-G998UZKAXAA,[]
+https://www.samsung.com/us/product/SM-G998UZKAXAB,12109,Samsung,SM-G998UZKAXAB,[]
+https://www.samsung.com/us/product/SM-G998UZKAXAC,12109,Samsung,SM-G998UZKAXAC,[]
+https://www.samsung.com/us/product/SM-G998UZKAXAD,12109,Samsung,SM-G998UZKAXAD,[]
+https://www.samsung.com/us/product/SM-G998UZKAXAE,12109,Samsung,SM-G998UZKAXAE,[]
+https://www.samsung.com/us/product/SM-G998UZKAXAF,12109,Samsung,SM-G998UZKAXAF,[]
+https://www.samsung.com/us/product/SM-G998UZKAXAG,12109,Samsung,SM-G998UZKAXAG,[]
+https://www.samsung.com/us/product/SM-G998UZKAXAH,12109,Samsung,SM-G998UZKAXAH,[]
+https://www.samsung.com/us/product/SM-G998UZKAXAI,12109,Samsung,SM-G998UZKAXAI,[]
+https://www.samsung.com/us/product/SM-G998UZKAXAJ,12109,Samsung,SM-G998UZKAXAJ,[]
