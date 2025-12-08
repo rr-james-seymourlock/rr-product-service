@@ -1,0 +1,36 @@
+{
+  "name": "@rr/mcp-server",
+  "private": true,
+  "version": "0.1.0",
+  "main": "./build/index.js",
+  "module": true,
+  "bin": {
+    "rr-mcp-server": "./build/index.js"
+  },
+  "exports": {
+    "./prd-manager": "./src/tools/prd-manager.ts"
+  },
+  "scripts": {
+    "clean": "rm -rf .turbo node_modules build",
+    "format": "prettier --check \"**/*.{mjs,ts,md,json}\"",
+    "lint": "eslint .",
+    "build": "tsc",
+    "build:watch": "tsc --watch"
+  },
+  "devDependencies": {
+    "@modelcontextprotocol/sdk": "1.24.3",
+    "@rr/eslint-config": "workspace:*",
+    "@rr/prettier-config": "workspace:*",
+    "@rr/tsconfig": "workspace:*",
+    "@types/node": "catalog:",
+    "zod": "catalog:"
+  },
+  "prettier": "@rr/prettier-config",
+  "typesVersions": {
+    "*": {
+      "*": [
+        "src/*"
+      ]
+    }
+  }
+}
