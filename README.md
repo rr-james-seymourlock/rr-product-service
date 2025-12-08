@@ -32,6 +32,7 @@ rr-product-service/
 │   ├── product-id-extractor/   # ID extraction logic
 │   ├── store-registry/         # Store configuration management
 │   ├── schema-parser/          # JSON-LD schema parsing (future)
+│   ├── mcp-server/             # MCP server for AI coding tools
 │   └── shared/                 # Shared utilities (logger, types)
 └── package.json                # Workspace root
 ```
@@ -125,6 +126,45 @@ pnpm lint
 # Format all code
 pnpm format
 ```
+
+### MCP Server Setup
+
+The project includes an MCP (Model Context Protocol) server that provides tools for AI coding assistants. Currently includes PRD (Product Requirements Document) management tools.
+
+**Build the MCP Server:**
+
+```bash
+pnpm --filter @rr/mcp-server build
+```
+
+**Add to Claude Code:**
+
+```bash
+claude mcp add rr-product-service node <full-path-to>/packages/mcp-server/build/index.js
+```
+
+**Add to Cursor** (in `mcp.json`):
+
+```json
+{
+  "mcpServers": {
+    "rr-product-service": {
+      "command": "node",
+      "args": ["<full-path-to>/packages/mcp-server/build/index.js"]
+    }
+  }
+}
+```
+
+**Add to Codex** (in config YAML):
+
+```yaml
+[mcp_servers.rr-product-service]
+command = "node"
+args = ["<full-path-to>/packages/mcp-server/build/index.js"]
+```
+
+See [packages/mcp-server/README.md](packages/mcp-server/README.md) for full documentation and available tools.
 
 ## Running Locally
 
@@ -433,6 +473,7 @@ Each package has comprehensive documentation:
 - **[@rr/product-id-extractor](packages/product-id-extractor/README.md)** - ID extraction logic
 - **[@rr/store-registry](packages/store-registry/README.md)** - Store configuration management
 - **[@rr/schema-parser](packages/schema-parser/README.md)** - JSON-LD schema parsing
+- **[@rr/mcp-server](packages/mcp-server/README.md)** - MCP server for AI coding tools
 - **[@rr/shared](packages/shared/README.md)** - Shared utilities and logger
 
 See individual package READMEs for detailed API references and usage examples.

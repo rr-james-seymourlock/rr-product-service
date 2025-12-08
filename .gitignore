@@ -82,3 +82,4 @@ scripts/data/*.json
 scripts/reports/*.txt
 scripts/reports/*.json
 !scripts/reports/example-report.txt
+/examples
