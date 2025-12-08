@@ -79,15 +79,29 @@ export class TaskManager {
     this.ROOT_PATH = path;
   }
 
-  // Get task filename from PRD filename
-  private static getTaskFilename(prdFilename: string): string {
-    return prdFilename.replace('.json', '.tasks.json');
+  // Get PRD folder name from filename (handles both old and new formats)
+  private static getPRDFolderName(prdFilename: string): string {
+    // Handle both old format (name.json) and new format (name/prd.json or just name)
+    if (prdFilename.endsWith('.json')) {
+      return prdFilename.replace('.json', '');
+    }
+    return prdFilename;
+  }
+
+  // Get full path to PRD folder
+  private static getPRDFolderPath(prdFilename: string): string {
+    return join(this.PRDS_DIR, this.getPRDFolderName(prdFilename));
+  }
+
+  // Get task file path within PRD folder
+  private static getTaskFilePath(prdFilename: string): string {
+    return join(this.getPRDFolderPath(prdFilename), 'tasks.json');
   }
 
   // Load or create task file for a PRD
   static async loadTaskFile(prdFilename: string): Promise<TaskFile> {
-    const taskFilename = this.getTaskFilename(prdFilename);
-    const filePath = join(this.PRDS_DIR, taskFilename);
+    const filePath = this.getTaskFilePath(prdFilename);
+    const folderName = this.getPRDFolderName(prdFilename);
 
     try {
       const content = await readFile(filePath, 'utf8');
@@ -96,7 +110,7 @@ export class TaskManager {
       // Create new task file if doesn't exist
       const now = new Date().toISOString();
       const taskFile: TaskFile = {
-        prdFilename,
+        prdFilename: folderName,
         tasks: [],
         metadata: {
           version: '1.0',
@@ -113,8 +127,7 @@ export class TaskManager {
 
   // Save task file
   private static async saveTaskFile(prdFilename: string, taskFile: TaskFile): Promise<void> {
-    const taskFilename = this.getTaskFilename(prdFilename);
-    const filePath = join(this.PRDS_DIR, taskFilename);
+    const filePath = this.getTaskFilePath(prdFilename);
 
     // Update metadata
     taskFile.metadata.lastUpdated = new Date().toISOString();

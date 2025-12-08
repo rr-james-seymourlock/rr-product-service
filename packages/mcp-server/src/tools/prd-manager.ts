@@ -95,9 +95,42 @@ export class PRDManager {
     this.ROOT_PATH = path;
   }
 
+  // Get PRD folder path from filename (folder name without extension)
+  private static getPRDFolderName(filename: string): string {
+    // Handle both old format (name.json) and new format (name/prd.json or just name)
+    if (filename.endsWith('.json')) {
+      return filename.replace('.json', '');
+    }
+    return filename;
+  }
+
+  // Get full path to PRD folder
+  private static getPRDFolderPath(filename: string): string {
+    return join(this.PRDS_DIR, this.getPRDFolderName(filename));
+  }
+
+  // Get full path to prd.json file
+  private static getPRDFilePath(filename: string): string {
+    return join(this.getPRDFolderPath(filename), 'prd.json');
+  }
+
+  // Get full path to prd.md file
+  private static getPRDMarkdownPath(filename: string): string {
+    return join(this.getPRDFolderPath(filename), 'prd.md');
+  }
+
   static async ensurePRDsDirectory(): Promise<void> {
     try {
       await mkdir(this.PRDS_DIR, { recursive: true });
+    } catch {
+      // Directory exists
+    }
+  }
+
+  // Ensure PRD folder exists
+  private static async ensurePRDFolder(filename: string): Promise<void> {
+    try {
+      await mkdir(this.getPRDFolderPath(filename), { recursive: true });
     } catch {
       // Directory exists
     }
@@ -115,7 +148,7 @@ export class PRDManager {
   ): Promise<string> {
     await this.ensurePRDsDirectory();
 
-    const filename = `${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.json`;
+    const folderName = title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
     const now = new Date().toISOString().split('T')[0];
 
     const prd: StructuredPRD = {
@@ -163,10 +196,11 @@ export class PRDManager {
       },
     };
 
-    const filePath = join(this.PRDS_DIR, filename);
+    await this.ensurePRDFolder(folderName);
+    const filePath = this.getPRDFilePath(folderName);
     await writeFile(filePath, JSON.stringify(prd, null, 2), 'utf8');
 
-    return filename;
+    return folderName;
   }
 
   static async addUserStory(
@@ -237,11 +271,11 @@ export class PRDManager {
     const prd = await this.loadPRD(filename);
     const content = this.formatPRDMarkdown(prd);
 
-    const markdownFile = filename.replace('.json', '.md');
-    const markdownPath = join(this.PRDS_DIR, markdownFile);
+    const markdownPath = this.getPRDMarkdownPath(filename);
     await writeFile(markdownPath, content, 'utf8');
 
-    return markdownFile;
+    const folderName = this.getPRDFolderName(filename);
+    return `${folderName}/prd.md`;
   }
 
   static async generateImplementationPrompts(filename: string): Promise<string[]> {
@@ -301,20 +335,34 @@ export class PRDManager {
     await this.ensurePRDsDirectory();
 
     try {
-      const files = await readdir(this.PRDS_DIR);
+      const entries = await readdir(this.PRDS_DIR, { withFileTypes: true });
+      const prdFolders: string[] = [];
 
-      return files.filter((file) => file.endsWith('.json'));
+      for (const entry of entries) {
+        if (entry.isDirectory()) {
+          // Check if folder contains a prd.json file
+          try {
+            await readFile(join(this.PRDS_DIR, entry.name, 'prd.json'), 'utf8');
+            prdFolders.push(entry.name);
+          } catch {
+            // Not a valid PRD folder
+          }
+        }
+      }
+
+      return prdFolders;
     } catch {
       return [];
     }
   }
 
   static async getPRDContent(filename: string): Promise<string> {
-    const filePath = join(this.PRDS_DIR, filename);
+    const filePath = this.getPRDFilePath(filename);
     try {
       return await readFile(filePath, 'utf8');
     } catch {
-      throw new Error(`PRD file "${filename}" not found`);
+      const folderName = this.getPRDFolderName(filename);
+      throw new Error(`PRD "${folderName}" not found (expected at ${folderName}/prd.json)`);
     }
   }
 
@@ -493,18 +541,20 @@ export class PRDManager {
 
   // Private methods
   private static async loadPRD(filename: string): Promise<StructuredPRD> {
-    const filePath = join(this.PRDS_DIR, filename);
+    const filePath = this.getPRDFilePath(filename);
     try {
       const content = await readFile(filePath, 'utf8');
       return JSON.parse(content);
     } catch {
-      throw new Error(`PRD file "${filename}" not found`);
+      const folderName = this.getPRDFolderName(filename);
+      throw new Error(`PRD "${folderName}" not found (expected at ${folderName}/prd.json)`);
     }
   }
 
   private static async savePRD(filename: string, prd: StructuredPRD): Promise<void> {
     prd.metadata.lastUpdated = new Date().toISOString().split('T')[0];
-    const filePath = join(this.PRDS_DIR, filename);
+    await this.ensurePRDFolder(filename);
+    const filePath = this.getPRDFilePath(filename);
     await writeFile(filePath, JSON.stringify(prd, null, 2), 'utf8');
   }
 

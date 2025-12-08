@@ -50,10 +50,12 @@
         "Each task includes optional details and testStrategy fields",
         "Tasks inherit structure from parent but can override priority"
       ],
-      "status": "not_started",
+      "status": "completed",
       "priority": "P0",
       "estimatedComplexity": "M",
-      "dependencies": []
+      "dependencies": [],
+      "notes": "Implemented in task-manager.ts with Task interface supporting id, title, description, status, priority, dependencies, subtasks fields. Subtask IDs use parentId.subtaskId format.",
+      "completedAt": "2025-12-08"
     },
     {
       "id": "US002",
@@ -67,10 +69,12 @@
         "Complexity report generated showing distribution across all tasks",
         "Report includes ready-to-use expand commands for complex tasks"
       ],
-      "status": "not_started",
+      "status": "completed",
       "priority": "P0",
       "estimatedComplexity": "M",
-      "dependencies": []
+      "dependencies": [],
+      "notes": "Implemented via analyzeComplexity() and complexity_report tool. Scores 1-10 based on description length, dependencies, details, testStrategy, and priority.",
+      "completedAt": "2025-12-08"
     },
     {
       "id": "US003",
@@ -84,10 +88,12 @@
         "fix_dependencies tool auto-resolves simple dependency issues",
         "Circular dependency detection prevents invalid states"
       ],
-      "status": "not_started",
+      "status": "completed",
       "priority": "P0",
       "estimatedComplexity": "M",
-      "dependencies": []
+      "dependencies": [],
+      "notes": "Implemented with add_dependency, remove_dependency, validate_dependencies, fix_dependencies tools. Includes cycle detection via wouldCreateCycle().",
+      "completedAt": "2025-12-08"
     },
     {
       "id": "US004",
@@ -101,10 +107,12 @@
         "Includes task details, implementation notes, and test strategy in response",
         "Supports filtering by user story or phase"
       ],
-      "status": "not_started",
+      "status": "completed",
       "priority": "P0",
       "estimatedComplexity": "M",
-      "dependencies": []
+      "dependencies": [],
+      "notes": "Implemented via next_task tool in getNextTask(). Returns highest priority pending task with satisfied dependencies, supports userStoryId filter.",
+      "completedAt": "2025-12-08"
     },
     {
       "id": "US005",
@@ -118,10 +126,12 @@
         "expand_all tool processes multiple tasks in complexity order (highest first)",
         "Force flag allows re-expansion of already expanded tasks"
       ],
-      "status": "not_started",
+      "status": "completed",
       "priority": "P1",
       "estimatedComplexity": "M",
-      "dependencies": []
+      "dependencies": [],
+      "notes": "Implemented via expand_task and expand_all tools. Uses generateSubtaskTitles() for meaningful subtask names based on common implementation patterns.",
+      "completedAt": "2025-12-08"
     },
     {
       "id": "US006",
@@ -135,10 +145,12 @@
         "get_project_status shows comprehensive progress overview",
         "Visual indicators for each status type in exports"
       ],
-      "status": "not_started",
+      "status": "completed",
       "priority": "P1",
       "estimatedComplexity": "M",
-      "dependencies": []
+      "dependencies": [],
+      "notes": "Implemented via get_task_progress and get_project_status tools. updateTaskCounts() maintains totals, getProgress() returns completion percentages.",
+      "completedAt": "2025-12-08"
     },
     {
       "id": "US007",
@@ -169,10 +181,12 @@
         "Completing a task auto-updates progress calculations",
         "Status changes cascade appropriately to parent tasks"
       ],
-      "status": "not_started",
+      "status": "completed",
       "priority": "P1",
       "estimatedComplexity": "M",
-      "dependencies": []
+      "dependencies": [],
+      "notes": "Implemented via set_task_status tool. Supports all statuses, requires blockedReason for blocked status, cascadeToSubtasks option, auto-updates parent status.",
+      "completedAt": "2025-12-08"
     },
     {
       "id": "US009",
@@ -186,10 +200,12 @@
         "Details preserved when expanding into subtasks",
         "Export includes all implementation guidance"
       ],
-      "status": "not_started",
+      "status": "completed",
       "priority": "P2",
       "estimatedComplexity": "M",
-      "dependencies": []
+      "dependencies": [],
+      "notes": "Implemented with details and testStrategy fields in Task interface. update_task tool modifies these. next_task output includes both fields.",
+      "completedAt": "2025-12-08"
     },
     {
       "id": "US010",
@@ -203,10 +219,12 @@
         "Includes ready-to-use expand commands for each flagged task",
         "Report exportable as JSON and markdown"
       ],
-      "status": "not_started",
+      "status": "completed",
       "priority": "P2",
       "estimatedComplexity": "M",
-      "dependencies": []
+      "dependencies": [],
+      "notes": "Implemented via complexity_report and analyze_complexity tools. Returns JSON with summary stats and per-task analysis including factors and recommendations.",
+      "completedAt": "2025-12-08"
     },
     {
       "id": "US011",
@@ -221,10 +239,11 @@
         "move_task tool repositions tasks in the hierarchy",
         "clear_subtasks tool removes all subtasks from a parent"
       ],
-      "status": "not_started",
+      "status": "in_progress",
       "priority": "P2",
       "estimatedComplexity": "L",
-      "dependencies": []
+      "dependencies": [],
+      "notes": "Mostly implemented: add_task, add_subtask, remove_task, clear_subtasks all working. move_task not yet implemented."
     },
     {
       "id": "US012",
@@ -265,8 +284,8 @@
     "approver": ""
   },
   "progress": {
-    "overall": 0,
-    "completed": 0,
+    "overall": 83,
+    "completed": 10,
     "total": 12,
     "blocked": 0
   }
