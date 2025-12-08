@@ -155,7 +155,7 @@ export class PRDManager {
       introduction: {
         title,
         overview,
-        lastUpdated: now,
+        lastUpdated: now ?? '',
       },
       problemStatement: {
         problem: problemStatement,
@@ -184,8 +184,8 @@ export class PRDManager {
       },
       metadata: {
         version: '1.0',
-        created: now,
-        lastUpdated: now,
+        created: now ?? '',
+        lastUpdated: now ?? '',
         approver: '',
       },
       progress: {
@@ -258,7 +258,8 @@ export class PRDManager {
       story.notes = notes;
     }
     if (status === 'completed') {
-      story.completedAt = new Date().toISOString().split('T')[0];
+      const today = new Date().toISOString().split('T')[0];
+      story.completedAt = today ?? '';
     }
 
     this.updateProgress(prd);
@@ -478,7 +479,7 @@ export class PRDManager {
     const phase = prd.customPhases[phaseIndex];
 
     // Handle story reassignment
-    if (phase.userStoryIds.length > 0) {
+    if (phase && phase.userStoryIds.length > 0) {
       if (reassignToPhaseId) {
         const targetPhase = prd.customPhases.find((p) => p.id === reassignToPhaseId);
         if (!targetPhase) {
@@ -495,7 +496,8 @@ export class PRDManager {
     prd.customPhases.splice(phaseIndex, 1);
     await this.savePRD(filename, prd);
 
-    return `Phase "${phase.name}" deleted successfully`;
+    const phaseName = phase?.name ?? 'Unknown';
+    return `Phase "${phaseName}" deleted successfully`;
   }
 
   static async assignStoryToPhase(
@@ -552,7 +554,8 @@ export class PRDManager {
   }
 
   private static async savePRD(filename: string, prd: StructuredPRD): Promise<void> {
-    prd.metadata.lastUpdated = new Date().toISOString().split('T')[0];
+    const today = new Date().toISOString().split('T')[0];
+    prd.metadata.lastUpdated = today ?? '';
     await this.ensurePRDFolder(filename);
     const filePath = this.getPRDFilePath(filename);
     await writeFile(filePath, JSON.stringify(prd, null, 2), 'utf8');

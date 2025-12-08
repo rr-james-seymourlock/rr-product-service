@@ -20,18 +20,18 @@ export interface Task {
   status: TaskStatus;
   priority: TaskPriority;
   dependencies: string[]; // Array of task IDs this task depends on
-  details?: string; // Implementation notes
-  testStrategy?: string; // Verification approach
+  details?: string | undefined; // Implementation notes
+  testStrategy?: string | undefined; // Verification approach
   subtasks: Task[];
   // Complexity analysis fields
-  complexity?: ComplexityScore;
-  recommendedSubtasks?: number;
+  complexity?: ComplexityScore | undefined;
+  recommendedSubtasks?: number | undefined;
   // Metadata
-  userStoryId?: string; // Link back to user story
+  userStoryId?: string | undefined; // Link back to user story
   createdAt: string;
   updatedAt: string;
-  completedAt?: string;
-  blockedReason?: string;
+  completedAt?: string | undefined;
+  blockedReason?: string | undefined;
 }
 
 // Task file structure stored alongside PRD
@@ -180,11 +180,12 @@ export class TaskManager {
   }
 
   // Generate next task ID at a given level
-  private static generateNextId(tasks: Task[], parentId?: string): string {
+  private static generateNextId(tasks: Task[], parentId?: string | undefined): string {
     if (!parentId) {
       // Top-level task
       const maxId = tasks.reduce((max, t) => {
-        const num = parseInt(t.id.split('.')[0], 10);
+        const idPart = t.id.split('.')[0];
+        const num = parseInt(idPart ?? '0', 10);
         return num > max ? num : max;
       }, 0);
       return String(maxId + 1);
@@ -198,7 +199,8 @@ export class TaskManager {
 
     const maxSubId = parent.subtasks.reduce((max, t) => {
       const parts = t.id.split('.');
-      const num = parseInt(parts[parts.length - 1], 10);
+      const lastPart = parts[parts.length - 1];
+      const num = parseInt(lastPart ?? '0', 10);
       return num > max ? num : max;
     }, 0);
 
@@ -211,12 +213,12 @@ export class TaskManager {
     title: string,
     description: string,
     options: {
-      priority?: TaskPriority;
-      dependencies?: string[];
-      details?: string;
-      testStrategy?: string;
-      userStoryId?: string;
-      parentId?: string;
+      priority?: TaskPriority | undefined;
+      dependencies?: string[] | undefined;
+      details?: string | undefined;
+      testStrategy?: string | undefined;
+      userStoryId?: string | undefined;
+      parentId?: string | undefined;
     } = {},
   ): Promise<Task> {
     const taskFile = await this.loadTaskFile(prdFilename);
@@ -258,10 +260,10 @@ export class TaskManager {
     title: string,
     description: string,
     options: {
-      priority?: TaskPriority;
-      dependencies?: string[];
-      details?: string;
-      testStrategy?: string;
+      priority?: TaskPriority | undefined;
+      dependencies?: string[] | undefined;
+      details?: string | undefined;
+      testStrategy?: string | undefined;
     } = {},
   ): Promise<Task> {
     return this.addTask(prdFilename, title, description, {
@@ -280,9 +282,9 @@ export class TaskManager {
   static async getTasks(
     prdFilename: string,
     options: {
-      status?: TaskStatus;
-      includeSubtasks?: boolean;
-      userStoryId?: string;
+      status?: TaskStatus | undefined;
+      includeSubtasks?: boolean | undefined;
+      userStoryId?: string | undefined;
     } = {},
   ): Promise<Task[]> {
     const taskFile = await this.loadTaskFile(prdFilename);
@@ -306,8 +308,8 @@ export class TaskManager {
     taskId: string,
     status: TaskStatus,
     options: {
-      blockedReason?: string;
-      cascadeToSubtasks?: boolean;
+      blockedReason?: string | undefined;
+      cascadeToSubtasks?: boolean | undefined;
     } = {},
   ): Promise<Task> {
     const taskFile = await this.loadTaskFile(prdFilename);
@@ -385,7 +387,13 @@ export class TaskManager {
   static async updateTask(
     prdFilename: string,
     taskId: string,
-    updates: Partial<Pick<Task, 'title' | 'description' | 'priority' | 'details' | 'testStrategy'>>,
+    updates: {
+      title?: string | undefined;
+      description?: string | undefined;
+      priority?: TaskPriority | undefined;
+      details?: string | undefined;
+      testStrategy?: string | undefined;
+    },
   ): Promise<Task> {
     const taskFile = await this.loadTaskFile(prdFilename);
     const task = this.findTaskById(taskFile.tasks, taskId);
@@ -640,7 +648,7 @@ export class TaskManager {
   static async getNextTask(
     prdFilename: string,
     options: {
-      userStoryId?: string;
+      userStoryId?: string | undefined;
     } = {},
   ): Promise<{ task: Task | null; reason: string }> {
     const taskFile = await this.loadTaskFile(prdFilename);
@@ -703,8 +711,9 @@ export class TaskManager {
       return a.id.localeCompare(b.id, undefined, { numeric: true });
     });
 
+    const nextTask = actionableTasks[0];
     return {
-      task: actionableTasks[0],
+      task: nextTask ?? null,
       reason: `Found ${actionableTasks.length} actionable task(s). Returning highest priority.`,
     };
   }
@@ -713,7 +722,7 @@ export class TaskManager {
   static async analyzeComplexity(
     prdFilename: string,
     options: {
-      threshold?: ComplexityScore;
+      threshold?: ComplexityScore | undefined;
     } = {},
   ): Promise<ComplexityReport> {
     const taskFile = await this.loadTaskFile(prdFilename);
@@ -855,8 +864,8 @@ export class TaskManager {
     prdFilename: string,
     taskId: string,
     options: {
-      numSubtasks?: number;
-      force?: boolean;
+      numSubtasks?: number | undefined;
+      force?: boolean | undefined;
     } = {},
   ): Promise<{ task: Task; subtasksCreated: number }> {
     const taskFile = await this.loadTaskFile(prdFilename);
@@ -946,8 +955,8 @@ export class TaskManager {
   static async expandAll(
     prdFilename: string,
     options: {
-      threshold?: ComplexityScore;
-      force?: boolean;
+      threshold?: ComplexityScore | undefined;
+      force?: boolean | undefined;
     } = {},
   ): Promise<{ expanded: number; tasks: string[] }> {
     const taskFile = await this.loadTaskFile(prdFilename);
@@ -1069,6 +1078,11 @@ export function registerTaskTools(server: McpServer) {
   createExpandAllTool(server);
 }
 
+// Helper to filter out undefined values from options objects
+function filterUndefined<T extends Record<string, unknown>>(obj: T): Partial<T> {
+  return Object.fromEntries(Object.entries(obj).filter(([, v]) => v !== undefined)) as Partial<T>;
+}
+
 function createGetTasksTool(server: McpServer) {
   return server.tool(
     'get_tasks',
@@ -1082,11 +1096,14 @@ function createGetTasksTool(server: McpServer) {
       }),
     },
     async ({ state }) => {
-      const tasks = await TaskManager.getTasks(state.filename, {
-        status: state.status,
-        includeSubtasks: state.includeSubtasks,
-        userStoryId: state.userStoryId,
-      });
+      const tasks = await TaskManager.getTasks(
+        state.filename,
+        filterUndefined({
+          status: state.status,
+          includeSubtasks: state.includeSubtasks,
+          userStoryId: state.userStoryId,
+        }),
+      );
 
       return {
         content: [{ type: 'text', text: JSON.stringify(tasks, null, 2) }],
@@ -1138,13 +1155,18 @@ function createAddTaskTool(server: McpServer) {
       }),
     },
     async ({ state }) => {
-      const task = await TaskManager.addTask(state.filename, state.title, state.description, {
-        priority: state.priority,
-        dependencies: state.dependencies,
-        details: state.details,
-        testStrategy: state.testStrategy,
-        userStoryId: state.userStoryId,
-      });
+      const task = await TaskManager.addTask(
+        state.filename,
+        state.title,
+        state.description,
+        filterUndefined({
+          priority: state.priority,
+          dependencies: state.dependencies,
+          details: state.details,
+          testStrategy: state.testStrategy,
+          userStoryId: state.userStoryId,
+        }),
+      );
 
       return {
         content: [{ type: 'text', text: `Task ${task.id} created: "${task.title}"` }],
@@ -1175,12 +1197,12 @@ function createAddSubtaskTool(server: McpServer) {
         state.parentId,
         state.title,
         state.description,
-        {
+        filterUndefined({
           priority: state.priority,
           dependencies: state.dependencies,
           details: state.details,
           testStrategy: state.testStrategy,
-        },
+        }),
       );
 
       return {
@@ -1209,10 +1231,15 @@ function createSetTaskStatusTool(server: McpServer) {
       }),
     },
     async ({ state }) => {
-      const task = await TaskManager.setTaskStatus(state.filename, state.taskId, state.status, {
-        blockedReason: state.blockedReason,
-        cascadeToSubtasks: state.cascadeToSubtasks,
-      });
+      const task = await TaskManager.setTaskStatus(
+        state.filename,
+        state.taskId,
+        state.status,
+        filterUndefined({
+          blockedReason: state.blockedReason,
+          cascadeToSubtasks: state.cascadeToSubtasks,
+        }),
+      );
 
       return {
         content: [{ type: 'text', text: `Task ${task.id} status updated to ${task.status}` }],
@@ -1238,7 +1265,7 @@ function createUpdateTaskTool(server: McpServer) {
     },
     async ({ state }) => {
       const { filename, taskId, ...updates } = state;
-      const task = await TaskManager.updateTask(filename, taskId, updates);
+      const task = await TaskManager.updateTask(filename, taskId, filterUndefined(updates));
 
       return {
         content: [{ type: 'text', text: `Task ${task.id} updated` }],
@@ -1423,9 +1450,12 @@ function createNextTaskTool(server: McpServer) {
       }),
     },
     async ({ state }) => {
-      const result = await TaskManager.getNextTask(state.filename, {
-        userStoryId: state.userStoryId,
-      });
+      const result = await TaskManager.getNextTask(
+        state.filename,
+        filterUndefined({
+          userStoryId: state.userStoryId,
+        }),
+      );
 
       if (!result.task) {
         return {
@@ -1571,10 +1601,14 @@ function createExpandTaskTool(server: McpServer) {
       }),
     },
     async ({ state }) => {
-      const result = await TaskManager.expandTask(state.filename, state.taskId, {
-        numSubtasks: state.numSubtasks,
-        force: state.force,
-      });
+      const result = await TaskManager.expandTask(
+        state.filename,
+        state.taskId,
+        filterUndefined({
+          numSubtasks: state.numSubtasks,
+          force: state.force,
+        }),
+      );
 
       let response = `**Task ${result.task.id} Expanded**\n\n`;
       response += `Created ${result.subtasksCreated} subtask(s):\n\n`;
