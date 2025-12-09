@@ -12,9 +12,11 @@ The RR Product Service analyzes product URLs and extracts unique identifiers (SK
 - 📦 **Monorepo Architecture** - Modular packages with shared utilities
 - 🔍 **Smart Extraction** - Store-specific patterns + generic fallbacks for 4,000+ stores
 - 🛡️ **Type-Safe** - Full TypeScript with Zod runtime validation
-- 📊 **Batch Processing** - Analyze 1-100 URLs in parallel
+- 📊 **Batch Processing** - Analyze 1-100 URLs or events in parallel
+- 🛒 **Event Normalization** - Normalize product views and cart events from apps/extensions
+- 🔄 **ASIN Conversion** - Convert Amazon ASINs to UPC/SKU/MPN identifiers
 - 📚 **OpenAPI Docs** - Interactive API documentation with Redoc
-- ✅ **Comprehensive Testing** - 585+ tests with 97%+ coverage
+- ✅ **Comprehensive Testing** - 780+ tests with 97%+ coverage
 
 ## Architecture
 
@@ -31,6 +33,9 @@ rr-product-service/
 │   ├── url-parser/             # URL normalization & parsing
 │   ├── product-id-extractor/   # ID extraction logic
 │   ├── store-registry/         # Store configuration management
+│   ├── product-event-normalizer/ # Product view event normalization
+│   ├── cart-event-normalizer/  # Cart event normalization
+│   ├── asin-converter/         # Amazon ASIN to identifier conversion
 │   ├── schema-parser/          # JSON-LD schema parsing (future)
 │   ├── mcp-server/             # MCP server for AI coding tools
 │   └── shared/                 # Shared utilities (logger, types)
@@ -320,6 +325,149 @@ Analyze multiple URLs in parallel (1-100 URLs per request).
 }
 ```
 
+#### `POST /product-events/normalize`
+
+Normalize raw product view events from apps/extensions into clean product data.
+
+**Request:**
+
+```json
+{
+  "events": [
+    {
+      "store_id": 5246,
+      "store_name": "target.com",
+      "name": "Air Max 270",
+      "url": "https://www.target.com/p/product/-/A-12345678",
+      "sku": ["12345678"],
+      "gtin": ["0123456789012"],
+      "offers": [{ "price": 150, "sku": "SKU123" }]
+    }
+  ]
+}
+```
+
+**Response:**
+
+```json
+{
+  "results": [
+    {
+      "storeId": "5246",
+      "storeName": "target.com",
+      "products": [
+        {
+          "title": "Air Max 270",
+          "url": "https://www.target.com/p/product/-/A-12345678",
+          "productIds": ["12345678", "0123456789012", "SKU123"],
+          "skus": ["12345678", "SKU123"],
+          "gtins": ["0123456789012"],
+          "price": 150
+        }
+      ],
+      "productCount": 1,
+      "success": true
+    }
+  ],
+  "total": 1,
+  "successful": 1,
+  "failed": 0,
+  "totalProducts": 1
+}
+```
+
+#### `POST /cart-events/normalize`
+
+Normalize raw cart events from apps/extensions into clean cart product data.
+
+**Request:**
+
+```json
+{
+  "events": [
+    {
+      "store_id": 5246,
+      "store_name": "target.com",
+      "product_list": [
+        {
+          "name": "Product Name",
+          "url": "https://www.target.com/p/product/-/A-12345678",
+          "item_price": 2999,
+          "quantity": 2
+        }
+      ]
+    }
+  ]
+}
+```
+
+**Response:**
+
+```json
+{
+  "results": [
+    {
+      "storeId": "5246",
+      "storeName": "target.com",
+      "products": [
+        {
+          "title": "Product Name",
+          "url": "https://www.target.com/p/product/-/A-12345678",
+          "productIds": ["12345678"],
+          "price": 2999,
+          "quantity": 2
+        }
+      ],
+      "productCount": 1,
+      "success": true
+    }
+  ],
+  "total": 1,
+  "successful": 1,
+  "failed": 0,
+  "totalProducts": 1
+}
+```
+
+#### `POST /asin/convert`
+
+Convert Amazon ASINs to product identifiers (UPC, SKU, MPN) via Synccentric API.
+
+**Request:**
+
+```json
+{
+  "asins": ["B08N5WRWNW", "B09V3KXJPB"]
+}
+```
+
+**Response:**
+
+```json
+{
+  "results": [
+    {
+      "asin": "B08N5WRWNW",
+      "identifiers": {
+        "upc": "0123456789012",
+        "sku": "SKU123",
+        "mpn": "MPN456"
+      },
+      "success": true
+    },
+    {
+      "asin": "B09V3KXJPB",
+      "error": "ProductNotFoundError",
+      "message": "Product not found for ASIN: B09V3KXJPB",
+      "success": false
+    }
+  ],
+  "total": 2,
+  "successful": 1,
+  "failed": 1
+}
+```
+
 ## Testing
 
 ### Running Tests
@@ -472,6 +620,9 @@ Each package has comprehensive documentation:
 - **[@rr/url-parser](packages/url-parser/README.md)** - URL normalization and parsing
 - **[@rr/product-id-extractor](packages/product-id-extractor/README.md)** - ID extraction logic
 - **[@rr/store-registry](packages/store-registry/README.md)** - Store configuration management
+- **[@rr/product-event-normalizer](packages/product-event-normalizer/README.md)** - Product view event normalization
+- **[@rr/cart-event-normalizer](packages/cart-event-normalizer/README.md)** - Cart event normalization
+- **[@rr/asin-converter](packages/asin-converter/README.md)** - Amazon ASIN to identifier conversion
 - **[@rr/schema-parser](packages/schema-parser/README.md)** - JSON-LD schema parsing
 - **[@rr/mcp-server](packages/mcp-server/README.md)** - MCP server for AI coding tools
 - **[@rr/shared](packages/shared/README.md)** - Shared utilities and logger
@@ -628,15 +779,18 @@ Follow [Conventional Commits](https://www.conventionalcommits.org/):
 
 - URL parsing and normalization
 - Product ID extraction from URL patterns
-- Store configuration for 100+ retailers
+- Store configuration for 80+ retailers
 - Single and batch URL analysis endpoints
+- Product view event normalization (schema.org data extraction)
+- Cart event normalization with product deduplication
+- Amazon ASIN to identifier conversion (via Synccentric API)
 - OpenAPI documentation with Redoc
 - Comprehensive test suites (780+ tests)
-- High-performance optimizations
+- High-performance optimizations for 1000+ RPS
 
 ### Future Enhancements 🚧
 
-- **JSON-LD Schema Parsing** - Extract SKUs from schema.org Product markup
+- **JSON-LD Schema Parsing** - Extract SKUs from schema.org Product markup in HTML
 - **DynamoDB Integration** - Cache URL analysis results
 - **Event-Driven Architecture** - SQS/EventBridge integration
 - **Snowflake Analytics** - Store analysis results for pattern improvement
