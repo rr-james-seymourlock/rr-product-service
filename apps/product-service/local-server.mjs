@@ -10,6 +10,7 @@ import { URL } from 'node:url';
 import { convertAsinHandler } from './src/functions/convert-asin/handler.ts';
 import { healthCheckHandler } from './src/functions/health/handler.ts';
 import { createUrlAnalysisHandler } from './src/functions/create-url-analysis/handler.ts';
+import { normalizeCartViewsHandler } from './src/functions/normalize-cart-views/handler.ts';
 
 const PORT = 3000;
 
@@ -43,6 +44,15 @@ const ROUTES = [
     example: `curl -X POST "http://localhost:${PORT}/product-identifiers/asins" \\
      -H "Content-Type: application/json" \\
      -d '{"asins":["B0FQFB8FMG"]}'`,
+  },
+  {
+    method: 'POST',
+    path: '/cart-views/normalize',
+    handler: normalizeCartViewsHandler,
+    description: 'Normalize cart view data and extract product IDs (1-100 events)',
+    example: `curl -X POST "http://localhost:${PORT}/cart-views/normalize" \\
+     -H "Content-Type: application/json" \\
+     -d '{"events":[{"store_id":8333,"store_name":"Macys","product_list":[{"name":"Sweater","url":"https://macys.com/product?ID=12345","item_price":4900}]}]}'`,
   },
 ];
 

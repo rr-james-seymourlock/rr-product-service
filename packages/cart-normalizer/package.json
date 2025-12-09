@@ -1,11 +1,10 @@
 {
-  "name": "@rr/product-id-extractor",
+  "name": "@rr/cart-normalizer",
   "private": true,
   "version": "0.1.0",
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./config": "./src/config.ts",
     "./types": "./src/types.ts"
   },
   "scripts": {
@@ -16,10 +15,10 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@rr/product-id-extractor": "workspace:*",
     "@rr/shared": "workspace:*",
     "@rr/store-registry": "workspace:*",
     "@rr/url-parser": "workspace:*",
-    "ts-regex-builder": "^1.8.2",
     "zod": "catalog:"
   },
   "devDependencies": {
@@ -27,8 +26,6 @@
     "@rr/prettier-config": "workspace:*",
     "@rr/tsconfig": "workspace:*",
     "@types/node": "catalog:",
-    "@types/safe-regex": "^1.1.6",
-    "safe-regex": "^2.1.1",
     "vitest": "catalog:"
   },
   "prettier": "@rr/prettier-config",
