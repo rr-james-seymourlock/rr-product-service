@@ -1,7 +1,7 @@
 import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
 import { z } from 'zod';
 
-import { CartProductSchema, RawCartEventSchema } from '@rr/cart-normalizer';
+import { CartProductSchema, RawCartEventSchema } from '@rr/cart-event-normalizer';
 
 // Extend Zod with OpenAPI methods
 extendZodWithOpenApi(z);

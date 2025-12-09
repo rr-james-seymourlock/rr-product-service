@@ -1,4 +1,4 @@
-# @rr/product-data-normalizer
+# @rr/product-event-normalizer
 
 Normalize raw product view event data from Rakuten apps and browser extensions into clean, enriched product arrays with comprehensive identifier coverage.
 
@@ -19,7 +19,7 @@ Product view events from PDP pages are richer than cart data, containing schema.
 
 Without normalization, downstream consumers would need to handle all these variations. This package provides:
 
-- **Unified output schema** compatible with `CartProduct` from `@rr/cart-normalizer`
+- **Unified output schema** compatible with `CartProduct` from `@rr/cart-event-normalizer`
 - **ID consolidation** from all available sources with deduplication
 - **Dual convention support** for Toolbar and App field naming
 - **Rich metadata extraction** (brand, category, rating, color, description)
@@ -31,7 +31,7 @@ This package processes product view events in the data pipeline:
 
 ```
 Raw Product View Event → normalizeProductViewEvent → NormalizedProduct[]
-                         (@rr/product-data-normalizer)
+                         (@rr/product-event-normalizer)
 ```
 
 Consumers include:
@@ -69,7 +69,7 @@ Use this package when you need to:
 This library is internal to the rr-product-service monorepo.
 
 ```typescript
-import { normalizeProductViewEvent } from '@rr/product-data-normalizer';
+import { normalizeProductViewEvent } from '@rr/product-event-normalizer';
 ```
 
 ## Usage
@@ -77,7 +77,7 @@ import { normalizeProductViewEvent } from '@rr/product-data-normalizer';
 ### Basic Usage
 
 ```typescript
-import { normalizeProductViewEvent } from '@rr/product-data-normalizer';
+import { normalizeProductViewEvent } from '@rr/product-event-normalizer';
 
 const rawEvent = {
   store_id: 5246,
@@ -114,7 +114,7 @@ const products = normalizeProductViewEvent(rawEvent);
 ### With Validation
 
 ```typescript
-import { normalizeProductViewEvent } from '@rr/product-data-normalizer';
+import { normalizeProductViewEvent } from '@rr/product-event-normalizer';
 
 // Enable Zod schema validation for debugging
 const products = normalizeProductViewEvent(rawEvent, { validate: true });
@@ -123,7 +123,7 @@ const products = normalizeProductViewEvent(rawEvent, { validate: true });
 ### Without Metadata
 
 ```typescript
-import { normalizeProductViewEvent } from '@rr/product-data-normalizer';
+import { normalizeProductViewEvent } from '@rr/product-event-normalizer';
 
 // Skip metadata fields for leaner output
 const products = normalizeProductViewEvent(rawEvent, { includeMetadata: false });
@@ -133,7 +133,7 @@ const products = normalizeProductViewEvent(rawEvent, { includeMetadata: false })
 ### Disable URL Extraction Fallback
 
 ```typescript
-import { normalizeProductViewEvent } from '@rr/product-data-normalizer';
+import { normalizeProductViewEvent } from '@rr/product-event-normalizer';
 
 // Skip URL-based ID extraction
 const products = normalizeProductViewEvent(rawEvent, { extractProductIds: false });
@@ -333,7 +333,7 @@ import {
   ToolbarOfferSchema,
   AppOfferSchema,
   NormalizedProductSchema,
-} from '@rr/product-data-normalizer';
+} from '@rr/product-event-normalizer';
 ```
 
 ### Exported Types
@@ -345,7 +345,7 @@ import type {
   AppOffer,
   NormalizedProduct,
   NormalizeProductViewEventOptions,
-} from '@rr/product-data-normalizer';
+} from '@rr/product-event-normalizer';
 ```
 
 ## Testing
@@ -353,7 +353,7 @@ import type {
 Run tests:
 
 ```bash
-pnpm --filter @rr/product-data-normalizer test
+pnpm --filter @rr/product-event-normalizer test
 ```
 
 ### Test Coverage
@@ -385,5 +385,5 @@ When updating:
 1. Update schemas in `src/types.ts` for new fields
 2. Update extraction logic in `src/normalizer.ts`
 3. Add test fixtures for new edge cases
-4. Run full test suite: `pnpm --filter @rr/product-data-normalizer test`
+4. Run full test suite: `pnpm --filter @rr/product-event-normalizer test`
 5. Update this README with new examples

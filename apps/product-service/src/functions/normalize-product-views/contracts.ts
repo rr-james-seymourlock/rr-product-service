@@ -1,7 +1,7 @@
 import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
 import { z } from 'zod';
 
-import { NormalizedProductSchema, RawProductViewEventSchema } from '@rr/product-data-normalizer';
+import { NormalizedProductSchema, RawProductViewEventSchema } from '@rr/product-event-normalizer';
 
 // Extend Zod with OpenAPI methods
 extendZodWithOpenApi(z);

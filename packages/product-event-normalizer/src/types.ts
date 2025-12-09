@@ -135,7 +135,7 @@ export type RawProductViewEvent = z.infer<typeof RawProductViewEventSchema>;
 
 /**
  * Normalized product output
- * Compatible with CartProduct from @rr/cart-normalizer
+ * Compatible with CartProduct from @rr/cart-event-normalizer
  */
 export const NormalizedProductSchema = z.object({
   // Core fields (compatible with CartProduct)

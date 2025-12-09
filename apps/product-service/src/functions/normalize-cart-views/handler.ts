@@ -4,7 +4,7 @@ import httpJsonBodyParser from '@middy/http-json-body-parser';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { ZodError } from 'zod';
 
-import { type RawCartEvent, normalizeCartEvent } from '@rr/cart-normalizer';
+import { type RawCartEvent, normalizeCartEvent } from '@rr/cart-event-normalizer';
 import { coerceStoreId } from '@rr/shared/utils';
 
 import {

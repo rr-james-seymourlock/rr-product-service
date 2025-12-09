@@ -1,14 +1,14 @@
 {
-  "prdFilename": "product-data-normalizer-package",
+  "prdFilename": "product-event-normalizer-package",
   "tasks": [
     {
       "id": "1",
-      "title": "Create @rr/product-data-normalizer package structure",
-      "description": "Set up the new package with package.json, tsconfig.json, and directory structure following the same patterns as @rr/cart-normalizer",
+      "title": "Create @rr/product-event-normalizer package structure",
+      "description": "Set up the new package with package.json, tsconfig.json, and directory structure following the same patterns as @rr/cart-event-normalizer",
       "status": "done",
       "priority": "high",
       "dependencies": [],
-      "details": "Create packages/product-data-normalizer/ with:\n- package.json with name @rr/product-data-normalizer, exports for main entry\n- tsconfig.json extending @rr/tsconfig\n- src/index.ts for exports\n- src/types.ts for Zod schemas and types\n- src/normalizer.ts for main logic\n- Add to pnpm-workspace.yaml if needed",
+      "details": "Create packages/product-data-normalizer/ with:\n- package.json with name @rr/product-event-normalizer, exports for main entry\n- tsconfig.json extending @rr/tsconfig\n- src/index.ts for exports\n- src/types.ts for Zod schemas and types\n- src/normalizer.ts for main logic\n- Add to pnpm-workspace.yaml if needed",
       "testStrategy": "Verify package builds and can be imported by other packages",
       "subtasks": [],
       "userStoryId": "US001",

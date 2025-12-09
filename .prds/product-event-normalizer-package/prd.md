@@ -1,8 +1,8 @@
-# Product Data Normalizer Package
+# Product Event Normalizer Package
 
 ## Introduction
 
-A TypeScript package (@rr/product-data-normalizer) that processes raw product view events from Rakuten apps and browser extensions (PDP page visits), normalizes the structure, extracts and consolidates product identifiers from multiple sources (schema.org data, URL patterns, direct SKU/GTIN fields), and outputs a clean array of enriched product objects with comprehensive identifier coverage.
+A TypeScript package (@rr/product-event-normalizer) that processes raw product view events from Rakuten apps and browser extensions (PDP page visits), normalizes the structure, extracts and consolidates product identifiers from multiple sources (schema.org data, URL patterns, direct SKU/GTIN fields), and outputs a clean array of enriched product objects with comprehensive identifier coverage.
 
 **Last Updated:** 2025-12-09
 **Version:** 1.0
@@ -57,7 +57,7 @@ A lightweight package that accepts raw product view event JSON and outputs an ar
 
 **Acceptance Criteria:**
 - normalizeProductViewEvent() accepts RawProductViewEvent and returns readonly CartProduct[]
-- Output schema matches CartProduct from @rr/cart-normalizer (title, url, imageUrl, storeId, price, productIds)
+- Output schema matches CartProduct from @rr/cart-event-normalizer (title, url, imageUrl, storeId, price, productIds)
 - store_id is coerced to string using coerceStoreId utility
 - Empty/invalid events return empty frozen array
 - All output arrays and objects are frozen (immutable)

@@ -1,5 +1,5 @@
 {
-  "name": "@rr/cart-normalizer",
+  "name": "@rr/product-event-normalizer",
   "private": true,
   "version": "0.1.0",
   "type": "module",
