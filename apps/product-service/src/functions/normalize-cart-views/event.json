@@ -1,0 +1,42 @@
+{
+  "body": "{\"events\":[{\"store_id\":8333,\"store_name\":\"Macy's\",\"product_list\":[{\"name\":\"Women's Cotton Sweater\",\"url\":\"https://macys.com/shop/product?ID=12345\",\"item_price\":4900,\"quantity\":1}]}]}",
+  "resource": "/cart-views/normalize",
+  "path": "/cart-views/normalize",
+  "httpMethod": "POST",
+  "headers": {
+    "Content-Type": "application/json"
+  },
+  "queryStringParameters": null,
+  "pathParameters": null,
+  "stageVariables": null,
+  "requestContext": {
+    "resourceId": "123456",
+    "resourcePath": "/cart-views/normalize",
+    "httpMethod": "POST",
+    "extendedRequestId": "test-id",
+    "requestTime": "09/Apr/2015:12:34:56 +0000",
+    "path": "/cart-views/normalize",
+    "accountId": "123456789012",
+    "protocol": "HTTP/1.1",
+    "stage": "test",
+    "requestTimeEpoch": 1428582896000,
+    "requestId": "c6af9ac6-7b61-11e6-9a41-93e8deadbeef",
+    "identity": {
+      "cognitoIdentityPoolId": null,
+      "accountId": null,
+      "cognitoIdentityId": null,
+      "caller": null,
+      "sourceIp": "127.0.0.1",
+      "principalOrgId": null,
+      "accessKey": null,
+      "cognitoAuthenticationType": null,
+      "cognitoAuthenticationProvider": null,
+      "userArn": null,
+      "userAgent": "Custom User Agent String",
+      "user": null
+    },
+    "domainName": "test.execute-api.us-east-1.amazonaws.com",
+    "apiId": "1234567890"
+  },
+  "isBase64Encoded": false
+}

@@ -30,6 +30,10 @@
     {
       "name": "Product Identifier Extraction",
       "description": "Extract product identifiers from URLs and ASINs"
+    },
+    {
+      "name": "Cart Data Processing",
+      "description": "Normalize and process cart events from apps and extensions"
     }
   ],
   "components": {
@@ -39,10 +43,7 @@
         "properties": {
           "status": {
             "type": "string",
-            "enum": [
-              "healthy",
-              "unhealthy"
-            ],
+            "enum": ["healthy", "unhealthy"],
             "description": "Current health status of the service",
             "example": "healthy"
           },
@@ -71,13 +72,7 @@
             "example": "production"
           }
         },
-        "required": [
-          "status",
-          "service",
-          "timestamp",
-          "version",
-          "environment"
-        ]
+        "required": ["status", "service", "timestamp", "version", "environment"]
       },
       "SuccessResult": {
         "type": "object",
@@ -104,10 +99,7 @@
             },
             "maxItems": 12,
             "description": "Array of extracted product IDs (max 12)",
-            "example": [
-              "cn8490-100",
-              "6n8tkb"
-            ]
+            "example": ["cn8490-100", "6n8tkb"]
           },
           "count": {
             "type": "integer",
@@ -118,19 +110,12 @@
           },
           "success": {
             "type": "boolean",
-            "enum": [
-              true
-            ],
+            "enum": [true],
             "description": "Indicates successful processing",
             "example": true
           }
         },
-        "required": [
-          "url",
-          "productIds",
-          "count",
-          "success"
-        ]
+        "required": ["url", "productIds", "count", "success"]
       },
       "FailureResult": {
         "type": "object",
@@ -155,19 +140,12 @@
           },
           "success": {
             "type": "boolean",
-            "enum": [
-              false
-            ],
+            "enum": [false],
             "description": "Indicates failed processing",
             "example": false
           }
         },
-        "required": [
-          "url",
-          "error",
-          "message",
-          "success"
-        ]
+        "required": ["url", "error", "message", "success"]
       },
       "AnalysisResult": {
         "anyOf": [
@@ -192,10 +170,7 @@
               {
                 "url": "https://www.nike.com/t/air-max-90-mens-shoes-6n8tKB/CN8490-100",
                 "storeId": "9528",
-                "productIds": [
-                  "cn8490-100",
-                  "6n8tkb"
-                ],
+                "productIds": ["cn8490-100", "6n8tkb"],
                 "count": 2,
                 "success": true
               },
@@ -226,12 +201,7 @@
             "example": 1
           }
         },
-        "required": [
-          "results",
-          "total",
-          "successful",
-          "failed"
-        ]
+        "required": ["results", "total", "successful", "failed"]
       },
       "ErrorResponse": {
         "type": "object",
@@ -256,11 +226,7 @@
             "example": 400
           }
         },
-        "required": [
-          "error",
-          "message",
-          "statusCode"
-        ]
+        "required": ["error", "message", "statusCode"]
       },
       "UrlItem": {
         "type": "object",
@@ -280,9 +246,7 @@
             "example": "9528"
           }
         },
-        "required": [
-          "url"
-        ]
+        "required": ["url"]
       },
       "CreateUrlAnalysisRequest": {
         "type": "object",
@@ -306,9 +270,7 @@
             ]
           }
         },
-        "required": [
-          "urls"
-        ]
+        "required": ["urls"]
       },
       "AsinSuccessResult": {
         "type": "object",
@@ -348,18 +310,12 @@
           },
           "success": {
             "type": "boolean",
-            "enum": [
-              true
-            ],
+            "enum": [true],
             "description": "Indicates successful conversion",
             "example": true
           }
         },
-        "required": [
-          "asin",
-          "identifiers",
-          "success"
-        ]
+        "required": ["asin", "identifiers", "success"]
       },
       "AsinFailureResult": {
         "type": "object",
@@ -385,19 +341,12 @@
           },
           "success": {
             "type": "boolean",
-            "enum": [
-              false
-            ],
+            "enum": [false],
             "description": "Indicates failed conversion",
             "example": false
           }
         },
-        "required": [
-          "asin",
-          "error",
-          "message",
-          "success"
-        ]
+        "required": ["asin", "error", "message", "success"]
       },
       "AsinConversionResult": {
         "anyOf": [
@@ -455,12 +404,7 @@
             "example": 1
           }
         },
-        "required": [
-          "results",
-          "total",
-          "successful",
-          "failed"
-        ]
+        "required": ["results", "total", "successful", "failed"]
       },
       "ConvertAsinRequest": {
         "type": "object",
@@ -478,15 +422,409 @@
             "minItems": 1,
             "maxItems": 10,
             "description": "Array of Amazon ASINs to convert to product identifiers (UPC, SKU, MPN)",
+            "example": ["B08N5WRWNW", "B07ZPKN6YR"]
+          }
+        },
+        "required": ["asins"]
+      },
+      "NormalizedProduct": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "imageUrl": {
+            "type": "string"
+          },
+          "storeId": {
+            "type": "string"
+          },
+          "price": {
+            "type": "number"
+          },
+          "quantity": {
+            "type": "number"
+          },
+          "lineTotal": {
+            "type": "number"
+          },
+          "productIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": ["productIds"]
+      },
+      "NormalizationResult": {
+        "anyOf": [
+          {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SuccessResult"
+              },
+              {
+                "properties": {
+                  "storeId": {
+                    "type": "string",
+                    "description": "Store ID from the cart event (coerced to string)",
+                    "example": "8333"
+                  },
+                  "storeName": {
+                    "type": "string",
+                    "description": "Store name from the cart event",
+                    "example": "Macy's"
+                  },
+                  "products": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/NormalizedProduct"
+                    },
+                    "description": "Array of normalized products with extracted IDs",
+                    "example": [
+                      {
+                        "title": "Women's Cotton Sweater",
+                        "url": "https://macys.com/shop/product?ID=12345",
+                        "storeId": "8333",
+                        "price": 4900,
+                        "quantity": 1,
+                        "productIds": ["12345"]
+                      }
+                    ]
+                  },
+                  "productCount": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Number of valid products after normalization",
+                    "example": 1
+                  },
+                  "success": {
+                    "type": "boolean",
+                    "enum": [true],
+                    "description": "Indicates successful processing",
+                    "example": true
+                  }
+                },
+                "required": ["products", "productCount", "success"]
+              }
+            ]
+          },
+          {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/FailureResult"
+              },
+              {
+                "properties": {
+                  "error": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Error type/code",
+                    "example": "ValidationError"
+                  },
+                  "message": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Human-readable error message",
+                    "example": "Invalid cart event structure"
+                  },
+                  "success": {
+                    "type": "boolean",
+                    "enum": [false],
+                    "description": "Indicates failed processing",
+                    "example": false
+                  }
+                },
+                "required": ["error", "message", "success"]
+              }
+            ]
+          }
+        ]
+      },
+      "NormalizeCartViewsResponse": {
+        "type": "object",
+        "properties": {
+          "results": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NormalizationResult"
+            },
+            "description": "Array of normalization results, one per input cart view (order matches input)",
             "example": [
-              "B08N5WRWNW",
-              "B07ZPKN6YR"
+              {
+                "storeId": "8333",
+                "storeName": "Macy's",
+                "products": [
+                  {
+                    "title": "Women's Cotton Sweater",
+                    "url": "https://macys.com/shop/product?ID=12345",
+                    "storeId": "8333",
+                    "price": 4900,
+                    "quantity": 1,
+                    "productIds": ["12345"]
+                  }
+                ],
+                "productCount": 1,
+                "success": true
+              }
+            ]
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Total number of cart views processed",
+            "example": 1
+          },
+          "successful": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Number of successfully processed cart views",
+            "example": 1
+          },
+          "failed": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Number of failed cart views",
+            "example": 0
+          },
+          "totalProducts": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Total number of normalized products across all views",
+            "example": 1
+          }
+        },
+        "required": ["results", "total", "successful", "failed", "totalProducts"]
+      },
+      "CartViewItem": {
+        "type": "object",
+        "properties": {
+          "store_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              }
+            ]
+          },
+          "store_name": {
+            "type": "string"
+          },
+          "product_list": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "url": {
+                  "type": "string"
+                },
+                "image_url": {
+                  "type": "string"
+                },
+                "item_price": {
+                  "type": "number"
+                },
+                "line_total": {
+                  "type": "number"
+                },
+                "quantity": {
+                  "type": "number"
+                }
+              }
+            },
+            "default": []
+          },
+          "cart_total": {
+            "type": "number"
+          },
+          "cart_total_qty": {
+            "type": "number"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "app_version": {
+            "type": "string"
+          },
+          "application_type": {
+            "type": "string"
+          },
+          "application_subtype": {
+            "type": "string"
+          },
+          "browser": {
+            "type": "string"
+          },
+          "browser_agent": {
+            "type": "string"
+          },
+          "client": {
+            "type": "string"
+          },
+          "platform": {
+            "type": "string"
+          },
+          "page_url": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "session_id": {
+            "type": "number"
+          },
+          "tenant": {
+            "type": "string"
+          },
+          "timestamp": {
+            "type": "number"
+          },
+          "toolbarid": {
+            "type": "number"
+          },
+          "tracking_ticket": {
+            "type": "string"
+          },
+          "free_shipping": {
+            "type": ["boolean", "null"]
+          },
+          "member_guid": {
+            "type": "string"
+          },
+          "user_id": {
+            "type": "string"
+          },
+          "visit_id": {
+            "type": "string"
+          },
+          "device_platform": {
+            "type": "string"
+          },
+          "os_version": {
+            "type": "string"
+          },
+          "created_ts": {
+            "type": "string"
+          },
+          "created_ts_ms": {
+            "type": "string"
+          },
+          "context_device": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "manufacturer": {
+                "type": "string"
+              },
+              "model": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "type": {
+                "type": "string"
+              },
+              "adTrackingEnabled": {
+                "type": "boolean"
+              },
+              "advertisingId": {
+                "type": "string"
+              }
+            }
+          },
+          "context_location": {
+            "type": "object",
+            "properties": {
+              "latitude": {
+                "type": "number"
+              },
+              "longitude": {
+                "type": "number"
+              }
+            }
+          },
+          "context_network": {
+            "type": "object",
+            "properties": {
+              "carrier": {
+                "type": "string"
+              },
+              "cellular": {
+                "type": "boolean"
+              },
+              "wifi": {
+                "type": "boolean"
+              },
+              "bluetooth": {
+                "type": "boolean"
+              }
+            }
+          },
+          "context_os": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "version": {
+                "type": "string"
+              }
+            }
+          },
+          "context_timezone": {
+            "type": "string"
+          },
+          "device_ids": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "app_install_ts": {
+            "type": "number"
+          }
+        }
+      },
+      "NormalizeCartViewsRequest": {
+        "type": "object",
+        "properties": {
+          "events": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CartViewItem"
+            },
+            "minItems": 1,
+            "maxItems": 100,
+            "description": "Array of raw cart view events to normalize (1-100 per request)",
+            "example": [
+              {
+                "store_id": 8333,
+                "store_name": "Macy's",
+                "product_list": [
+                  {
+                    "name": "Women's Cotton Sweater",
+                    "url": "https://macys.com/shop/product?ID=12345",
+                    "item_price": 4900,
+                    "quantity": 1
+                  }
+                ]
+              }
             ]
           }
         },
-        "required": [
-          "asins"
-        ]
+        "required": ["events"]
       }
     },
     "parameters": {}
@@ -496,9 +834,7 @@
       "get": {
         "summary": "Health Check",
         "description": "Health check endpoint for monitoring and load balancer probes",
-        "tags": [
-          "Monitoring"
-        ],
+        "tags": ["Monitoring"],
         "responses": {
           "200": {
             "description": "Service is healthy",
@@ -517,9 +853,7 @@
       "post": {
         "summary": "Extract Product Identifiers from URLs",
         "description": "Extracts product identifiers from one or more product URLs using pattern-based rule sets. Accepts 1-100 URLs per request. Handles partial failures gracefully - each URL is processed independently and results include success/failure status. Returns summary statistics along with individual results. Supports URLs from various e-commerce stores.",
-        "tags": [
-          "Product Identifier Extraction"
-        ],
+        "tags": ["Product Identifier Extraction"],
         "requestBody": {
           "required": true,
           "content": {
@@ -578,9 +912,7 @@
       "post": {
         "summary": "Convert ASINs to Product Identifiers",
         "description": "Converts Amazon Standard Identification Numbers (ASINs) to product identifiers including GTINs (UPC/EAN), MPN, and SKU. Uses the Synccentric product database API. Accepts 1-10 ASINs per request and returns all available product identifiers. Handles partial failures gracefully - each ASIN is processed independently and results include success/failure status.",
-        "tags": [
-          "Product Identifier Extraction"
-        ],
+        "tags": ["Product Identifier Extraction"],
         "requestBody": {
           "required": true,
           "content": {
@@ -627,6 +959,119 @@
                 "example": {
                   "error": "ApiRequestError",
                   "message": "Synccentric API request failed: 500 Internal Server Error",
+                  "statusCode": 500
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/cart-views/normalize": {
+      "post": {
+        "summary": "Normalize Cart Views",
+        "description": "Normalizes raw cart view data from Rakuten apps and extensions, extracting product identifiers from URLs and standardizing the data format. Accepts 1-100 cart views per request. Handles partial failures gracefully - each view is processed independently and results include success/failure status. Returns normalized products with extracted IDs and summary statistics.",
+        "tags": ["Cart Data Processing"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NormalizeCartViewsRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully normalized cart views",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NormalizeCartViewsResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request parameters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorResponse"
+                    },
+                    {
+                      "properties": {
+                        "error": {
+                          "type": "string",
+                          "minLength": 1,
+                          "description": "Error type/code",
+                          "example": "ValidationError"
+                        },
+                        "message": {
+                          "type": "string",
+                          "minLength": 1,
+                          "description": "Human-readable error message",
+                          "example": "events: At least one cart event is required"
+                        },
+                        "statusCode": {
+                          "type": "integer",
+                          "minimum": 400,
+                          "maximum": 599,
+                          "description": "HTTP status code",
+                          "example": 400
+                        }
+                      }
+                    }
+                  ]
+                },
+                "example": {
+                  "error": "ValidationError",
+                  "message": "events: At least one cart view is required",
+                  "statusCode": 400
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorResponse"
+                    },
+                    {
+                      "properties": {
+                        "error": {
+                          "type": "string",
+                          "minLength": 1,
+                          "description": "Error type/code",
+                          "example": "ValidationError"
+                        },
+                        "message": {
+                          "type": "string",
+                          "minLength": 1,
+                          "description": "Human-readable error message",
+                          "example": "events: At least one cart event is required"
+                        },
+                        "statusCode": {
+                          "type": "integer",
+                          "minimum": 400,
+                          "maximum": 599,
+                          "description": "HTTP status code",
+                          "example": 400
+                        }
+                      }
+                    }
+                  ]
+                },
+                "example": {
+                  "error": "InternalServerError",
+                  "message": "An unexpected error occurred",
                   "statusCode": 500
                 }
               }

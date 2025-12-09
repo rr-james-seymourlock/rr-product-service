@@ -20,6 +20,7 @@ try {
       health: 'src/functions/health/handler.ts',
       'create-url-analysis': 'src/functions/create-url-analysis/handler.ts',
       'convert-asin': 'src/functions/convert-asin/handler.ts',
+      'normalize-cart-views': 'src/functions/normalize-cart-views/handler.ts',
     },
     bundle: true,
     platform: 'node',

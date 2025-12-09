@@ -19,6 +19,11 @@ import {
   errorResponseSchema,
 } from '../src/functions/create-url-analysis/contracts';
 import { healthResponseSchema } from '../src/functions/health/contracts';
+import {
+  errorResponseSchema as cartErrorResponseSchema,
+  normalizeCartViewsRequestSchema,
+  normalizeCartViewsResponseSchema,
+} from '../src/functions/normalize-cart-views/contracts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -157,6 +162,62 @@ registry.registerPath({
   },
 });
 
+// Register cart views normalization endpoint
+registry.registerPath({
+  method: 'post',
+  path: '/cart-views/normalize',
+  summary: 'Normalize Cart Views',
+  description:
+    'Normalizes raw cart view data from Rakuten apps and extensions, extracting product identifiers from URLs and standardizing the data format. Accepts 1-100 cart views per request. Handles partial failures gracefully - each view is processed independently and results include success/failure status. Returns normalized products with extracted IDs and summary statistics.',
+  tags: ['Cart Data Processing'],
+  request: {
+    body: {
+      required: true,
+      content: {
+        'application/json': {
+          schema: normalizeCartViewsRequestSchema,
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: 'Successfully normalized cart views',
+      content: {
+        'application/json': {
+          schema: normalizeCartViewsResponseSchema,
+        },
+      },
+    },
+    400: {
+      description: 'Invalid request parameters',
+      content: {
+        'application/json': {
+          schema: cartErrorResponseSchema,
+          example: {
+            error: 'ValidationError',
+            message: 'events: At least one cart view is required',
+            statusCode: 400,
+          },
+        },
+      },
+    },
+    500: {
+      description: 'Internal server error',
+      content: {
+        'application/json': {
+          schema: cartErrorResponseSchema,
+          example: {
+            error: 'InternalServerError',
+            message: 'An unexpected error occurred',
+            statusCode: 500,
+          },
+        },
+      },
+    },
+  },
+});
+
 // Generate OpenAPI document
 const generator = new OpenApiGeneratorV31(registry.definitions);
 const document = generator.generateDocument({
@@ -192,6 +253,10 @@ const document = generator.generateDocument({
     {
       name: 'Product Identifier Extraction',
       description: 'Extract product identifiers from URLs and ASINs',
+    },
+    {
+      name: 'Cart Data Processing',
+      description: 'Normalize and process cart events from apps and extensions',
     },
   ],
 });
