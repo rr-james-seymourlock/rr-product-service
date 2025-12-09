@@ -29,6 +29,7 @@
     "@middy/http-json-body-parser": "^6.3.0",
     "@rr/asin-converter": "workspace:*",
     "@rr/cart-normalizer": "workspace:*",
+    "@rr/product-data-normalizer": "workspace:*",
     "@rr/product-id-extractor": "workspace:*",
     "@rr/schema-parser": "workspace:*",
     "@rr/shared": "workspace:*",

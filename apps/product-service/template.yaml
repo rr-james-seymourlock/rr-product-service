@@ -77,6 +77,21 @@ Resources:
         Service: product-service
         Environment: production
 
+  NormalizeProductViewsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: dist/
+      Handler: normalize-product-views.handler
+      Events:
+        NormalizeProductViews:
+          Type: Api
+          Properties:
+            Path: /product-views/normalize
+            Method: post
+      Tags:
+        Service: product-service
+        Environment: production
+
 Outputs:
   HealthApi:
     Description: API Gateway endpoint URL for Health function
@@ -125,3 +140,15 @@ Outputs:
   NormalizeCartViewsFunctionIamRole:
     Description: IAM Role created for NormalizeCartViews function
     Value: !GetAtt NormalizeCartViewsFunctionRole.Arn
+
+  NormalizeProductViewsApi:
+    Description: API Gateway endpoint URL for NormalizeProductViews function
+    Value: !Sub 'https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/product-views/normalize/'
+
+  NormalizeProductViewsFunction:
+    Description: NormalizeProductViews Lambda Function ARN
+    Value: !GetAtt NormalizeProductViewsFunction.Arn
+
+  NormalizeProductViewsFunctionIamRole:
+    Description: IAM Role created for NormalizeProductViews function
+    Value: !GetAtt NormalizeProductViewsFunctionRole.Arn

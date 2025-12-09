@@ -1,0 +1,16 @@
+{
+  "extends": "@rr/tsconfig/base.json",
+  "compilerOptions": {
+    "tsBuildInfoFile": "node_modules/.cache/tsbuildinfo.json",
+    "paths": {
+      "@rr/product-id-extractor": ["../product-id-extractor/src"],
+      "@rr/product-id-extractor/*": ["../product-id-extractor/src/*"],
+      "@rr/store-registry": ["../store-registry/src"],
+      "@rr/store-registry/*": ["../store-registry/src/*"],
+      "@rr/url-parser": ["../url-parser/src"],
+      "@rr/url-parser/*": ["../url-parser/src/*"]
+    }
+  },
+  "include": ["src"],
+  "exclude": ["node_modules", "dist"]
+}
