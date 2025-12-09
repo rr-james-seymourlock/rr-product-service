@@ -142,11 +142,6 @@ export type RawProductViewEvent = z.infer<typeof RawProductViewEventSchema>;
 export const NormalizedProductSchema = BaseNormalizedProductSchema.extend({
   // Extended fields for product view data
   /**
-   * Product brand
-   */
-  brand: z.string().optional(),
-
-  /**
    * Product category or breadcrumbs
    */
   category: z.string().optional(),

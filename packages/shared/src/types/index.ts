@@ -34,6 +34,12 @@ export const BaseNormalizedProductSchema = z.object({
   price: z.number().optional(),
 
   /**
+   * Product brand name
+   * Available from product view events, typically not available from cart events
+   */
+  brand: z.string().optional(),
+
+  /**
    * Consolidated product identifiers (SKUs, GTINs, MPNs, etc.)
    * Always present, may be empty array
    */

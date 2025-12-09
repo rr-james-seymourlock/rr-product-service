@@ -445,6 +445,9 @@
           "price": {
             "type": "number"
           },
+          "brand": {
+            "type": "string"
+          },
           "productIds": {
             "type": "array",
             "items": {
@@ -882,14 +885,14 @@
                                       "price": {
                                         "type": "number"
                                       },
+                                      "brand": {
+                                        "type": "string"
+                                      },
                                       "productIds": {
                                         "type": "array",
                                         "items": {
                                           "type": "string"
                                         }
-                                      },
-                                      "brand": {
-                                        "type": "string"
                                       },
                                       "category": {
                                         "type": "string"
