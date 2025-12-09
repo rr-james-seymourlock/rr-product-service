@@ -250,6 +250,78 @@ function extractColor(event: RawProductViewEvent): string | undefined {
 }
 
 /**
+ * Build a fingerprint for a normalized product to enable deduplication.
+ * Uses available schema.org identifiers and core product fields.
+ * Returns undefined if no meaningful fingerprint can be created.
+ *
+ * Fingerprint includes (when available):
+ * - title, url, price (core identifying fields)
+ * - skus, gtins, mpns, productIds (schema.org identifiers)
+ */
+function buildProductFingerprint(product: NormalizedProduct): string | undefined {
+  const parts: string[] = [];
+
+  // Core identifying fields
+  if (product.title) {
+    parts.push(`title:${product.title}`);
+  }
+  if (product.url) {
+    parts.push(`url:${product.url}`);
+  }
+  if (product.price !== undefined) {
+    parts.push(`price:${product.price}`);
+  }
+
+  // Schema.org identifiers (sorted for consistent fingerprints)
+  if (product.skus && product.skus.length > 0) {
+    parts.push(`skus:${[...product.skus].sort().join(',')}`);
+  }
+  if (product.gtins && product.gtins.length > 0) {
+    parts.push(`gtins:${[...product.gtins].sort().join(',')}`);
+  }
+  if (product.mpns && product.mpns.length > 0) {
+    parts.push(`mpns:${[...product.mpns].sort().join(',')}`);
+  }
+
+  // Consolidated productIds as fallback (includes all identifier types)
+  if (product.productIds.length > 0) {
+    parts.push(`ids:${[...product.productIds].sort().join(',')}`);
+  }
+
+  // If we have nothing to fingerprint, can't deduplicate
+  if (parts.length === 0) {
+    return undefined;
+  }
+
+  return parts.join('|');
+}
+
+/**
+ * Deduplicate products based on their fingerprint.
+ * Keeps the first occurrence of each unique product.
+ * Products without a fingerprint (no identifiable data) are always kept.
+ */
+function deduplicateProducts(products: NormalizedProduct[]): NormalizedProduct[] {
+  const seen = new Set<string>();
+  const result: NormalizedProduct[] = [];
+
+  for (const product of products) {
+    const fingerprint = buildProductFingerprint(product);
+
+    if (fingerprint === undefined) {
+      // No fingerprint means we can't deduplicate - keep the product
+      result.push(product);
+    } else if (!seen.has(fingerprint)) {
+      seen.add(fingerprint);
+      result.push(product);
+    }
+    // If fingerprint already seen, skip this duplicate
+  }
+
+  return result;
+}
+
+/**
  * Normalize a raw product view event into a clean NormalizedProduct array
  *
  * @param event - Raw product view event from apps/extensions
@@ -359,7 +431,10 @@ export function normalizeProductViewEvent(
     }
   }
 
-  // Return as a single-item frozen array
-  // Note: Multi-product handling can be added later based on urlToSku/offers analysis
-  return Object.freeze([Object.freeze(normalized)]);
+  // Wrap in array and deduplicate
+  // Note: Currently single-product, but deduplication supports future multi-product handling
+  const products = [normalized];
+  const deduplicated = deduplicateProducts(products);
+
+  return Object.freeze(deduplicated.map((p) => Object.freeze(p)));
 }

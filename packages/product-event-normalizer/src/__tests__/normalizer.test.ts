@@ -594,6 +594,229 @@ describe('normalizeProductViewEvent', () => {
     });
   });
 
+  describe('deduplication', () => {
+    it('should keep products with different fingerprints', () => {
+      // Two different products with different SKUs
+      const event1: RawProductViewEvent = {
+        store_id: 1234,
+        name: 'Red T-Shirt',
+        url: 'https://example.com/tshirt?color=red',
+        sku: ['SKU-RED'],
+        offers: [{ price: 1999 }],
+      };
+
+      const event2: RawProductViewEvent = {
+        store_id: 1234,
+        name: 'Blue T-Shirt',
+        url: 'https://example.com/tshirt?color=blue',
+        sku: ['SKU-BLUE'],
+        offers: [{ price: 1999 }],
+      };
+
+      const result1 = normalizeProductViewEvent(event1);
+      const result2 = normalizeProductViewEvent(event2);
+
+      // Each event produces one unique product
+      expect(result1).toHaveLength(1);
+      expect(result2).toHaveLength(1);
+      expect(result1[0]?.skus).toContain('SKU-RED');
+      expect(result2[0]?.skus).toContain('SKU-BLUE');
+    });
+
+    it('should keep product without fingerprint (no identifying data)', () => {
+      const event: RawProductViewEvent = {
+        store_id: 1234,
+        // No name, url, price, or identifiers
+      };
+
+      const result = normalizeProductViewEvent(event);
+
+      // Product without fingerprint should be kept
+      expect(result).toHaveLength(1);
+      expect(result[0]?.storeId).toBe('1234');
+    });
+
+    it('should include title in fingerprint', () => {
+      const event1: RawProductViewEvent = {
+        store_id: 1234,
+        name: 'Product A',
+        url: 'https://example.com/product',
+        offers: [{ price: 999 }],
+      };
+
+      const event2: RawProductViewEvent = {
+        store_id: 1234,
+        name: 'Product B',
+        url: 'https://example.com/product',
+        offers: [{ price: 999 }],
+      };
+
+      const result1 = normalizeProductViewEvent(event1);
+      const result2 = normalizeProductViewEvent(event2);
+
+      // Different titles = different fingerprints = both kept
+      expect(result1[0]?.title).toBe('Product A');
+      expect(result2[0]?.title).toBe('Product B');
+    });
+
+    it('should include price in fingerprint', () => {
+      const event1: RawProductViewEvent = {
+        store_id: 1234,
+        name: 'Same Product',
+        url: 'https://example.com/product',
+        offers: [{ price: 999 }],
+      };
+
+      const event2: RawProductViewEvent = {
+        store_id: 1234,
+        name: 'Same Product',
+        url: 'https://example.com/product',
+        offers: [{ price: 1999 }],
+      };
+
+      const result1 = normalizeProductViewEvent(event1);
+      const result2 = normalizeProductViewEvent(event2);
+
+      // Different prices = different fingerprints = both kept
+      expect(result1[0]?.price).toBe(999);
+      expect(result2[0]?.price).toBe(1999);
+    });
+
+    it('should include url in fingerprint', () => {
+      const event1: RawProductViewEvent = {
+        store_id: 1234,
+        name: 'Same Product',
+        url: 'https://example.com/product-a',
+        offers: [{ price: 999 }],
+      };
+
+      const event2: RawProductViewEvent = {
+        store_id: 1234,
+        name: 'Same Product',
+        url: 'https://example.com/product-b',
+        offers: [{ price: 999 }],
+      };
+
+      const result1 = normalizeProductViewEvent(event1);
+      const result2 = normalizeProductViewEvent(event2);
+
+      // Different URLs = different fingerprints = both kept
+      expect(result1[0]?.url).toBe('https://example.com/product-a');
+      expect(result2[0]?.url).toBe('https://example.com/product-b');
+    });
+
+    it('should include skus in fingerprint', () => {
+      const event1: RawProductViewEvent = {
+        store_id: 1234,
+        name: 'Same Product',
+        url: 'https://example.com/product',
+        sku: ['SKU-A'],
+        offers: [{ price: 999 }],
+      };
+
+      const event2: RawProductViewEvent = {
+        store_id: 1234,
+        name: 'Same Product',
+        url: 'https://example.com/product',
+        sku: ['SKU-B'],
+        offers: [{ price: 999 }],
+      };
+
+      const result1 = normalizeProductViewEvent(event1);
+      const result2 = normalizeProductViewEvent(event2);
+
+      // Different SKUs = different fingerprints = both kept
+      expect(result1[0]?.skus).toContain('SKU-A');
+      expect(result2[0]?.skus).toContain('SKU-B');
+    });
+
+    it('should include gtins in fingerprint', () => {
+      const event1: RawProductViewEvent = {
+        store_id: 1234,
+        name: 'Same Product',
+        gtin: ['0123456789012'],
+      };
+
+      const event2: RawProductViewEvent = {
+        store_id: 1234,
+        name: 'Same Product',
+        gtin: ['0123456789013'],
+      };
+
+      const result1 = normalizeProductViewEvent(event1);
+      const result2 = normalizeProductViewEvent(event2);
+
+      // Different GTINs = different fingerprints = both kept
+      expect(result1[0]?.gtins).toContain('0123456789012');
+      expect(result2[0]?.gtins).toContain('0123456789013');
+    });
+
+    it('should include mpns in fingerprint', () => {
+      const event1: RawProductViewEvent = {
+        store_id: 1234,
+        name: 'Same Product',
+        mpn: ['MPN-A'],
+      };
+
+      const event2: RawProductViewEvent = {
+        store_id: 1234,
+        name: 'Same Product',
+        mpn: ['MPN-B'],
+      };
+
+      const result1 = normalizeProductViewEvent(event1);
+      const result2 = normalizeProductViewEvent(event2);
+
+      // Different MPNs = different fingerprints = both kept
+      expect(result1[0]?.mpns).toContain('MPN-A');
+      expect(result2[0]?.mpns).toContain('MPN-B');
+    });
+
+    it('should include productIds in fingerprint', () => {
+      const event1: RawProductViewEvent = {
+        store_id: 1234,
+        name: 'Same Product',
+        productID: ['PID-A'],
+      };
+
+      const event2: RawProductViewEvent = {
+        store_id: 1234,
+        name: 'Same Product',
+        productID: ['PID-B'],
+      };
+
+      const result1 = normalizeProductViewEvent(event1);
+      const result2 = normalizeProductViewEvent(event2);
+
+      // Different productIDs = different fingerprints = both kept
+      expect(result1[0]?.productIds).toContain('PID-A');
+      expect(result2[0]?.productIds).toContain('PID-B');
+    });
+
+    it('should sort identifiers for consistent fingerprints', () => {
+      const event1: RawProductViewEvent = {
+        store_id: 1234,
+        name: 'Product',
+        sku: ['SKU-B', 'SKU-A', 'SKU-C'],
+      };
+
+      const event2: RawProductViewEvent = {
+        store_id: 1234,
+        name: 'Product',
+        sku: ['SKU-A', 'SKU-C', 'SKU-B'],
+      };
+
+      const result1 = normalizeProductViewEvent(event1);
+      const result2 = normalizeProductViewEvent(event2);
+
+      // Same SKUs in different order should produce same fingerprint
+      // Both should be kept as they're normalized separately, but fingerprints would match
+      // Copy frozen arrays before sorting
+      expect([...(result1[0]?.skus ?? [])].sort()).toEqual(['SKU-A', 'SKU-B', 'SKU-C']);
+      expect([...(result2[0]?.skus ?? [])].sort()).toEqual(['SKU-A', 'SKU-B', 'SKU-C']);
+    });
+  });
+
   describe('edge cases', () => {
     it('should handle minimal event', () => {
       const result = normalizeProductViewEvent(minimalEvent);
