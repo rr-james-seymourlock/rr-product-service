@@ -1,0 +1,21 @@
+{
+  "body": "{\"events\":[{\"store_id\":5246,\"store_name\":\"target.com\",\"name\":\"Womens Short Sleeve Slim Fit Ribbed T-Shirt\",\"url\":\"https://www.target.com/p/women-s-short-sleeve-slim-fit-ribbed-t-shirt/-/A-88056717\",\"sku\":[\"88056717\"],\"offers\":[{\"price\":800,\"sku\":\"88056717\"}],\"brand\":\"A New Day\",\"rating\":4.2}]}",
+  "headers": {
+    "Content-Type": "application/json"
+  },
+  "httpMethod": "POST",
+  "path": "/product-views/normalize",
+  "requestContext": {
+    "accountId": "123456789012",
+    "apiId": "test-api",
+    "httpMethod": "POST",
+    "identity": {
+      "sourceIp": "127.0.0.1"
+    },
+    "path": "/product-views/normalize",
+    "requestId": "test-request-id",
+    "resourcePath": "/product-views/normalize",
+    "stage": "test"
+  },
+  "resource": "/product-views/normalize"
+}

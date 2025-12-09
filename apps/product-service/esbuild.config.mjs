@@ -21,6 +21,7 @@ try {
       'create-url-analysis': 'src/functions/create-url-analysis/handler.ts',
       'convert-asin': 'src/functions/convert-asin/handler.ts',
       'normalize-cart-views': 'src/functions/normalize-cart-views/handler.ts',
+      'normalize-product-views': 'src/functions/normalize-product-views/handler.ts',
     },
     bundle: true,
     platform: 'node',

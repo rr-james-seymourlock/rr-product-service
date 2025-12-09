@@ -7,12 +7,12 @@ Globals:
     Runtime: nodejs22.x
     Architectures:
       - arm64
-    Timeout: 30
-    MemorySize: 512
+    Timeout: 15
+    MemorySize: 1024
     Environment:
       Variables:
         NODE_ENV: production
-        LOG_LEVEL: info
+        LOG_LEVEL: warn
         SYNCCENTRIC_HOST: '{{resolve:ssm:/product-service/synccentric/host}}'
         SYNCCENTRIC_AUTH_KEY: '{{resolve:ssm-secure:/product-service/synccentric/auth-key}}'
 
@@ -71,7 +71,22 @@ Resources:
         NormalizeCartViews:
           Type: Api
           Properties:
-            Path: /cart-views/normalize
+            Path: /cart-events/normalize
+            Method: post
+      Tags:
+        Service: product-service
+        Environment: production
+
+  NormalizeProductViewsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: dist/
+      Handler: normalize-product-views.handler
+      Events:
+        NormalizeProductViews:
+          Type: Api
+          Properties:
+            Path: /product-events/normalize
             Method: post
       Tags:
         Service: product-service
@@ -116,7 +131,7 @@ Outputs:
 
   NormalizeCartViewsApi:
     Description: API Gateway endpoint URL for NormalizeCartViews function
-    Value: !Sub 'https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/cart-views/normalize/'
+    Value: !Sub 'https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/cart-events/normalize/'
 
   NormalizeCartViewsFunction:
     Description: NormalizeCartViews Lambda Function ARN
@@ -125,3 +140,15 @@ Outputs:
   NormalizeCartViewsFunctionIamRole:
     Description: IAM Role created for NormalizeCartViews function
     Value: !GetAtt NormalizeCartViewsFunctionRole.Arn
+
+  NormalizeProductViewsApi:
+    Description: API Gateway endpoint URL for NormalizeProductViews function
+    Value: !Sub 'https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/product-events/normalize/'
+
+  NormalizeProductViewsFunction:
+    Description: NormalizeProductViews Lambda Function ARN
+    Value: !GetAtt NormalizeProductViewsFunction.Arn
+
+  NormalizeProductViewsFunctionIamRole:
+    Description: IAM Role created for NormalizeProductViews function
+    Value: !GetAtt NormalizeProductViewsFunctionRole.Arn

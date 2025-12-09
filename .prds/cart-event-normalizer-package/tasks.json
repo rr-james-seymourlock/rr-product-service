@@ -1,10 +1,10 @@
 {
-  "prdFilename": "cart-data-normalizer-package",
+  "prdFilename": "cart-event-normalizer-package",
   "tasks": [
     {
       "id": "1",
       "title": "Create package structure and configuration",
-      "description": "Set up @rr/cart-normalizer package with TypeScript, ESM, and monorepo integration",
+      "description": "Set up @rr/cart-event-normalizer package with TypeScript, ESM, and monorepo integration",
       "status": "done",
       "priority": "high",
       "dependencies": [],
@@ -228,7 +228,7 @@
     {
       "id": "15",
       "title": "Implement normalize-cart-events handler",
-      "description": "Create Lambda handler that normalizes cart events using @rr/cart-normalizer",
+      "description": "Create Lambda handler that normalizes cart events using @rr/cart-event-normalizer",
       "status": "done",
       "priority": "high",
       "dependencies": ["14"],

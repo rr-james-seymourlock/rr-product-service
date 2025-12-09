@@ -1,4 +1,4 @@
-# @rr/cart-normalizer
+# @rr/cart-event-normalizer
 
 Normalize raw cart event data from Rakuten apps and browser extensions into clean, enriched product arrays.
 
@@ -30,7 +30,7 @@ This package processes cart events in the data pipeline:
 
 ```
 Raw Cart Event → normalizeCartEvent → CartProduct[]
-                 (@rr/cart-normalizer)
+                 (@rr/cart-event-normalizer)
 ```
 
 Consumers include:
@@ -57,6 +57,7 @@ Use this package when you need to:
 - **Type coercion**: Handles both string and numeric `store_id` values
 - **Product ID extraction**: Automatic extraction via `@rr/product-id-extractor`
 - **Smart filtering**: Products require URL, or both title AND price
+- **Deduplication**: Removes duplicate products by URL (first occurrence kept)
 - **Immutable output**: Frozen arrays and objects for safe caching
 - **Zod schemas**: Full TypeScript types with runtime validation option
 - **Zero config**: Works out of the box with sensible defaults
@@ -66,7 +67,7 @@ Use this package when you need to:
 This library is internal to the rr-product-service monorepo.
 
 ```typescript
-import { normalizeCartEvent } from '@rr/cart-normalizer';
+import { normalizeCartEvent } from '@rr/cart-event-normalizer';
 ```
 
 ## Usage
@@ -74,7 +75,7 @@ import { normalizeCartEvent } from '@rr/cart-normalizer';
 ### Basic Usage
 
 ```typescript
-import { normalizeCartEvent } from '@rr/cart-normalizer';
+import { normalizeCartEvent } from '@rr/cart-event-normalizer';
 
 const rawEvent = {
   store_id: 8333,
@@ -110,7 +111,7 @@ const products = normalizeCartEvent(rawEvent);
 ### With Validation
 
 ```typescript
-import { normalizeCartEvent } from '@rr/cart-normalizer';
+import { normalizeCartEvent } from '@rr/cart-event-normalizer';
 
 // Enable Zod schema validation for debugging
 const products = normalizeCartEvent(rawEvent, { validate: true });
@@ -119,7 +120,7 @@ const products = normalizeCartEvent(rawEvent, { validate: true });
 ### Disable Product ID Extraction
 
 ```typescript
-import { normalizeCartEvent } from '@rr/cart-normalizer';
+import { normalizeCartEvent } from '@rr/cart-event-normalizer';
 
 // Skip URL parsing for performance
 const products = normalizeCartEvent(rawEvent, { extractProductIds: false });
@@ -129,13 +130,13 @@ const products = normalizeCartEvent(rawEvent, { extractProductIds: false });
 ### Using Schemas Directly
 
 ```typescript
-import { RawCartEventSchema, CartProductSchema } from '@rr/cart-normalizer';
+import { RawCartEventSchema, CartProductSchema } from '@rr/cart-event-normalizer';
 
 // Validate input manually
 const parsed = RawCartEventSchema.parse(rawEvent);
 
 // Use types
-import type { RawCartEvent, CartProduct } from '@rr/cart-normalizer';
+import type { RawCartEvent, CartProduct } from '@rr/cart-event-normalizer';
 ```
 
 ## Input Schema
@@ -308,7 +309,7 @@ import {
   RawCartEventSchema,
   RawProductSchema,
   CartProductSchema,
-} from '@rr/cart-normalizer';
+} from '@rr/cart-event-normalizer';
 ```
 
 ### Exported Types
@@ -319,7 +320,7 @@ import type {
   RawProduct,
   CartProduct,
   NormalizeCartEventOptions,
-} from '@rr/cart-normalizer';
+} from '@rr/cart-event-normalizer';
 ```
 
 ## Testing
@@ -327,7 +328,7 @@ import type {
 Run tests:
 
 ```bash
-pnpm --filter @rr/cart-normalizer test
+pnpm --filter @rr/cart-event-normalizer test
 ```
 
 ### Test Coverage
@@ -441,5 +442,5 @@ When updating:
 2. Update `normalizeProduct()` in `src/normalizer.ts` for field mapping
 3. Update `isValidProduct()` if validation rules change
 4. Add test fixtures for new edge cases
-5. Run full test suite: `pnpm --filter @rr/cart-normalizer test`
+5. Run full test suite: `pnpm --filter @rr/cart-event-normalizer test`
 6. Update this README with new examples

@@ -1,81 +1,80 @@
 import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
 import { z } from 'zod';
 
-import { CartProductSchema, RawCartEventSchema } from '@rr/cart-event-normalizer';
+import { NormalizedProductSchema, RawProductViewEventSchema } from '@rr/product-event-normalizer';
 
 // Extend Zod with OpenAPI methods
 extendZodWithOpenApi(z);
 
 /**
- * Single cart view item in request
+ * Single product view item in request
  * Re-wrap the imported schema with OpenAPI metadata since
  * the original was created before extendZodWithOpenApi was called
  */
-const cartViewItemSchema = z.object(RawCartEventSchema.shape).openapi('CartViewItem');
+const productViewItemSchema = z.object(RawProductViewEventSchema.shape).openapi('ProductViewItem');
 
 /**
- * Request body schema for POST /cart-views/normalize
+ * Request body schema for POST /product-views/normalize
  */
-export const normalizeCartViewsRequestSchema = z
+export const normalizeProductViewsRequestSchema = z
   .object({
     events: z
-      .array(cartViewItemSchema)
-      .min(1, 'At least one cart view is required')
-      .max(100, 'Maximum 100 cart views per request')
+      .array(productViewItemSchema)
+      .min(1, 'At least one product view is required')
+      .max(100, 'Maximum 100 product views per request')
       .openapi({
-        description: 'Array of raw cart view events to normalize (1-100 per request)',
+        description: 'Array of raw product view events to normalize (1-100 per request)',
         example: [
           {
-            store_id: 8333,
-            store_name: "Macy's",
-            product_list: [
-              {
-                name: "Women's Cotton Sweater",
-                url: 'https://macys.com/shop/product?ID=12345',
-                item_price: 4900,
-                quantity: 1,
-              },
-            ],
+            store_id: 5246,
+            store_name: 'target.com',
+            name: 'Womens Short Sleeve Slim Fit Ribbed T-Shirt',
+            url: 'https://www.target.com/p/women-s-short-sleeve-slim-fit-ribbed-t-shirt/-/A-88056717',
+            sku: ['88056717'],
+            offers: [{ price: 800, sku: '88056717' }],
+            brand: 'A New Day',
           },
         ],
       }),
   })
-  .openapi('NormalizeCartViewsRequest');
+  .openapi('NormalizeProductViewsRequest');
 
 /**
  * Normalized product in response
  * Re-wrap the imported schema with OpenAPI metadata
  */
-const normalizedProductSchema = z.object(CartProductSchema.shape).openapi('NormalizedProduct');
+const normalizedProductSchema = z
+  .object(NormalizedProductSchema.shape)
+  .openapi('NormalizedProduct');
 
 /**
- * Successful cart event normalization result
+ * Successful product view normalization result
  */
 const successResultSchema = z
   .object({
     storeId: z.string().optional().openapi({
-      description: 'Store ID from the cart event (coerced to string)',
-      example: '8333',
+      description: 'Store ID from the product view event (coerced to string)',
+      example: '5246',
     }),
     storeName: z.string().optional().openapi({
-      description: 'Store name from the cart event',
-      example: "Macy's",
+      description: 'Store name from the product view event',
+      example: 'target.com',
     }),
     products: z.array(normalizedProductSchema).openapi({
       description: 'Array of normalized products with extracted IDs',
       example: [
         {
-          title: "Women's Cotton Sweater",
-          url: 'https://macys.com/shop/product?ID=12345',
-          storeId: '8333',
-          price: 4900,
-          quantity: 1,
-          productIds: ['12345'],
+          title: 'Womens Short Sleeve Slim Fit Ribbed T-Shirt',
+          url: 'https://www.target.com/p/women-s-short-sleeve-slim-fit-ribbed-t-shirt/-/A-88056717',
+          storeId: '5246',
+          price: 800,
+          productIds: ['88056717'],
+          brand: 'A New Day',
         },
       ],
     }),
     productCount: z.number().int().min(0).openapi({
-      description: 'Number of valid products after normalization',
+      description: 'Number of normalized products',
       example: 1,
     }),
     success: z.literal(true).openapi({
@@ -86,7 +85,7 @@ const successResultSchema = z
   .openapi('SuccessResult');
 
 /**
- * Failed cart event normalization result
+ * Failed product view normalization result
  */
 const failureResultSchema = z
   .object({
@@ -96,7 +95,7 @@ const failureResultSchema = z
     }),
     message: z.string().min(1).openapi({
       description: 'Human-readable error message',
-      example: 'Invalid cart event structure',
+      example: 'Invalid product view event structure',
     }),
     success: z.literal(false).openapi({
       description: 'Indicates failed processing',
@@ -115,22 +114,23 @@ const resultSchema = z
 /**
  * Success response schema
  */
-export const normalizeCartViewsResponseSchema = z
+export const normalizeProductViewsResponseSchema = z
   .object({
     results: z.array(resultSchema).openapi({
-      description: 'Array of normalization results, one per input cart view (order matches input)',
+      description:
+        'Array of normalization results, one per input product view (order matches input)',
       example: [
         {
-          storeId: '8333',
-          storeName: "Macy's",
+          storeId: '5246',
+          storeName: 'target.com',
           products: [
             {
-              title: "Women's Cotton Sweater",
-              url: 'https://macys.com/shop/product?ID=12345',
-              storeId: '8333',
-              price: 4900,
-              quantity: 1,
-              productIds: ['12345'],
+              title: 'Womens Short Sleeve Slim Fit Ribbed T-Shirt',
+              url: 'https://www.target.com/p/women-s-short-sleeve-slim-fit-ribbed-t-shirt/-/A-88056717',
+              storeId: '5246',
+              price: 800,
+              productIds: ['88056717'],
+              brand: 'A New Day',
             },
           ],
           productCount: 1,
@@ -139,15 +139,15 @@ export const normalizeCartViewsResponseSchema = z
       ],
     }),
     total: z.number().int().min(0).openapi({
-      description: 'Total number of cart views processed',
+      description: 'Total number of product views processed',
       example: 1,
     }),
     successful: z.number().int().min(0).openapi({
-      description: 'Number of successfully processed cart views',
+      description: 'Number of successfully processed product views',
       example: 1,
     }),
     failed: z.number().int().min(0).openapi({
-      description: 'Number of failed cart views',
+      description: 'Number of failed product views',
       example: 0,
     }),
     totalProducts: z.number().int().min(0).openapi({
@@ -155,7 +155,7 @@ export const normalizeCartViewsResponseSchema = z
       example: 1,
     }),
   })
-  .openapi('NormalizeCartViewsResponse');
+  .openapi('NormalizeProductViewsResponse');
 
 /**
  * Error response schema
@@ -168,7 +168,7 @@ export const errorResponseSchema = z
     }),
     message: z.string().min(1).openapi({
       description: 'Human-readable error message',
-      example: 'events: At least one cart event is required',
+      example: 'events: At least one product view event is required',
     }),
     statusCode: z.number().int().min(400).max(599).openapi({
       description: 'HTTP status code',
@@ -177,8 +177,8 @@ export const errorResponseSchema = z
   })
   .openapi('ErrorResponse');
 
-export type NormalizeCartViewsRequest = z.infer<typeof normalizeCartViewsRequestSchema>;
-export type NormalizeCartViewsResponse = z.infer<typeof normalizeCartViewsResponseSchema>;
+export type NormalizeProductViewsRequest = z.infer<typeof normalizeProductViewsRequestSchema>;
+export type NormalizeProductViewsResponse = z.infer<typeof normalizeProductViewsResponseSchema>;
 export type ErrorResponse = z.infer<typeof errorResponseSchema>;
 export type NormalizationResult = z.infer<typeof resultSchema>;
 export type SuccessResult = z.infer<typeof successResultSchema>;

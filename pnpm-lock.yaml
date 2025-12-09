@@ -74,9 +74,12 @@ importers:
       '@rr/asin-converter':
         specifier: workspace:*
         version: link:../../packages/asin-converter
-      '@rr/cart-normalizer':
+      '@rr/cart-event-normalizer':
         specifier: workspace:*
-        version: link:../../packages/cart-normalizer
+        version: link:../../packages/cart-event-normalizer
+      '@rr/product-event-normalizer':
+        specifier: workspace:*
+        version: link:../../packages/product-event-normalizer
       '@rr/product-id-extractor':
         specifier: workspace:*
         version: link:../../packages/product-id-extractor
@@ -152,7 +155,7 @@ importers:
         specifier: 'catalog:'
         version: 4.0.10(@types/node@24.10.1)(jiti@2.6.1)(tsx@4.20.6)(yaml@2.8.1)
 
-  packages/cart-normalizer:
+  packages/cart-event-normalizer:
     dependencies:
       '@rr/product-id-extractor':
         specifier: workspace:*
@@ -206,6 +209,40 @@ importers:
       zod:
         specifier: 'catalog:'
         version: 4.1.12
+
+  packages/product-event-normalizer:
+    dependencies:
+      '@rr/product-id-extractor':
+        specifier: workspace:*
+        version: link:../product-id-extractor
+      '@rr/shared':
+        specifier: workspace:*
+        version: link:../shared
+      '@rr/store-registry':
+        specifier: workspace:*
+        version: link:../store-registry
+      '@rr/url-parser':
+        specifier: workspace:*
+        version: link:../url-parser
+      zod:
+        specifier: 'catalog:'
+        version: 4.1.12
+    devDependencies:
+      '@rr/eslint-config':
+        specifier: workspace:*
+        version: link:../../tooling/eslint
+      '@rr/prettier-config':
+        specifier: workspace:*
+        version: link:../../tooling/prettier
+      '@rr/tsconfig':
+        specifier: workspace:*
+        version: link:../../tooling/typescript
+      '@types/node':
+        specifier: 'catalog:'
+        version: 24.10.1
+      vitest:
+        specifier: 'catalog:'
+        version: 4.0.10(@types/node@24.10.1)(jiti@2.6.1)(tsx@4.20.6)(yaml@2.8.1)
 
   packages/product-id-extractor:
     dependencies:

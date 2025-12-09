@@ -32,8 +32,8 @@
       "description": "Extract product identifiers from URLs and ASINs"
     },
     {
-      "name": "Cart Data Processing",
-      "description": "Normalize and process cart events from apps and extensions"
+      "name": "Event Normalization",
+      "description": "Normalize cart and product view events from apps and extensions using @rr/cart-event-normalizer and @rr/product-event-normalizer packages"
     }
   ],
   "components": {
@@ -825,6 +825,540 @@
           }
         },
         "required": ["events"]
+      },
+      "NormalizeProductViewsResponse": {
+        "type": "object",
+        "properties": {
+          "results": {
+            "type": "array",
+            "items": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/NormalizationResult"
+                },
+                {
+                  "anyOf": [
+                    {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/SuccessResult"
+                        },
+                        {
+                          "properties": {
+                            "storeId": {
+                              "type": "string",
+                              "description": "Store ID from the product view event (coerced to string)",
+                              "example": "5246"
+                            },
+                            "storeName": {
+                              "type": "string",
+                              "description": "Store name from the product view event",
+                              "example": "target.com"
+                            },
+                            "products": {
+                              "type": "array",
+                              "items": {
+                                "allOf": [
+                                  {
+                                    "$ref": "#/components/schemas/NormalizedProduct"
+                                  },
+                                  {
+                                    "properties": {
+                                      "title": {
+                                        "type": "string"
+                                      },
+                                      "url": {
+                                        "type": "string"
+                                      },
+                                      "imageUrl": {
+                                        "type": "string"
+                                      },
+                                      "storeId": {
+                                        "type": "string"
+                                      },
+                                      "price": {
+                                        "type": "number"
+                                      },
+                                      "productIds": {
+                                        "type": "array",
+                                        "items": {
+                                          "type": "string"
+                                        }
+                                      },
+                                      "brand": {
+                                        "type": "string"
+                                      },
+                                      "category": {
+                                        "type": "string"
+                                      },
+                                      "description": {
+                                        "type": "string"
+                                      },
+                                      "rating": {
+                                        "type": "number"
+                                      },
+                                      "color": {
+                                        "type": "string"
+                                      },
+                                      "skus": {
+                                        "type": "array",
+                                        "items": {
+                                          "type": "string"
+                                        }
+                                      },
+                                      "gtins": {
+                                        "type": "array",
+                                        "items": {
+                                          "type": "string"
+                                        }
+                                      },
+                                      "mpns": {
+                                        "type": "array",
+                                        "items": {
+                                          "type": "string"
+                                        }
+                                      }
+                                    }
+                                  }
+                                ]
+                              },
+                              "description": "Array of normalized products with extracted IDs",
+                              "example": [
+                                {
+                                  "title": "Womens Short Sleeve Slim Fit Ribbed T-Shirt",
+                                  "url": "https://www.target.com/p/women-s-short-sleeve-slim-fit-ribbed-t-shirt/-/A-88056717",
+                                  "storeId": "5246",
+                                  "price": 800,
+                                  "productIds": ["88056717"],
+                                  "brand": "A New Day"
+                                }
+                              ]
+                            },
+                            "productCount": {
+                              "type": "integer",
+                              "minimum": 0,
+                              "description": "Number of normalized products",
+                              "example": 1
+                            },
+                            "success": {
+                              "type": "boolean",
+                              "enum": [true],
+                              "description": "Indicates successful processing",
+                              "example": true
+                            }
+                          },
+                          "required": ["products", "productCount", "success"]
+                        }
+                      ]
+                    },
+                    {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/FailureResult"
+                        },
+                        {
+                          "properties": {
+                            "error": {
+                              "type": "string",
+                              "minLength": 1,
+                              "description": "Error type/code",
+                              "example": "ValidationError"
+                            },
+                            "message": {
+                              "type": "string",
+                              "minLength": 1,
+                              "description": "Human-readable error message",
+                              "example": "Invalid product view event structure"
+                            },
+                            "success": {
+                              "type": "boolean",
+                              "enum": [false],
+                              "description": "Indicates failed processing",
+                              "example": false
+                            }
+                          },
+                          "required": ["error", "message", "success"]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            "description": "Array of normalization results, one per input product view (order matches input)",
+            "example": [
+              {
+                "storeId": "5246",
+                "storeName": "target.com",
+                "products": [
+                  {
+                    "title": "Womens Short Sleeve Slim Fit Ribbed T-Shirt",
+                    "url": "https://www.target.com/p/women-s-short-sleeve-slim-fit-ribbed-t-shirt/-/A-88056717",
+                    "storeId": "5246",
+                    "price": 800,
+                    "productIds": ["88056717"],
+                    "brand": "A New Day"
+                  }
+                ],
+                "productCount": 1,
+                "success": true
+              }
+            ]
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Total number of product views processed",
+            "example": 1
+          },
+          "successful": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Number of successfully processed product views",
+            "example": 1
+          },
+          "failed": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Number of failed product views",
+            "example": 0
+          },
+          "totalProducts": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Total number of normalized products across all views",
+            "example": 1
+          }
+        },
+        "required": ["results", "total", "successful", "failed", "totalProducts"]
+      },
+      "ProductViewItem": {
+        "type": "object",
+        "properties": {
+          "store_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              }
+            ]
+          },
+          "store_name": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "product_url": {
+            "type": "string"
+          },
+          "image_url": {
+            "type": "string"
+          },
+          "image_url_list": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "sku": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "sku_list": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "gtin": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "gtin_list": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "productID": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "productid_list": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "mpn": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "mpn_list": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "offers": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "price": {
+                  "type": "number"
+                },
+                "sku": {
+                  "type": "string"
+                },
+                "url": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "offer_list": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "offer_amount": {
+                  "type": "number"
+                },
+                "offer_currency": {
+                  "type": "string"
+                },
+                "offer_sku": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "urlToSku": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "priceToSku": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "brand": {
+            "type": "string"
+          },
+          "brand_list": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "rating": {
+            "type": "number"
+          },
+          "description": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          },
+          "breadcrumbs": {
+            "type": "string"
+          },
+          "color": {
+            "type": "string"
+          },
+          "color_list": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "app_version": {
+            "type": "string"
+          },
+          "application_type": {
+            "type": "string"
+          },
+          "application_subtype": {
+            "type": "string"
+          },
+          "browser": {
+            "type": "string"
+          },
+          "browser_agent": {
+            "type": "string"
+          },
+          "client": {
+            "type": "string"
+          },
+          "platform": {
+            "type": "string"
+          },
+          "page_url": {
+            "type": "string"
+          },
+          "session_id": {
+            "type": "number"
+          },
+          "tenant": {
+            "type": "string"
+          },
+          "timestamp": {
+            "type": "number"
+          },
+          "toolbarid": {
+            "type": "number"
+          },
+          "tracking_ticket": {
+            "type": "string"
+          },
+          "member_guid": {
+            "type": "string"
+          },
+          "user_id": {
+            "type": "string"
+          },
+          "visit_id": {
+            "type": "string"
+          },
+          "device_platform": {
+            "type": "string"
+          },
+          "os_version": {
+            "type": "string"
+          },
+          "created_ts": {
+            "type": "string"
+          },
+          "created_ts_ms": {
+            "type": "string"
+          },
+          "context_device": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "manufacturer": {
+                "type": "string"
+              },
+              "model": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "type": {
+                "type": "string"
+              },
+              "adTrackingEnabled": {
+                "type": "boolean"
+              },
+              "advertisingId": {
+                "type": "string"
+              }
+            }
+          },
+          "context_location": {
+            "type": "object",
+            "properties": {
+              "latitude": {
+                "type": "number"
+              },
+              "longitude": {
+                "type": "number"
+              }
+            }
+          },
+          "context_network": {
+            "type": "object",
+            "properties": {
+              "carrier": {
+                "type": "string"
+              },
+              "cellular": {
+                "type": "boolean"
+              },
+              "wifi": {
+                "type": "boolean"
+              },
+              "bluetooth": {
+                "type": "boolean"
+              }
+            }
+          },
+          "context_os": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "version": {
+                "type": "string"
+              }
+            }
+          },
+          "context_timezone": {
+            "type": "string"
+          },
+          "device_ids": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "app_install_ts": {
+            "type": "number"
+          }
+        }
+      },
+      "NormalizeProductViewsRequest": {
+        "type": "object",
+        "properties": {
+          "events": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductViewItem"
+            },
+            "minItems": 1,
+            "maxItems": 100,
+            "description": "Array of raw product view events to normalize (1-100 per request)",
+            "example": [
+              {
+                "store_id": 5246,
+                "store_name": "target.com",
+                "name": "Womens Short Sleeve Slim Fit Ribbed T-Shirt",
+                "url": "https://www.target.com/p/women-s-short-sleeve-slim-fit-ribbed-t-shirt/-/A-88056717",
+                "sku": ["88056717"],
+                "offers": [
+                  {
+                    "price": 800,
+                    "sku": "88056717"
+                  }
+                ],
+                "brand": "A New Day"
+              }
+            ]
+          }
+        },
+        "required": ["events"]
       }
     },
     "parameters": {}
@@ -967,11 +1501,11 @@
         }
       }
     },
-    "/cart-views/normalize": {
+    "/cart-events/normalize": {
       "post": {
-        "summary": "Normalize Cart Views",
-        "description": "Normalizes raw cart view data from Rakuten apps and extensions, extracting product identifiers from URLs and standardizing the data format. Accepts 1-100 cart views per request. Handles partial failures gracefully - each view is processed independently and results include success/failure status. Returns normalized products with extracted IDs and summary statistics.",
-        "tags": ["Cart Data Processing"],
+        "summary": "Normalize Cart View Events",
+        "description": "Normalizes raw cart view events from Rakuten apps and extensions using @rr/cart-event-normalizer. Extracts product identifiers from URLs and standardizes the data format. Accepts 1-100 cart views per request. Handles partial failures gracefully - each view is processed independently and results include success/failure status. Returns normalized products with extracted IDs and summary statistics.",
+        "tags": ["Event Normalization"],
         "requestBody": {
           "required": true,
           "content": {
@@ -984,7 +1518,7 @@
         },
         "responses": {
           "200": {
-            "description": "Successfully normalized cart views",
+            "description": "Successfully normalized cart view events",
             "content": {
               "application/json": {
                 "schema": {
@@ -1057,6 +1591,119 @@
                           "minLength": 1,
                           "description": "Human-readable error message",
                           "example": "events: At least one cart event is required"
+                        },
+                        "statusCode": {
+                          "type": "integer",
+                          "minimum": 400,
+                          "maximum": 599,
+                          "description": "HTTP status code",
+                          "example": 400
+                        }
+                      }
+                    }
+                  ]
+                },
+                "example": {
+                  "error": "InternalServerError",
+                  "message": "An unexpected error occurred",
+                  "statusCode": 500
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/product-events/normalize": {
+      "post": {
+        "summary": "Normalize Product View Events",
+        "description": "Normalizes raw product view events (PDP visits) from Rakuten apps and extensions using @rr/product-event-normalizer. Consolidates product identifiers from multiple schema.org sources (SKU, GTIN, MPN, offers) and extracts IDs from URLs as fallback. Accepts 1-100 product views per request. Handles partial failures gracefully - each view is processed independently and results include success/failure status. Returns normalized products with comprehensive identifier coverage and summary statistics.",
+        "tags": ["Event Normalization"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NormalizeProductViewsRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully normalized product view events",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NormalizeProductViewsResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request parameters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorResponse"
+                    },
+                    {
+                      "properties": {
+                        "error": {
+                          "type": "string",
+                          "minLength": 1,
+                          "description": "Error type/code",
+                          "example": "ValidationError"
+                        },
+                        "message": {
+                          "type": "string",
+                          "minLength": 1,
+                          "description": "Human-readable error message",
+                          "example": "events: At least one product view event is required"
+                        },
+                        "statusCode": {
+                          "type": "integer",
+                          "minimum": 400,
+                          "maximum": 599,
+                          "description": "HTTP status code",
+                          "example": 400
+                        }
+                      }
+                    }
+                  ]
+                },
+                "example": {
+                  "error": "ValidationError",
+                  "message": "events: At least one product view is required",
+                  "statusCode": 400
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorResponse"
+                    },
+                    {
+                      "properties": {
+                        "error": {
+                          "type": "string",
+                          "minLength": 1,
+                          "description": "Error type/code",
+                          "example": "ValidationError"
+                        },
+                        "message": {
+                          "type": "string",
+                          "minLength": 1,
+                          "description": "Human-readable error message",
+                          "example": "events: At least one product view event is required"
                         },
                         "statusCode": {
                           "type": "integer",

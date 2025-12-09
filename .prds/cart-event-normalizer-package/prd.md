@@ -1,8 +1,8 @@
-# Cart Data Normalizer Package
+# Cart Event Normalizer Package
 
 ## Introduction
 
-A TypeScript package (@rr/cart-normalizer) that processes raw cart event data from Rakuten apps and browser extensions, normalizes the structure, extracts product identifiers using @rr/product-id-extractor, and outputs a clean array of enriched product objects ready for analytics and downstream services.
+A TypeScript package (@rr/cart-event-normalizer) that processes raw cart event data from Rakuten apps and browser extensions, normalizes the structure, extracts product identifiers using @rr/product-id-extractor, and outputs a clean array of enriched product objects ready for analytics and downstream services.
 
 **Last Updated:** 2025-12-08
 **Version:** 1.0
