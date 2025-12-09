@@ -147,11 +147,6 @@ export const NormalizedProductSchema = BaseNormalizedProductSchema.extend({
   category: z.string().optional(),
 
   /**
-   * Product description
-   */
-  description: z.string().optional(),
-
-  /**
    * Product rating (typically 0-5)
    */
   rating: z.number().optional(),
