@@ -24,6 +24,11 @@ import {
   normalizeCartViewsRequestSchema,
   normalizeCartViewsResponseSchema,
 } from '../src/functions/normalize-cart-views/contracts';
+import {
+  normalizeProductViewsRequestSchema,
+  normalizeProductViewsResponseSchema,
+  errorResponseSchema as productErrorResponseSchema,
+} from '../src/functions/normalize-product-views/contracts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -166,10 +171,10 @@ registry.registerPath({
 registry.registerPath({
   method: 'post',
   path: '/cart-views/normalize',
-  summary: 'Normalize Cart Views',
+  summary: 'Normalize Cart View Events',
   description:
-    'Normalizes raw cart view data from Rakuten apps and extensions, extracting product identifiers from URLs and standardizing the data format. Accepts 1-100 cart views per request. Handles partial failures gracefully - each view is processed independently and results include success/failure status. Returns normalized products with extracted IDs and summary statistics.',
-  tags: ['Cart Data Processing'],
+    'Normalizes raw cart view events from Rakuten apps and extensions using @rr/cart-event-normalizer. Extracts product identifiers from URLs and standardizes the data format. Accepts 1-100 cart views per request. Handles partial failures gracefully - each view is processed independently and results include success/failure status. Returns normalized products with extracted IDs and summary statistics.',
+  tags: ['Event Normalization'],
   request: {
     body: {
       required: true,
@@ -182,7 +187,7 @@ registry.registerPath({
   },
   responses: {
     200: {
-      description: 'Successfully normalized cart views',
+      description: 'Successfully normalized cart view events',
       content: {
         'application/json': {
           schema: normalizeCartViewsResponseSchema,
@@ -207,6 +212,62 @@ registry.registerPath({
       content: {
         'application/json': {
           schema: cartErrorResponseSchema,
+          example: {
+            error: 'InternalServerError',
+            message: 'An unexpected error occurred',
+            statusCode: 500,
+          },
+        },
+      },
+    },
+  },
+});
+
+// Register product views normalization endpoint
+registry.registerPath({
+  method: 'post',
+  path: '/product-views/normalize',
+  summary: 'Normalize Product View Events',
+  description:
+    'Normalizes raw product view events (PDP visits) from Rakuten apps and extensions using @rr/product-event-normalizer. Consolidates product identifiers from multiple schema.org sources (SKU, GTIN, MPN, offers) and extracts IDs from URLs as fallback. Accepts 1-100 product views per request. Handles partial failures gracefully - each view is processed independently and results include success/failure status. Returns normalized products with comprehensive identifier coverage and summary statistics.',
+  tags: ['Event Normalization'],
+  request: {
+    body: {
+      required: true,
+      content: {
+        'application/json': {
+          schema: normalizeProductViewsRequestSchema,
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: 'Successfully normalized product view events',
+      content: {
+        'application/json': {
+          schema: normalizeProductViewsResponseSchema,
+        },
+      },
+    },
+    400: {
+      description: 'Invalid request parameters',
+      content: {
+        'application/json': {
+          schema: productErrorResponseSchema,
+          example: {
+            error: 'ValidationError',
+            message: 'events: At least one product view is required',
+            statusCode: 400,
+          },
+        },
+      },
+    },
+    500: {
+      description: 'Internal server error',
+      content: {
+        'application/json': {
+          schema: productErrorResponseSchema,
           example: {
             error: 'InternalServerError',
             message: 'An unexpected error occurred',
@@ -255,8 +316,9 @@ const document = generator.generateDocument({
       description: 'Extract product identifiers from URLs and ASINs',
     },
     {
-      name: 'Cart Data Processing',
-      description: 'Normalize and process cart events from apps and extensions',
+      name: 'Event Normalization',
+      description:
+        'Normalize cart and product view events from apps and extensions using @rr/cart-event-normalizer and @rr/product-event-normalizer packages',
     },
   ],
 });
