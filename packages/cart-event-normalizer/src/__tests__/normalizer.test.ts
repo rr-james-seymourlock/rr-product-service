@@ -397,6 +397,116 @@ describe('normalizeCartEvent', () => {
     });
   });
 
+  describe('deduplication', () => {
+    it('should deduplicate products with the same URL', () => {
+      const event: RawCartEvent = {
+        store_id: 1234,
+        product_list: [
+          { name: 'Product A', url: 'https://example.com/product/123', item_price: 100 },
+          { name: 'Product A Copy', url: 'https://example.com/product/123', item_price: 100 },
+          { name: 'Product A Again', url: 'https://example.com/product/123', item_price: 150 },
+        ],
+      };
+
+      const result = normalizeCartEvent(event);
+
+      expect(result).toHaveLength(1);
+      expect(result[0]?.title).toBe('Product A'); // First occurrence kept
+      expect(result[0]?.price).toBe(100);
+    });
+
+    it('should keep products with different URLs', () => {
+      const event: RawCartEvent = {
+        store_id: 1234,
+        product_list: [
+          { name: 'Product A', url: 'https://example.com/product/123', item_price: 100 },
+          { name: 'Product B', url: 'https://example.com/product/456', item_price: 200 },
+          { name: 'Product C', url: 'https://example.com/product/789', item_price: 300 },
+        ],
+      };
+
+      const result = normalizeCartEvent(event);
+
+      expect(result).toHaveLength(3);
+    });
+
+    it('should deduplicate products without URL but same productIds', () => {
+      // Products without URL that extract to same productIds should be deduplicated
+      const event: RawCartEvent = {
+        store_id: 1234,
+        product_list: [
+          { name: 'Product A', item_price: 100 },
+          { name: 'Product A Copy', item_price: 100 },
+        ],
+      };
+
+      const result = normalizeCartEvent(event);
+
+      // Both have no URL and no productIds, so they can't be deduplicated
+      // and both are kept
+      expect(result).toHaveLength(2);
+    });
+
+    it('should keep products without deduplication key (no URL, no productIds)', () => {
+      const event: RawCartEvent = {
+        store_id: 1234,
+        product_list: [
+          { name: 'Product A', item_price: 100 }, // No URL, no productIds
+          { name: 'Product B', item_price: 200 }, // No URL, no productIds
+        ],
+      };
+
+      const result = normalizeCartEvent(event, { extractProductIds: false });
+
+      // Without productIds extraction and no URLs, all products are kept
+      expect(result).toHaveLength(2);
+    });
+
+    it('should deduplicate mixed products correctly', () => {
+      const event: RawCartEvent = {
+        store_id: 1234,
+        product_list: [
+          { name: 'Unique 1', url: 'https://example.com/product/1', item_price: 100 },
+          { name: 'Duplicate of 1', url: 'https://example.com/product/1', item_price: 100 },
+          { name: 'Unique 2', url: 'https://example.com/product/2', item_price: 200 },
+          { name: 'No URL Product', item_price: 300 }, // Kept (no dedup key)
+          { name: 'Unique 3', url: 'https://example.com/product/3', item_price: 400 },
+          { name: 'Another Duplicate of 1', url: 'https://example.com/product/1', item_price: 100 },
+        ],
+      };
+
+      const result = normalizeCartEvent(event);
+
+      expect(result).toHaveLength(4);
+      expect(result.map((p) => p.title)).toEqual([
+        'Unique 1',
+        'Unique 2',
+        'No URL Product',
+        'Unique 3',
+      ]);
+    });
+
+    it('should preserve first occurrence when deduplicating', () => {
+      const event: RawCartEvent = {
+        store_id: 1234,
+        product_list: [
+          { name: 'First', url: 'https://example.com/product/123', item_price: 100, quantity: 1 },
+          { name: 'Second', url: 'https://example.com/product/123', item_price: 200, quantity: 2 },
+          { name: 'Third', url: 'https://example.com/product/123', item_price: 300, quantity: 3 },
+        ],
+      };
+
+      const result = normalizeCartEvent(event);
+
+      expect(result).toHaveLength(1);
+      expect(result[0]).toMatchObject({
+        title: 'First',
+        price: 100,
+        quantity: 1,
+      });
+    });
+  });
+
   describe('edge cases', () => {
     it('should handle event with undefined product_list', () => {
       const event = {

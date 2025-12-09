@@ -94,11 +94,54 @@ function normalizeProduct(
 }
 
 /**
+ * Generate a deduplication key for a product
+ * Uses URL if available, otherwise falls back to productIds joined
+ */
+function getDeduplicationKey(product: CartProduct): string | undefined {
+  // Prefer URL as the deduplication key
+  if (product.url) {
+    return product.url;
+  }
+
+  // Fall back to productIds if no URL
+  if (product.productIds.length > 0) {
+    return product.productIds.join('|');
+  }
+
+  // No deduplication possible without URL or productIds
+  return undefined;
+}
+
+/**
+ * Deduplicate products, keeping the first occurrence
+ * Products without a deduplication key (no URL, no productIds) are always kept
+ */
+function deduplicateProducts(products: CartProduct[]): CartProduct[] {
+  const seen = new Set<string>();
+  const result: CartProduct[] = [];
+
+  for (const product of products) {
+    const key = getDeduplicationKey(product);
+
+    if (key === undefined) {
+      // No key means we can't deduplicate - keep the product
+      result.push(product);
+    } else if (!seen.has(key)) {
+      seen.add(key);
+      result.push(product);
+    }
+    // If key is already seen, skip this duplicate
+  }
+
+  return result;
+}
+
+/**
  * Normalize a raw cart event into a clean array of CartProduct objects
  *
  * @param event - Raw cart event from apps/extensions
  * @param options - Normalization options
- * @returns Frozen array of normalized CartProduct objects
+ * @returns Frozen array of normalized CartProduct objects (deduplicated by URL)
  *
  * @example
  * ```ts
@@ -128,5 +171,8 @@ export function normalizeCartEvent(
     .filter(isValidProduct)
     .map((product) => normalizeProduct(product, storeId, extractIds));
 
-  return Object.freeze(normalizedProducts);
+  // Deduplicate products by URL (or productIds if no URL)
+  const deduplicatedProducts = deduplicateProducts(normalizedProducts);
+
+  return Object.freeze(deduplicatedProducts);
 }

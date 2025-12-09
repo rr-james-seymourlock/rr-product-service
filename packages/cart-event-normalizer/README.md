@@ -57,6 +57,7 @@ Use this package when you need to:
 - **Type coercion**: Handles both string and numeric `store_id` values
 - **Product ID extraction**: Automatic extraction via `@rr/product-id-extractor`
 - **Smart filtering**: Products require URL, or both title AND price
+- **Deduplication**: Removes duplicate products by URL (first occurrence kept)
 - **Immutable output**: Frozen arrays and objects for safe caching
 - **Zod schemas**: Full TypeScript types with runtime validation option
 - **Zero config**: Works out of the box with sensible defaults
