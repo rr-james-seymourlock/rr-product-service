@@ -11,6 +11,7 @@ import { convertAsinHandler } from './src/functions/convert-asin/handler.ts';
 import { healthCheckHandler } from './src/functions/health/handler.ts';
 import { createUrlAnalysisHandler } from './src/functions/create-url-analysis/handler.ts';
 import { normalizeCartViewsHandler } from './src/functions/normalize-cart-views/handler.ts';
+import { normalizeProductViewsHandler } from './src/functions/normalize-product-views/handler.ts';
 
 const PORT = 3000;
 
@@ -47,12 +48,21 @@ const ROUTES = [
   },
   {
     method: 'POST',
-    path: '/cart-views/normalize',
+    path: '/cart-events/normalize',
     handler: normalizeCartViewsHandler,
-    description: 'Normalize cart view data and extract product IDs (1-100 events)',
-    example: `curl -X POST "http://localhost:${PORT}/cart-views/normalize" \\
+    description: 'Normalize cart events and extract product IDs (1-100 events)',
+    example: `curl -X POST "http://localhost:${PORT}/cart-events/normalize" \\
      -H "Content-Type: application/json" \\
      -d '{"events":[{"store_id":8333,"store_name":"Macys","product_list":[{"name":"Sweater","url":"https://macys.com/product?ID=12345","item_price":4900}]}]}'`,
+  },
+  {
+    method: 'POST',
+    path: '/product-events/normalize',
+    handler: normalizeProductViewsHandler,
+    description: 'Normalize product view events and consolidate IDs (1-100 events)',
+    example: `curl -X POST "http://localhost:${PORT}/product-events/normalize" \\
+     -H "Content-Type: application/json" \\
+     -d '{"events":[{"store_id":5246,"store_name":"target.com","name":"T-Shirt","url":"https://www.target.com/p/-/A-88056717","sku":["88056717"]}]}'`,
   },
 ];
 

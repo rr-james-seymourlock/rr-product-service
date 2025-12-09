@@ -71,7 +71,7 @@ Resources:
         NormalizeCartViews:
           Type: Api
           Properties:
-            Path: /cart-views/normalize
+            Path: /cart-events/normalize
             Method: post
       Tags:
         Service: product-service
@@ -86,7 +86,7 @@ Resources:
         NormalizeProductViews:
           Type: Api
           Properties:
-            Path: /product-views/normalize
+            Path: /product-events/normalize
             Method: post
       Tags:
         Service: product-service
@@ -131,7 +131,7 @@ Outputs:
 
   NormalizeCartViewsApi:
     Description: API Gateway endpoint URL for NormalizeCartViews function
-    Value: !Sub 'https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/cart-views/normalize/'
+    Value: !Sub 'https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/cart-events/normalize/'
 
   NormalizeCartViewsFunction:
     Description: NormalizeCartViews Lambda Function ARN
@@ -143,7 +143,7 @@ Outputs:
 
   NormalizeProductViewsApi:
     Description: API Gateway endpoint URL for NormalizeProductViews function
-    Value: !Sub 'https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/product-views/normalize/'
+    Value: !Sub 'https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/product-events/normalize/'
 
   NormalizeProductViewsFunction:
     Description: NormalizeProductViews Lambda Function ARN

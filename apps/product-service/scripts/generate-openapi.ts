@@ -170,7 +170,7 @@ registry.registerPath({
 // Register cart views normalization endpoint
 registry.registerPath({
   method: 'post',
-  path: '/cart-views/normalize',
+  path: '/cart-events/normalize',
   summary: 'Normalize Cart View Events',
   description:
     'Normalizes raw cart view events from Rakuten apps and extensions using @rr/cart-event-normalizer. Extracts product identifiers from URLs and standardizes the data format. Accepts 1-100 cart views per request. Handles partial failures gracefully - each view is processed independently and results include success/failure status. Returns normalized products with extracted IDs and summary statistics.',
@@ -226,7 +226,7 @@ registry.registerPath({
 // Register product views normalization endpoint
 registry.registerPath({
   method: 'post',
-  path: '/product-views/normalize',
+  path: '/product-events/normalize',
   summary: 'Normalize Product View Events',
   description:
     'Normalizes raw product view events (PDP visits) from Rakuten apps and extensions using @rr/product-event-normalizer. Consolidates product identifiers from multiple schema.org sources (SKU, GTIN, MPN, offers) and extracts IDs from URLs as fallback. Accepts 1-100 product views per request. Handles partial failures gracefully - each view is processed independently and results include success/failure status. Returns normalized products with comprehensive identifier coverage and summary statistics.',
