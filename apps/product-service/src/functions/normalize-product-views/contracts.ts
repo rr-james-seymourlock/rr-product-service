@@ -30,6 +30,7 @@ export const normalizeProductViewsRequestSchema = z
             store_name: 'target.com',
             name: 'Womens Short Sleeve Slim Fit Ribbed T-Shirt',
             url: 'https://www.target.com/p/women-s-short-sleeve-slim-fit-ribbed-t-shirt/-/A-88056717',
+            image_url: 'https://target.scene7.com/is/image/Target/GUEST_88056717',
             sku: ['88056717'],
             offers: [{ price: 800, sku: '88056717' }],
             brand: 'A New Day',
@@ -66,6 +67,7 @@ const successResultSchema = z
         {
           title: 'Womens Short Sleeve Slim Fit Ribbed T-Shirt',
           url: 'https://www.target.com/p/women-s-short-sleeve-slim-fit-ribbed-t-shirt/-/A-88056717',
+          imageUrl: 'https://target.scene7.com/is/image/Target/GUEST_88056717',
           storeId: '5246',
           price: 800,
           productIds: ['88056717'],
@@ -127,6 +129,7 @@ export const normalizeProductViewsResponseSchema = z
             {
               title: 'Womens Short Sleeve Slim Fit Ribbed T-Shirt',
               url: 'https://www.target.com/p/women-s-short-sleeve-slim-fit-ribbed-t-shirt/-/A-88056717',
+              imageUrl: 'https://target.scene7.com/is/image/Target/GUEST_88056717',
               storeId: '5246',
               price: 800,
               productIds: ['88056717'],

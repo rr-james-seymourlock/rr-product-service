@@ -445,17 +445,17 @@
           "price": {
             "type": "number"
           },
-          "quantity": {
-            "type": "number"
-          },
-          "lineTotal": {
-            "type": "number"
-          },
           "productIds": {
             "type": "array",
             "items": {
               "type": "string"
             }
+          },
+          "quantity": {
+            "type": "number"
+          },
+          "lineTotal": {
+            "type": "number"
           }
         },
         "required": ["productIds"]
@@ -489,6 +489,7 @@
                       {
                         "title": "Women's Cotton Sweater",
                         "url": "https://macys.com/shop/product?ID=12345",
+                        "imageUrl": "https://slimages.macysassets.com/is/image/MCY/products/12345.jpg",
                         "storeId": "8333",
                         "price": 4900,
                         "quantity": 1,
@@ -562,6 +563,7 @@
                   {
                     "title": "Women's Cotton Sweater",
                     "url": "https://macys.com/shop/product?ID=12345",
+                    "imageUrl": "https://slimages.macysassets.com/is/image/MCY/products/12345.jpg",
                     "storeId": "8333",
                     "price": 4900,
                     "quantity": 1,
@@ -816,6 +818,7 @@
                   {
                     "name": "Women's Cotton Sweater",
                     "url": "https://macys.com/shop/product?ID=12345",
+                    "image_url": "https://slimages.macysassets.com/is/image/MCY/products/12345.jpg",
                     "item_price": 4900,
                     "quantity": 1
                   }
@@ -927,6 +930,7 @@
                                 {
                                   "title": "Womens Short Sleeve Slim Fit Ribbed T-Shirt",
                                   "url": "https://www.target.com/p/women-s-short-sleeve-slim-fit-ribbed-t-shirt/-/A-88056717",
+                                  "imageUrl": "https://target.scene7.com/is/image/Target/GUEST_88056717",
                                   "storeId": "5246",
                                   "price": 800,
                                   "productIds": ["88056717"],
@@ -994,6 +998,7 @@
                   {
                     "title": "Womens Short Sleeve Slim Fit Ribbed T-Shirt",
                     "url": "https://www.target.com/p/women-s-short-sleeve-slim-fit-ribbed-t-shirt/-/A-88056717",
+                    "imageUrl": "https://target.scene7.com/is/image/Target/GUEST_88056717",
                     "storeId": "5246",
                     "price": 800,
                     "productIds": ["88056717"],
@@ -1346,6 +1351,7 @@
                 "store_name": "target.com",
                 "name": "Womens Short Sleeve Slim Fit Ribbed T-Shirt",
                 "url": "https://www.target.com/p/women-s-short-sleeve-slim-fit-ribbed-t-shirt/-/A-88056717",
+                "image_url": "https://target.scene7.com/is/image/Target/GUEST_88056717",
                 "sku": ["88056717"],
                 "offers": [
                   {
