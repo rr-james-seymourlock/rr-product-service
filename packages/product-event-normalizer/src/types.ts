@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { BaseNormalizedProductSchema } from '@rr/shared/types';
+
 /**
  * Toolbar offer schema (from browser extensions)
  * Uses: price, sku, url
@@ -135,27 +137,49 @@ export type RawProductViewEvent = z.infer<typeof RawProductViewEventSchema>;
 
 /**
  * Normalized product output
- * Compatible with CartProduct from @rr/cart-event-normalizer
+ * Extends BaseNormalizedProductSchema with product view-specific fields
  */
-export const NormalizedProductSchema = z.object({
-  // Core fields (compatible with CartProduct)
-  title: z.string().optional(),
-  url: z.string().optional(),
-  imageUrl: z.string().optional(),
-  storeId: z.string().optional(),
-  price: z.number().optional(),
-  productIds: z.array(z.string()).readonly(),
-
+export const NormalizedProductSchema = BaseNormalizedProductSchema.extend({
   // Extended fields for product view data
+  /**
+   * Product brand
+   */
   brand: z.string().optional(),
+
+  /**
+   * Product category or breadcrumbs
+   */
   category: z.string().optional(),
+
+  /**
+   * Product description
+   */
   description: z.string().optional(),
+
+  /**
+   * Product rating (typically 0-5)
+   */
   rating: z.number().optional(),
+
+  /**
+   * Product color
+   */
   color: z.string().optional(),
 
   // Specific identifier types (for downstream consumers that need them)
+  /**
+   * SKU identifiers extracted from schema.org data
+   */
   skus: z.array(z.string()).readonly().optional(),
+
+  /**
+   * GTIN identifiers (UPC, EAN, ISBN) extracted from schema.org data
+   */
   gtins: z.array(z.string()).readonly().optional(),
+
+  /**
+   * MPN (Manufacturer Part Number) identifiers
+   */
   mpns: z.array(z.string()).readonly().optional(),
 });
 

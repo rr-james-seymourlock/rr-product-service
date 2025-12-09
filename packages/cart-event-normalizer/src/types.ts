@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { BaseNormalizedProductSchema } from '@rr/shared/types';
+
 /**
  * Raw product from cart event product_list
  */
@@ -98,16 +100,18 @@ export type RawCartEvent = z.infer<typeof RawCartEventSchema>;
 
 /**
  * Normalized cart product output
+ * Extends BaseNormalizedProductSchema with cart-specific fields
  */
-export const CartProductSchema = z.object({
-  title: z.string().optional(),
-  url: z.string().optional(),
-  imageUrl: z.string().optional(),
-  storeId: z.string().optional(),
-  price: z.number().optional(),
+export const CartProductSchema = BaseNormalizedProductSchema.extend({
+  /**
+   * Quantity of this product in the cart
+   */
   quantity: z.number().optional(),
+
+  /**
+   * Line total (price * quantity)
+   */
   lineTotal: z.number().optional(),
-  productIds: z.array(z.string()).readonly(),
 });
 
 export type CartProduct = z.infer<typeof CartProductSchema>;
