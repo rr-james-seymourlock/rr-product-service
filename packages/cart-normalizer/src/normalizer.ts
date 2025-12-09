@@ -103,7 +103,7 @@ function normalizeProduct(
  * @example
  * ```ts
  * const products = normalizeCartEvent(rawEvent);
- * // [{ title: "Product", url: "...", storeId: 8333, price: 4200, productIds: ["123"] }]
+ * // [{ title: "Product", url: "...", storeId: "8333", price: 4200, productIds: ["123"] }]
  * ```
  */
 export function normalizeCartEvent(

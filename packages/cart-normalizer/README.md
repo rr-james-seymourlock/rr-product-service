@@ -19,7 +19,7 @@ Cart events arrive from multiple sources with inconsistent structures:
 Without normalization, every downstream consumer (analytics pipelines, ML models, dashboards) would need to implement their own parsing logic. This package provides:
 
 - **Unified output schema** with consistent field names
-- **Type coercion** for `store_id` (string → number)
+- **Type coercion** for `store_id` (number → string)
 - **Product ID extraction** from URLs automatically
 - **Smart filtering** to exclude invalid products
 - **Immutable output** for safe caching and sharing
@@ -98,7 +98,7 @@ const products = normalizeCartEvent(rawEvent);
 //     title: "Women's Cotton Sweater",
 //     url: 'https://macys.com/shop/product?ID=12345',
 //     imageUrl: 'https://macys.com/image.jpg',
-//     storeId: 8333,
+//     storeId: '8333',
 //     price: 4900,
 //     quantity: 1,
 //     lineTotal: 4900,
@@ -184,7 +184,7 @@ interface CartProduct {
   title?: string; // Mapped from name
   url?: string; // Product URL
   imageUrl?: string; // Mapped from image_url
-  storeId?: number; // Always number, from parent event
+  storeId?: string; // Always string, from parent event
   price?: number; // Mapped from item_price
   quantity?: number; // Direct mapping
   lineTotal?: number; // Mapped from line_total
@@ -235,22 +235,25 @@ A product is included if it has:
 | `item_price`  | `price`      | Direct mapping (0 is valid)     |
 | `quantity`    | `quantity`   | Direct mapping (0 is valid)     |
 | `line_total`  | `lineTotal`  | camelCase conversion            |
-| `store_id`    | `storeId`    | Coerced to number, from event   |
+| `store_id`    | `storeId`    | Coerced to string, from event   |
 | _(extracted)_ | `productIds` | From URL via product-id-extractor |
 
 ## Store ID Handling
 
-The `store_id` field is coerced to a number regardless of input type:
+The `store_id` field is coerced to a string regardless of input type. This ensures consistency and supports non-numeric store IDs (e.g., `"uk-87262"`):
 
 ```typescript
 // Toolbar events - numeric store_id
-{ store_id: 8333 } → storeId: 8333
+{ store_id: 8333 } → storeId: '8333'
 
 // App events - string store_id
-{ store_id: '8333' } → storeId: 8333
+{ store_id: '8333' } → storeId: '8333'
 
-// Invalid string - undefined
-{ store_id: 'invalid' } → storeId: undefined
+// Non-numeric string IDs preserved
+{ store_id: 'uk-87262' } → storeId: 'uk-87262'
+
+// Empty/whitespace - undefined
+{ store_id: '   ' } → storeId: undefined
 
 // Missing - undefined
 { } → storeId: undefined
@@ -373,7 +376,7 @@ const event = {
 };
 
 const products = normalizeCartEvent(event);
-// [{ title: "Men's Yankees Jersey", storeId: 5806, price: 14999, quantity: 1, productIds: [] }]
+// [{ title: "Men's Yankees Jersey", storeId: '5806', price: 14999, quantity: 1, productIds: [] }]
 ```
 
 ### Barnes & Noble (Multiple Products with URLs)
@@ -415,7 +418,7 @@ const event = {
 };
 
 const products = normalizeCartEvent(event);
-// storeId is coerced to number: 8333
+// storeId is coerced to string: '8333'
 ```
 
 ### Empty Cart

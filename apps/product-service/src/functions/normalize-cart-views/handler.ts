@@ -19,7 +19,7 @@ import { logger } from './logger';
 /**
  * Process a single cart event and return result (success or failure)
  */
-async function processCartEvent(event: RawCartEvent): Promise<NormalizationResult> {
+function processCartEvent(event: RawCartEvent): NormalizationResult {
   try {
     // Normalize the cart event
     const products = normalizeCartEvent(event);
@@ -61,22 +61,31 @@ export const normalizeCartViewsHandler = async (
     logger.debug({ path: event.path, body: event.body }, 'Cart view normalization requested');
 
     // Parse and validate request body
+    // Note: httpJsonBodyParser middleware parses JSON, but we handle both cases
+    // for direct Lambda invocation (string) vs middleware-processed (object)
     const requestBody = typeof event.body === 'string' ? JSON.parse(event.body) : event.body;
     const { events } = normalizeCartViewsRequestSchema.parse(requestBody);
 
     logger.info({ count: events.length }, 'Normalizing cart views');
 
-    // Process all cart events in parallel (order is preserved by Promise.all)
+    // Process all cart events (synchronous - no I/O operations)
     const startTime = Date.now();
-    const results = await Promise.all(events.map((e) => processCartEvent(e)));
+    const results = events.map((e) => processCartEvent(e));
     const durationMs = Date.now() - startTime;
 
-    // Calculate summary statistics
-    const successful = results.filter((r) => r.success).length;
-    const failed = results.filter((r) => !r.success).length;
-    const totalProducts = results
-      .filter((r): r is Extract<NormalizationResult, { success: true }> => r.success)
-      .reduce((sum, r) => sum + r.productCount, 0);
+    // Calculate summary statistics in a single pass
+    const { successful, failed, totalProducts } = results.reduce(
+      (acc, r) => {
+        if (r.success) {
+          acc.successful++;
+          acc.totalProducts += r.productCount;
+        } else {
+          acc.failed++;
+        }
+        return acc;
+      },
+      { successful: 0, failed: 0, totalProducts: 0 },
+    );
 
     logger.info(
       {
