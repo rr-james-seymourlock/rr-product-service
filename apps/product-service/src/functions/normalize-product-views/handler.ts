@@ -98,7 +98,7 @@ export const normalizeProductViewsHandler = async (
       'Product view normalization completed',
     );
 
-    // Build and validate response
+    // Build response
     const response: NormalizeProductViewsResponse = {
       results,
       total: events.length,
@@ -107,22 +107,25 @@ export const normalizeProductViewsHandler = async (
       totalProducts,
     };
 
-    const validatedResponse = normalizeProductViewsResponseSchema.parse(response);
+    // Validate response only in development (skip in production for performance)
+    if (process.env['NODE_ENV'] === 'development') {
+      normalizeProductViewsResponseSchema.parse(response);
+    }
 
     return {
       statusCode: 200,
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(validatedResponse),
+      body: JSON.stringify(response),
     };
   } catch (error) {
     // Handle validation errors
     if (error instanceof ZodError) {
       logger.warn(
         {
-          errors: error.issues,
-          body: event.body,
+          errors: error.issues.slice(0, 3),
+          errorCount: error.issues.length,
         },
         'Validation error',
       );
@@ -147,7 +150,6 @@ export const normalizeProductViewsHandler = async (
       {
         error: error instanceof Error ? error.message : String(error),
         stack: error instanceof Error ? error.stack : undefined,
-        body: event.body,
       },
       'Failed to normalize product views',
     );

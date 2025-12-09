@@ -5,12 +5,12 @@ import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { ZodError } from 'zod';
 
 import {
-  convertAsins,
-  ProductNotFoundError,
   ApiRequestError,
   ApiResponseError,
   ConfigurationError,
   InvalidInputError,
+  ProductNotFoundError,
+  convertAsins,
 } from '@rr/asin-converter';
 
 import {
@@ -124,9 +124,18 @@ export const convertAsinHandler = async (
       ),
     );
 
-    // Calculate summary statistics
-    const successful = results.filter((r) => r.success).length;
-    const failed = results.filter((r) => !r.success).length;
+    // Calculate summary statistics in a single pass
+    const { successful, failed } = results.reduce(
+      (acc, r) => {
+        if (r.success) {
+          acc.successful++;
+        } else {
+          acc.failed++;
+        }
+        return acc;
+      },
+      { successful: 0, failed: 0 },
+    );
 
     logger.info(
       {
@@ -137,7 +146,7 @@ export const convertAsinHandler = async (
       'ASIN conversion completed',
     );
 
-    // Build and validate response
+    // Build response
     const response: ConvertAsinResponse = {
       results,
       total: asins.length,
@@ -145,22 +154,25 @@ export const convertAsinHandler = async (
       failed,
     };
 
-    const validatedResponse = convertAsinResponseSchema.parse(response);
+    // Validate response only in development (skip in production for performance)
+    if (process.env['NODE_ENV'] === 'development') {
+      convertAsinResponseSchema.parse(response);
+    }
 
     return {
       statusCode: 200,
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(validatedResponse),
+      body: JSON.stringify(response),
     };
   } catch (error) {
     // Handle validation errors
     if (error instanceof ZodError) {
       logger.warn(
         {
-          errors: error.issues,
-          body: event.body,
+          errors: error.issues.slice(0, 3),
+          errorCount: error.issues.length,
         },
         'Validation error',
       );
@@ -185,7 +197,6 @@ export const convertAsinHandler = async (
       logger.error(
         {
           error: error.message,
-          body: event.body,
         },
         'Configuration error',
       );
@@ -210,7 +221,6 @@ export const convertAsinHandler = async (
       {
         error: error instanceof Error ? error.message : String(error),
         stack: error instanceof Error ? error.stack : undefined,
-        body: event.body,
       },
       'Failed to convert ASINs',
     );
@@ -231,6 +241,4 @@ export const convertAsinHandler = async (
   }
 };
 
-export const handler = middy(convertAsinHandler)
-  .use(httpJsonBodyParser())
-  .use(httpErrorHandler());
+export const handler = middy(convertAsinHandler).use(httpJsonBodyParser()).use(httpErrorHandler());

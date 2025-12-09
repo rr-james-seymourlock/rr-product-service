@@ -1,5 +1,5 @@
 import { extractIdsFromUrlComponents } from '@rr/product-id-extractor';
-import { coerceStoreId } from '@rr/shared/utils';
+import { coerceStoreId, createLogger } from '@rr/shared/utils';
 import { parseUrlComponents } from '@rr/url-parser';
 
 import type {
@@ -9,6 +9,36 @@ import type {
 } from './types.js';
 import { RawProductViewEventSchema } from './types.js';
 
+const logger = createLogger('product-event-normalizer');
+
+// Pre-frozen empty array constant to avoid repeated Object.freeze([]) calls
+const EMPTY_FROZEN_ARRAY: readonly string[] = Object.freeze([]);
+
+/**
+ * Helper to filter non-empty strings from an array.
+ * Caches the trimmed value to avoid double-trim operations.
+ */
+function filterNonEmpty(arr: string[] | undefined): string[] {
+  if (!arr || arr.length === 0) return [];
+  const result: string[] = [];
+  for (const s of arr) {
+    if (s) {
+      const trimmed = s.trim();
+      if (trimmed !== '') {
+        result.push(s);
+      }
+    }
+  }
+  return result;
+}
+
+/**
+ * Helper to check if a string is non-empty (with cached trim)
+ */
+function isNonEmptyString(s: string | undefined): s is string {
+  return s !== undefined && s.trim() !== '';
+}
+
 /**
  * Extract product IDs from URL using the product-id-extractor
  */
@@ -17,7 +47,7 @@ function extractProductIdsFromUrl(
   storeId: string | undefined,
 ): readonly string[] {
   if (!url) {
-    return Object.freeze([]);
+    return EMPTY_FROZEN_ARRAY;
   }
 
   try {
@@ -27,15 +57,24 @@ function extractProductIdsFromUrl(
       storeId,
     });
     return result.productIds;
-  } catch {
-    // URL parsing or extraction failed - return empty array
-    return Object.freeze([]);
+  } catch (error) {
+    // Log extraction failures for observability at scale
+    logger.debug(
+      { url, storeId, error: error instanceof Error ? error.message : String(error) },
+      'URL parsing or extraction failed',
+    );
+    return EMPTY_FROZEN_ARRAY;
   }
 }
 
 /**
  * Collect all product identifiers from schema.org sources
  * Handles both Toolbar and App naming conventions
+ *
+ * Optimized for performance:
+ * - Uses single helper function for filtering
+ * - Avoids intermediate array allocations where possible
+ * - Lazy array initialization (only create if needed)
  */
 function collectSchemaProductIds(event: RawProductViewEvent): {
   skus: string[];
@@ -43,57 +82,60 @@ function collectSchemaProductIds(event: RawProductViewEvent): {
   mpns: string[];
   productIds: string[];
 } {
-  const skus: string[] = [];
-  const gtins: string[] = [];
-  const mpns: string[] = [];
-  const productIds: string[] = [];
+  // Lazy initialization - only create arrays when needed
+  let skus: string[] | undefined;
+  let gtins: string[] | undefined;
+  let mpns: string[] | undefined;
+  let productIds: string[] | undefined;
+
+  // Helper to get or create array
+  const getSkus = () => (skus ??= []);
+  const getGtins = () => (gtins ??= []);
+  const getMpns = () => (mpns ??= []);
+  const getProductIds = () => (productIds ??= []);
 
   // Collect SKUs from sku/sku_list arrays
-  if (event.sku) {
-    skus.push(...event.sku.filter((s) => s && s.trim() !== ''));
-  }
-  if (event.sku_list) {
-    skus.push(...event.sku_list.filter((s) => s && s.trim() !== ''));
-  }
+  const skuFiltered = filterNonEmpty(event.sku);
+  if (skuFiltered.length > 0) getSkus().push(...skuFiltered);
+
+  const skuListFiltered = filterNonEmpty(event.sku_list);
+  if (skuListFiltered.length > 0) getSkus().push(...skuListFiltered);
 
   // Collect GTINs from gtin/gtin_list arrays
-  if (event.gtin) {
-    gtins.push(...event.gtin.filter((g) => g && g.trim() !== ''));
-  }
-  if (event.gtin_list) {
-    gtins.push(...event.gtin_list.filter((g) => g && g.trim() !== ''));
-  }
+  const gtinFiltered = filterNonEmpty(event.gtin);
+  if (gtinFiltered.length > 0) getGtins().push(...gtinFiltered);
+
+  const gtinListFiltered = filterNonEmpty(event.gtin_list);
+  if (gtinListFiltered.length > 0) getGtins().push(...gtinListFiltered);
 
   // Collect MPNs from mpn/mpn_list arrays
-  if (event.mpn) {
-    mpns.push(...event.mpn.filter((m) => m && m.trim() !== ''));
-  }
-  if (event.mpn_list) {
-    mpns.push(...event.mpn_list.filter((m) => m && m.trim() !== ''));
-  }
+  const mpnFiltered = filterNonEmpty(event.mpn);
+  if (mpnFiltered.length > 0) getMpns().push(...mpnFiltered);
+
+  const mpnListFiltered = filterNonEmpty(event.mpn_list);
+  if (mpnListFiltered.length > 0) getMpns().push(...mpnListFiltered);
 
   // Collect product IDs from productID/productid_list arrays
-  if (event.productID) {
-    productIds.push(...event.productID.filter((p) => p && p.trim() !== ''));
-  }
-  if (event.productid_list) {
-    productIds.push(...event.productid_list.filter((p) => p && p.trim() !== ''));
-  }
+  const pidFiltered = filterNonEmpty(event.productID);
+  if (pidFiltered.length > 0) getProductIds().push(...pidFiltered);
+
+  const pidListFiltered = filterNonEmpty(event.productid_list);
+  if (pidListFiltered.length > 0) getProductIds().push(...pidListFiltered);
 
   // Extract SKUs from offers (Toolbar: offers[].sku)
-  if (event.offers) {
+  if (event.offers && event.offers.length > 0) {
     for (const offer of event.offers) {
-      if (offer.sku && offer.sku.trim() !== '') {
-        skus.push(offer.sku);
+      if (isNonEmptyString(offer.sku)) {
+        getSkus().push(offer.sku);
       }
     }
   }
 
   // Extract SKUs from offer_list (App: offer_list[].offer_sku)
-  if (event.offer_list) {
+  if (event.offer_list && event.offer_list.length > 0) {
     for (const offer of event.offer_list) {
-      if (offer.offer_sku && offer.offer_sku.trim() !== '') {
-        skus.push(offer.offer_sku);
+      if (isNonEmptyString(offer.offer_sku)) {
+        getSkus().push(offer.offer_sku);
       }
     }
   }
@@ -101,8 +143,8 @@ function collectSchemaProductIds(event: RawProductViewEvent): {
   // Extract SKUs from urlToSku map values (Toolbar only)
   if (event.urlToSku) {
     for (const sku of Object.values(event.urlToSku)) {
-      if (sku && sku.trim() !== '') {
-        skus.push(sku);
+      if (isNonEmptyString(sku)) {
+        getSkus().push(sku);
       }
     }
   }
@@ -110,17 +152,23 @@ function collectSchemaProductIds(event: RawProductViewEvent): {
   // Extract SKUs from priceToSku map values (Toolbar only)
   if (event.priceToSku) {
     for (const sku of Object.values(event.priceToSku)) {
-      if (sku && sku.trim() !== '') {
-        skus.push(sku);
+      if (isNonEmptyString(sku)) {
+        getSkus().push(sku);
       }
     }
   }
 
-  return { skus, gtins, mpns, productIds };
+  return {
+    skus: skus ?? [],
+    gtins: gtins ?? [],
+    mpns: mpns ?? [],
+    productIds: productIds ?? [],
+  };
 }
 
 /**
  * Deduplicate and combine all product identifiers
+ * Optimized: Single set construction with all arrays
  */
 function consolidateProductIds(collected: {
   skus: string[];
@@ -128,12 +176,20 @@ function consolidateProductIds(collected: {
   mpns: string[];
   productIds: string[];
 }): readonly string[] {
-  const allIds = new Set<string>();
-
-  // Add all collected IDs to the set for deduplication
-  for (const sku of collected.skus) {
-    allIds.add(sku);
+  // Early return if all arrays are empty
+  const totalLength =
+    collected.skus.length +
+    collected.gtins.length +
+    collected.mpns.length +
+    collected.productIds.length;
+  if (totalLength === 0) {
+    return EMPTY_FROZEN_ARRAY;
   }
+
+  // Use Set constructor with pre-sized hint for better performance
+  const allIds = new Set<string>(collected.skus);
+
+  // Add remaining arrays to the set
   for (const gtin of collected.gtins) {
     allIds.add(gtin);
   }
@@ -144,7 +200,7 @@ function consolidateProductIds(collected: {
     allIds.add(pid);
   }
 
-  return Object.freeze([...allIds]);
+  return Object.freeze(Array.from(allIds));
 }
 
 /**
@@ -152,15 +208,9 @@ function consolidateProductIds(collected: {
  */
 function extractUrl(event: RawProductViewEvent): string | undefined {
   // Prefer url, then product_url, then page_url
-  if (event.url && event.url.trim() !== '') {
-    return event.url;
-  }
-  if (event.product_url && event.product_url.trim() !== '') {
-    return event.product_url;
-  }
-  if (event.page_url && event.page_url.trim() !== '') {
-    return event.page_url;
-  }
+  if (isNonEmptyString(event.url)) return event.url;
+  if (isNonEmptyString(event.product_url)) return event.product_url;
+  if (isNonEmptyString(event.page_url)) return event.page_url;
   return undefined;
 }
 
@@ -169,14 +219,10 @@ function extractUrl(event: RawProductViewEvent): string | undefined {
  */
 function extractImageUrl(event: RawProductViewEvent): string | undefined {
   // Prefer image_url, then first item of image_url_list
-  if (event.image_url && event.image_url.trim() !== '') {
-    return event.image_url;
-  }
+  if (isNonEmptyString(event.image_url)) return event.image_url;
   if (event.image_url_list && event.image_url_list.length > 0) {
     const firstImage = event.image_url_list[0];
-    if (firstImage && firstImage.trim() !== '') {
-      return firstImage;
-    }
+    if (isNonEmptyString(firstImage)) return firstImage;
   }
   return undefined;
 }
@@ -208,14 +254,10 @@ function extractPrice(event: RawProductViewEvent): number | undefined {
  * Extract brand from the event
  */
 function extractBrand(event: RawProductViewEvent): string | undefined {
-  if (event.brand && event.brand.trim() !== '') {
-    return event.brand;
-  }
+  if (isNonEmptyString(event.brand)) return event.brand;
   if (event.brand_list && event.brand_list.length > 0) {
     const firstBrand = event.brand_list[0];
-    if (firstBrand && firstBrand.trim() !== '') {
-      return firstBrand;
-    }
+    if (isNonEmptyString(firstBrand)) return firstBrand;
   }
   return undefined;
 }
@@ -224,12 +266,8 @@ function extractBrand(event: RawProductViewEvent): string | undefined {
  * Extract category from the event
  */
 function extractCategory(event: RawProductViewEvent): string | undefined {
-  if (event.category && event.category.trim() !== '') {
-    return event.category;
-  }
-  if (event.breadcrumbs && event.breadcrumbs.trim() !== '') {
-    return event.breadcrumbs;
-  }
+  if (isNonEmptyString(event.category)) return event.category;
+  if (isNonEmptyString(event.breadcrumbs)) return event.breadcrumbs;
   return undefined;
 }
 
@@ -237,14 +275,10 @@ function extractCategory(event: RawProductViewEvent): string | undefined {
  * Extract color from the event
  */
 function extractColor(event: RawProductViewEvent): string | undefined {
-  if (event.color && event.color.trim() !== '') {
-    return event.color;
-  }
+  if (isNonEmptyString(event.color)) return event.color;
   if (event.color_list && event.color_list.length > 0) {
     const firstColor = event.color_list[0];
-    if (firstColor && firstColor.trim() !== '') {
-      return firstColor;
-    }
+    if (isNonEmptyString(firstColor)) return firstColor;
   }
   return undefined;
 }

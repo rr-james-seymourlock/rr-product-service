@@ -1,9 +1,22 @@
 import { extractIdsFromUrlComponents } from '@rr/product-id-extractor';
-import { coerceStoreId } from '@rr/shared/utils';
+import { coerceStoreId, createLogger } from '@rr/shared/utils';
 import { parseUrlComponents } from '@rr/url-parser';
 
 import type { CartProduct, NormalizeCartEventOptions, RawCartEvent, RawProduct } from './types.js';
 import { RawCartEventSchema } from './types.js';
+
+const logger = createLogger('cart-event-normalizer');
+
+// Pre-frozen empty array constants to avoid repeated Object.freeze([]) calls
+const EMPTY_FROZEN_STRING_ARRAY: readonly string[] = Object.freeze([]);
+const EMPTY_FROZEN_PRODUCT_ARRAY: readonly CartProduct[] = Object.freeze([]);
+
+/**
+ * Helper to check if a string is non-empty
+ */
+function isNonEmptyString(s: string | undefined): s is string {
+  return s !== undefined && s.trim() !== '';
+}
 
 /**
  * Check if a product has enough data to be useful
@@ -12,13 +25,12 @@ import { RawCartEventSchema } from './types.js';
  * - Both a name AND a price (when URL is missing)
  */
 function isValidProduct(product: RawProduct): boolean {
-  const hasUrl = product.url !== undefined && product.url.trim() !== '';
-  if (hasUrl) {
+  if (isNonEmptyString(product.url)) {
     return true;
   }
 
   // Without URL, require both name AND price
-  const hasName = product.name !== undefined && product.name.trim() !== '';
+  const hasName = isNonEmptyString(product.name);
   const hasPrice = product.item_price !== undefined;
   return hasName && hasPrice;
 }
@@ -26,12 +38,12 @@ function isValidProduct(product: RawProduct): boolean {
 /**
  * Extract product IDs from a URL using the product-id-extractor
  */
-function extractProductIds(
+function extractProductIdsFromUrl(
   url: string | undefined,
   storeId: string | undefined,
 ): readonly string[] {
   if (!url) {
-    return Object.freeze([]);
+    return EMPTY_FROZEN_STRING_ARRAY;
   }
 
   try {
@@ -41,9 +53,13 @@ function extractProductIds(
       storeId,
     });
     return result.productIds;
-  } catch {
-    // URL parsing or extraction failed - return empty array
-    return Object.freeze([]);
+  } catch (error) {
+    // Log extraction failures for observability at scale
+    logger.debug(
+      { url, storeId, error: error instanceof Error ? error.message : String(error) },
+      'URL parsing or extraction failed',
+    );
+    return EMPTY_FROZEN_STRING_ARRAY;
   }
 }
 
@@ -55,22 +71,24 @@ function normalizeProduct(
   storeId: string | undefined,
   extractIds: boolean,
 ): CartProduct {
-  const productIds = extractIds ? extractProductIds(product.url, storeId) : Object.freeze([]);
+  const productIds = extractIds
+    ? extractProductIdsFromUrl(product.url, storeId)
+    : EMPTY_FROZEN_STRING_ARRAY;
 
   const normalized: CartProduct = {
     productIds,
   };
 
   // Only include fields that have values
-  if (product.name !== undefined && product.name.trim() !== '') {
+  if (isNonEmptyString(product.name)) {
     normalized.title = product.name;
   }
 
-  if (product.url !== undefined && product.url.trim() !== '') {
+  if (isNonEmptyString(product.url)) {
     normalized.url = product.url;
   }
 
-  if (product.image_url !== undefined && product.image_url.trim() !== '') {
+  if (isNonEmptyString(product.image_url)) {
     normalized.imageUrl = product.image_url;
   }
 
@@ -166,10 +184,20 @@ export function normalizeCartEvent(
   // Get product list (default to empty array)
   const productList = event.product_list ?? [];
 
+  // Early return for empty product list
+  if (productList.length === 0) {
+    return EMPTY_FROZEN_PRODUCT_ARRAY;
+  }
+
   // Filter and normalize products
   const normalizedProducts = productList
     .filter(isValidProduct)
     .map((product) => normalizeProduct(product, storeId, extractIds));
+
+  // Early return if all products were filtered out
+  if (normalizedProducts.length === 0) {
+    return EMPTY_FROZEN_PRODUCT_ARRAY;
+  }
 
   // Deduplicate products by URL (or productIds if no URL)
   const deduplicatedProducts = deduplicateProducts(normalizedProducts);

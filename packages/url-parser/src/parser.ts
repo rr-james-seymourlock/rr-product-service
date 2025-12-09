@@ -154,7 +154,7 @@ export const createUrlKey = (baseKey: unknown) => {
  * ```
  */
 export const parseUrlComponents = (url: unknown) => {
-  logger.info({ urlType: typeof url }, 'Parsing URL components');
+  logger.debug({ urlType: typeof url }, 'Parsing URL components');
 
   let validatedUrl: string;
 
@@ -189,7 +189,10 @@ export const parseUrlComponents = (url: unknown) => {
         throw error;
       }
 
-      logger.error(error instanceof Error ? error : new Error('Unknown error'), `URL validation failed: ${url}`);
+      logger.error(
+        error instanceof Error ? error : new Error('Unknown error'),
+        `URL validation failed: ${url}`,
+      );
       throw new InvalidUrlError(url);
     }
 
@@ -204,10 +207,7 @@ export const parseUrlComponents = (url: unknown) => {
     const href = normalizedUrl.toString();
     const { hostname, pathname, search } = normalizedUrl;
 
-    logger.debug(
-      { originalUrl: validatedUrl, normalizedUrl: href },
-      'URL normalized successfully',
-    );
+    logger.debug({ originalUrl: validatedUrl, normalizedUrl: href }, 'URL normalized successfully');
 
     // Extract the domain removing subdomains and supporting multi part TLD's
     const domain = parseDomain(hostname);
@@ -234,11 +234,11 @@ export const parseUrlComponents = (url: unknown) => {
     // Validate output in development only
     if (process.env['NODE_ENV'] === 'development') {
       const validated = urlComponentsSchema.parse(result);
-      logger.info({ domain, key }, 'URL components parsed and validated');
+      logger.debug({ domain, key }, 'URL components parsed and validated');
       return validated;
     }
 
-    logger.info({ domain, key }, 'URL components parsed successfully');
+    logger.debug({ domain, key }, 'URL components parsed successfully');
     return result as URLComponents;
   } catch (error) {
     // If error is already one of our custom errors, re-throw it
