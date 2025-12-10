@@ -83,6 +83,9 @@ importers:
       '@rr/product-id-extractor':
         specifier: workspace:*
         version: link:../../packages/product-id-extractor
+      '@rr/product-image-fetcher':
+        specifier: workspace:*
+        version: link:../../packages/product-image-fetcher
       '@rr/schema-parser':
         specifier: workspace:*
         version: link:../../packages/schema-parser

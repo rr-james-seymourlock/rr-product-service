@@ -31,6 +31,7 @@
     "@rr/cart-event-normalizer": "workspace:*",
     "@rr/product-event-normalizer": "workspace:*",
     "@rr/product-id-extractor": "workspace:*",
+    "@rr/product-image-fetcher": "workspace:*",
     "@rr/schema-parser": "workspace:*",
     "@rr/shared": "workspace:*",
     "@rr/store-registry": "workspace:*",

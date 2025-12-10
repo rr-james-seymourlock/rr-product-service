@@ -308,7 +308,7 @@
       "id": "11",
       "title": "Create product-service fetch-images handler",
       "description": "Add new Lambda handler in product-service for the /images/fetch endpoint",
-      "status": "pending",
+      "status": "done",
       "priority": "high",
       "dependencies": ["10"],
       "details": "Create src/functions/fetch-images/ with handler.ts, contracts.ts, index.ts. Use Middy middleware chain (jsonBodyParser, zodValidator, httpErrorHandler). Accept single request initially, batch support in separate task. Wire up to serverless.yml with appropriate timeout (30s).",
@@ -316,15 +316,16 @@
       "subtasks": [],
       "userStoryId": "US001",
       "createdAt": "2025-12-10T15:56:54.861Z",
-      "updatedAt": "2025-12-10T15:58:00.370Z",
+      "updatedAt": "2025-12-10T16:46:41.376Z",
       "complexity": 4,
-      "recommendedSubtasks": 3
+      "recommendedSubtasks": 3,
+      "completedAt": "2025-12-10T16:46:41.376Z"
     },
     {
       "id": "12",
       "title": "Create OpenAPI contracts for fetch-images endpoint",
       "description": "Define Zod schemas with OpenAPI extensions for request/response documentation",
-      "status": "pending",
+      "status": "done",
       "priority": "high",
       "dependencies": ["11"],
       "details": "Follow pattern from normalize-product-views/contracts.ts. Include request schema, success response schema, failure response schema, error response schema. Add realistic examples for Redoc documentation. Register in OpenAPI generator script.",
@@ -332,9 +333,10 @@
       "subtasks": [],
       "userStoryId": "US001",
       "createdAt": "2025-12-10T15:56:55.248Z",
-      "updatedAt": "2025-12-10T15:58:00.370Z",
+      "updatedAt": "2025-12-10T16:46:41.430Z",
       "complexity": 4,
-      "recommendedSubtasks": 3
+      "recommendedSubtasks": 3,
+      "completedAt": "2025-12-10T16:46:41.430Z"
     },
     {
       "id": "13",
@@ -388,9 +390,9 @@
   "metadata": {
     "version": "1.0",
     "created": "2025-12-10T15:55:43.643Z",
-    "lastUpdated": "2025-12-10T16:42:37.039Z",
+    "lastUpdated": "2025-12-10T16:46:41.430Z",
     "totalTasks": 25,
-    "completedTasks": 20,
+    "completedTasks": 22,
     "blockedTasks": 0
   }
 }

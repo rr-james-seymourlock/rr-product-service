@@ -12,6 +12,8 @@
       "@rr/store-registry/*": ["../../packages/store-registry/src/*"],
       "@rr/schema-parser": ["../../packages/schema-parser/src"],
       "@rr/schema-parser/*": ["../../packages/schema-parser/src/*"],
+      "@rr/product-image-fetcher": ["../../packages/product-image-fetcher/src"],
+      "@rr/product-image-fetcher/*": ["../../packages/product-image-fetcher/src/*"],
       "@rr/shared": ["../../packages/shared/src"],
       "@rr/shared/*": ["../../packages/shared/src/*"]
     }
