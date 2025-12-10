@@ -18,6 +18,11 @@ import {
   createUrlAnalysisResponseSchema,
   errorResponseSchema,
 } from '../src/functions/create-url-analysis/contracts';
+import {
+  errorResponseSchema as fetchImagesErrorResponseSchema,
+  fetchImagesRequestSchema,
+  fetchImagesResponseSchema,
+} from '../src/functions/fetch-images/contracts';
 import { healthResponseSchema } from '../src/functions/health/contracts';
 import {
   errorResponseSchema as cartErrorResponseSchema,
@@ -279,6 +284,62 @@ registry.registerPath({
   },
 });
 
+// Register image fetch endpoint
+registry.registerPath({
+  method: 'post',
+  path: '/images/fetch',
+  summary: 'Fetch and Store Product Images',
+  description:
+    'Fetches product images from merchant URLs and stores them locally (phase 1) or in S3 (phase 2). Uses appropriate headers (User-Agent, Referer) to reduce bot detection. Validates content-type (JPEG, PNG, WebP allowed) and size limits. Handles partial failures gracefully - each request is processed independently. Returns results with error categorization (permanent vs retriable) for retry logic. Designed for Lambda execution at scale.',
+  tags: ['Image Processing'],
+  request: {
+    body: {
+      required: true,
+      content: {
+        'application/json': {
+          schema: fetchImagesRequestSchema,
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: 'Image fetch results (may include both successes and failures)',
+      content: {
+        'application/json': {
+          schema: fetchImagesResponseSchema,
+        },
+      },
+    },
+    400: {
+      description: 'Invalid request parameters',
+      content: {
+        'application/json': {
+          schema: fetchImagesErrorResponseSchema,
+          example: {
+            error: 'ValidationError',
+            message: 'requests: At least one request is required',
+            statusCode: 400,
+          },
+        },
+      },
+    },
+    500: {
+      description: 'Internal server error',
+      content: {
+        'application/json': {
+          schema: fetchImagesErrorResponseSchema,
+          example: {
+            error: 'InternalServerError',
+            message: 'An unexpected error occurred',
+            statusCode: 500,
+          },
+        },
+      },
+    },
+  },
+});
+
 // Generate OpenAPI document
 const generator = new OpenApiGeneratorV31(registry.definitions);
 const document = generator.generateDocument({
@@ -319,6 +380,11 @@ const document = generator.generateDocument({
       name: 'Event Normalization',
       description:
         'Normalize cart and product view events from apps and extensions using @rr/cart-event-normalizer and @rr/product-event-normalizer packages',
+    },
+    {
+      name: 'Image Processing',
+      description:
+        'Fetch and store product images from merchant URLs using @rr/product-image-fetcher package',
     },
   ],
 });

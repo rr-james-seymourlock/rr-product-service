@@ -15,8 +15,9 @@ The RR Product Service analyzes product URLs and extracts unique identifiers (SK
 - 📊 **Batch Processing** - Analyze 1-100 URLs or events in parallel
 - 🛒 **Event Normalization** - Normalize product views and cart events from apps/extensions
 - 🔄 **ASIN Conversion** - Convert Amazon ASINs to UPC/SKU/MPN identifiers
+- 🖼️ **Image Fetching** - Fetch and store product images with bot detection avoidance
 - 📚 **OpenAPI Docs** - Interactive API documentation with Redoc
-- ✅ **Comprehensive Testing** - 780+ tests with 97%+ coverage
+- ✅ **Comprehensive Testing** - 840+ tests with 97%+ coverage
 
 ## Architecture
 
@@ -36,6 +37,7 @@ rr-product-service/
 │   ├── product-event-normalizer/ # Product view event normalization
 │   ├── cart-event-normalizer/  # Cart event normalization
 │   ├── asin-converter/         # Amazon ASIN to identifier conversion
+│   ├── product-image-fetcher/  # Product image fetching & storage
 │   ├── schema-parser/          # JSON-LD schema parsing (future)
 │   ├── mcp-server/             # MCP server for AI coding tools
 │   └── shared/                 # Shared utilities (logger, types)
@@ -429,6 +431,43 @@ Normalize raw cart events from apps/extensions into clean cart product data.
 }
 ```
 
+#### `POST /images/fetch`
+
+Fetch and store product images from merchant URLs.
+
+**Request:**
+
+```json
+{
+  "requests": [
+    {
+      "storeId": "8333",
+      "productUrl": "https://www.macys.com/shop/product/12345",
+      "imageUrl": "https://slimages.macysassets.com/is/image/MCY/products/2/optimized/31898232_fpx.tif"
+    }
+  ]
+}
+```
+
+**Response:**
+
+```json
+{
+  "results": [
+    {
+      "success": true,
+      "storagePath": "8333/a1b2c3d4e5f6g7h8.jpg",
+      "contentType": "image/jpeg",
+      "sizeBytes": 45678,
+      "domain": "slimages.macysassets.com"
+    }
+  ],
+  "total": 1,
+  "successful": 1,
+  "failed": 0
+}
+```
+
 #### `POST /asin/convert`
 
 Convert Amazon ASINs to product identifiers (UPC, SKU, MPN) via Synccentric API.
@@ -623,6 +662,7 @@ Each package has comprehensive documentation:
 - **[@rr/product-event-normalizer](packages/product-event-normalizer/README.md)** - Product view event normalization
 - **[@rr/cart-event-normalizer](packages/cart-event-normalizer/README.md)** - Cart event normalization
 - **[@rr/asin-converter](packages/asin-converter/README.md)** - Amazon ASIN to identifier conversion
+- **[@rr/product-image-fetcher](packages/product-image-fetcher/README.md)** - Product image fetching and storage
 - **[@rr/schema-parser](packages/schema-parser/README.md)** - JSON-LD schema parsing
 - **[@rr/mcp-server](packages/mcp-server/README.md)** - MCP server for AI coding tools
 - **[@rr/shared](packages/shared/README.md)** - Shared utilities and logger
@@ -784,8 +824,9 @@ Follow [Conventional Commits](https://www.conventionalcommits.org/):
 - Product view event normalization (schema.org data extraction)
 - Cart event normalization with product deduplication
 - Amazon ASIN to identifier conversion (via Synccentric API)
+- Product image fetching with bot detection avoidance
 - OpenAPI documentation with Redoc
-- Comprehensive test suites (780+ tests)
+- Comprehensive test suites (840+ tests)
 - High-performance optimizations for 1000+ RPS
 
 ### Future Enhancements 🚧

@@ -60,6 +60,7 @@ Thumbs.db
 # Temporary files
 tmp/
 temp/
+.tmp/
 
 # AWS SAM
 .aws-sam/

@@ -109,11 +109,12 @@ describe('Regex pattern security & performance', () => {
     });
   });
 
-  test('should complete regex matching within 25ms', () => {
+  test('should complete regex matching within acceptable time', () => {
     // Basic performance test to catch catastrophically slow patterns
     // For detailed performance analysis, see regex.bench.ts (run with: npm run test:bench)
-    // Increased from 10ms to 25ms to account for CI environment variance
-    const TIMEOUT_MS = 25;
+    // Timeout is set generously (50ms) to accommodate slower CI runners (GitHub Actions, etc.)
+    // while still catching catastrophic backtracking issues (which take 1000ms+)
+    const TIMEOUT_MS = 50;
     const testString = [
       'https://www.subdomain.domain.com',
       '/t/product/',

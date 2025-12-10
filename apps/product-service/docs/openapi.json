@@ -34,6 +34,10 @@
     {
       "name": "Event Normalization",
       "description": "Normalize cart and product view events from apps and extensions using @rr/cart-event-normalizer and @rr/product-event-normalizer packages"
+    },
+    {
+      "name": "Image Processing",
+      "description": "Fetch and store product images from merchant URLs using @rr/product-image-fetcher package"
     }
   ],
   "components": {
@@ -1371,6 +1375,185 @@
           }
         },
         "required": ["events"]
+      },
+      "ImageFetchSuccessResult": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [true],
+            "description": "Indicates successful fetch",
+            "example": true
+          },
+          "storagePath": {
+            "type": "string",
+            "description": "Path where the image was stored",
+            "example": "8333/a1b2c3d4e5f6g7h8.jpg"
+          },
+          "contentType": {
+            "type": "string",
+            "description": "Actual content type from the response",
+            "example": "image/jpeg"
+          },
+          "sizeBytes": {
+            "type": "number",
+            "description": "Image size in bytes",
+            "example": 8060
+          },
+          "domain": {
+            "type": "string",
+            "description": "Domain of the image URL",
+            "example": "slimages.macysassets.com"
+          }
+        },
+        "required": ["success", "storagePath", "contentType", "sizeBytes", "domain"]
+      },
+      "ImageFetchError": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "Error code for programmatic handling",
+            "example": "FORBIDDEN"
+          },
+          "message": {
+            "type": "string",
+            "description": "Human-readable error message",
+            "example": "HTTP 403 error fetching image"
+          },
+          "isPermanent": {
+            "type": "boolean",
+            "description": "Whether this is a permanent failure (should not retry)",
+            "example": true
+          },
+          "statusCode": {
+            "type": "number",
+            "description": "HTTP status code if available",
+            "example": 403
+          },
+          "retryAfter": {
+            "type": "number",
+            "description": "Retry-After value in seconds (for 429 responses)",
+            "example": 60
+          },
+          "domain": {
+            "type": "string",
+            "description": "Domain of the image URL",
+            "example": "example.com"
+          }
+        },
+        "required": ["code", "message", "isPermanent", "domain"]
+      },
+      "ImageFetchFailureResult": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [false],
+            "description": "Indicates failed fetch",
+            "example": false
+          },
+          "error": {
+            "$ref": "#/components/schemas/ImageFetchError"
+          }
+        },
+        "required": ["success", "error"]
+      },
+      "ImageFetchResult": {
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/ImageFetchSuccessResult"
+          },
+          {
+            "$ref": "#/components/schemas/ImageFetchFailureResult"
+          }
+        ]
+      },
+      "FetchImagesResponse": {
+        "type": "object",
+        "properties": {
+          "results": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ImageFetchResult"
+            },
+            "description": "Array of fetch results, one per input request (order matches input)",
+            "example": [
+              {
+                "success": true,
+                "storagePath": "8333/a1b2c3d4e5f6g7h8.jpg",
+                "contentType": "image/jpeg",
+                "sizeBytes": 8060,
+                "domain": "slimages.macysassets.com"
+              }
+            ]
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Total number of requests processed",
+            "example": 1
+          },
+          "successful": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Number of successful fetches",
+            "example": 1
+          },
+          "failed": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Number of failed fetches",
+            "example": 0
+          }
+        },
+        "required": ["results", "total", "successful", "failed"]
+      },
+      "ImageFetchRequestItem": {
+        "type": "object",
+        "properties": {
+          "storeId": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Rakuten store ID for organization and metrics",
+            "example": "8333"
+          },
+          "productUrl": {
+            "type": "string",
+            "format": "uri",
+            "description": "Product page URL - used as Referer header to reduce bot detection",
+            "example": "https://www.macys.com/shop/product/12345"
+          },
+          "imageUrl": {
+            "type": "string",
+            "format": "uri",
+            "description": "Image URL to fetch",
+            "example": "https://slimages.macysassets.com/is/image/MCY/products/2/optimized/31898232_fpx.tif"
+          }
+        },
+        "required": ["storeId", "productUrl", "imageUrl"]
+      },
+      "FetchImagesRequest": {
+        "type": "object",
+        "properties": {
+          "requests": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ImageFetchRequestItem"
+            },
+            "minItems": 1,
+            "maxItems": 100,
+            "description": "Array of image fetch requests (1-100 per batch)",
+            "example": [
+              {
+                "storeId": "8333",
+                "productUrl": "https://www.macys.com/shop/product/12345",
+                "imageUrl": "https://slimages.macysassets.com/is/image/MCY/products/2/optimized/31898232_fpx.tif"
+              }
+            ]
+          }
+        },
+        "required": ["requests"]
       }
     },
     "parameters": {}
@@ -1716,6 +1899,119 @@
                           "minLength": 1,
                           "description": "Human-readable error message",
                           "example": "events: At least one product view event is required"
+                        },
+                        "statusCode": {
+                          "type": "integer",
+                          "minimum": 400,
+                          "maximum": 599,
+                          "description": "HTTP status code",
+                          "example": 400
+                        }
+                      }
+                    }
+                  ]
+                },
+                "example": {
+                  "error": "InternalServerError",
+                  "message": "An unexpected error occurred",
+                  "statusCode": 500
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/images/fetch": {
+      "post": {
+        "summary": "Fetch and Store Product Images",
+        "description": "Fetches product images from merchant URLs and stores them locally (phase 1) or in S3 (phase 2). Uses appropriate headers (User-Agent, Referer) to reduce bot detection. Validates content-type (JPEG, PNG, WebP allowed) and size limits. Handles partial failures gracefully - each request is processed independently. Returns results with error categorization (permanent vs retriable) for retry logic. Designed for Lambda execution at scale.",
+        "tags": ["Image Processing"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FetchImagesRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Image fetch results (may include both successes and failures)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FetchImagesResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request parameters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorResponse"
+                    },
+                    {
+                      "properties": {
+                        "error": {
+                          "type": "string",
+                          "minLength": 1,
+                          "description": "Error type/code",
+                          "example": "ValidationError"
+                        },
+                        "message": {
+                          "type": "string",
+                          "minLength": 1,
+                          "description": "Human-readable error message",
+                          "example": "requests: At least one request is required"
+                        },
+                        "statusCode": {
+                          "type": "integer",
+                          "minimum": 400,
+                          "maximum": 599,
+                          "description": "HTTP status code",
+                          "example": 400
+                        }
+                      }
+                    }
+                  ]
+                },
+                "example": {
+                  "error": "ValidationError",
+                  "message": "requests: At least one request is required",
+                  "statusCode": 400
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorResponse"
+                    },
+                    {
+                      "properties": {
+                        "error": {
+                          "type": "string",
+                          "minLength": 1,
+                          "description": "Error type/code",
+                          "example": "ValidationError"
+                        },
+                        "message": {
+                          "type": "string",
+                          "minLength": 1,
+                          "description": "Human-readable error message",
+                          "example": "requests: At least one request is required"
                         },
                         "statusCode": {
                           "type": "integer",
