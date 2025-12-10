@@ -1,4 +1,17 @@
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
 import { ALLOWED_CONTENT_TYPES, type ImageFetcherOptions } from './types.js';
+
+/**
+ * Get the monorepo root path
+ * Navigates up from packages/product-image-fetcher/src to the root
+ */
+function getMonorepoRoot(): string {
+  const __dirname = dirname(fileURLToPath(import.meta.url));
+  // From packages/product-image-fetcher/src -> root (3 levels up)
+  return join(__dirname, '..', '..', '..');
+}
 
 /**
  * Default configuration values
@@ -31,9 +44,9 @@ export const DEFAULT_CONFIG = {
   ACCEPT_HEADER: 'image/webp,image/png,image/jpeg,image/*;q=0.8',
 
   /**
-   * Default storage path for local development
+   * Default storage path for local development (relative to monorepo root)
    */
-  STORAGE_PATH: './fetched-images',
+  STORAGE_PATH: '.tmp/fetched-images',
 
   /**
    * Lambda /tmp storage path
@@ -66,7 +79,12 @@ export function getStoragePath(options?: ImageFetcherOptions): string {
     return envPath;
   }
 
-  return isLambdaEnvironment() ? DEFAULT_CONFIG.LAMBDA_STORAGE_PATH : DEFAULT_CONFIG.STORAGE_PATH;
+  if (isLambdaEnvironment()) {
+    return DEFAULT_CONFIG.LAMBDA_STORAGE_PATH;
+  }
+
+  // For local development, resolve path relative to monorepo root
+  return join(getMonorepoRoot(), DEFAULT_CONFIG.STORAGE_PATH);
 }
 
 /**

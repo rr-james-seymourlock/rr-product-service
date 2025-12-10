@@ -8,6 +8,7 @@
 import { createServer } from 'node:http';
 import { URL } from 'node:url';
 import { convertAsinHandler } from './src/functions/convert-asin/handler.ts';
+import { fetchImagesHandler } from './src/functions/fetch-images/handler.ts';
 import { healthCheckHandler } from './src/functions/health/handler.ts';
 import { createUrlAnalysisHandler } from './src/functions/create-url-analysis/handler.ts';
 import { normalizeCartViewsHandler } from './src/functions/normalize-cart-views/handler.ts';
@@ -63,6 +64,15 @@ const ROUTES = [
     example: `curl -X POST "http://localhost:${PORT}/product-events/normalize" \\
      -H "Content-Type: application/json" \\
      -d '{"events":[{"store_id":5246,"store_name":"target.com","name":"T-Shirt","url":"https://www.target.com/p/-/A-88056717","sku":["88056717"]}]}'`,
+  },
+  {
+    method: 'POST',
+    path: '/images/fetch',
+    handler: fetchImagesHandler,
+    description: 'Fetch and store product images (1-100 requests)',
+    example: `curl -X POST "http://localhost:${PORT}/images/fetch" \\
+     -H "Content-Type: application/json" \\
+     -d '{"requests":[{"storeId":"8333","productUrl":"https://www.macys.com/shop/product/12345","imageUrl":"https://slimages.macysassets.com/is/image/MCY/products/2/optimized/31898232_fpx.tif"}]}'`,
   },
 ];
 
