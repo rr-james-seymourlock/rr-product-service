@@ -84,3 +84,4 @@ scripts/reports/*.txt
 scripts/reports/*.json
 !scripts/reports/example-report.txt
 /examples
+Cart Details Event_2025-12-09-0939.csv

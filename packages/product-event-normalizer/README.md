@@ -1,12 +1,17 @@
 # @rr/product-event-normalizer
 
-Normalize raw product view event data from Rakuten apps and browser extensions into clean, enriched product arrays with comprehensive identifier coverage.
+Normalize raw product view event data from Rakuten apps and browser extensions into clean, enriched product arrays with comprehensive identifier coverage and variant-level data for cart enrichment.
 
 ## Overview
 
 ### What it does
 
-The product data normalizer transforms raw product view event JSON (from PDP page visits) into a standardized array of `NormalizedProduct` objects. It handles field name normalization between Toolbar and App sources, consolidates product identifiers from multiple schema.org sources (SKU, GTIN, MPN, productID, offers), and integrates with `@rr/product-id-extractor` for URL-based ID extraction as a fallback.
+The product data normalizer transforms raw product view event JSON (from PDP page visits) into a standardized array of `NormalizedProduct` objects. It handles:
+
+- Field name normalization between Toolbar and App sources
+- Consolidates product identifiers from multiple schema.org sources (SKU, GTIN, MPN, productID, offers)
+- Builds variant-specific data for joining with cart items
+- Integrates with `@rr/product-id-extractor` for URL-based ID extraction
 
 ### Why it exists
 
@@ -16,11 +21,13 @@ Product view events from PDP pages are richer than cart data, containing schema.
 - **Inconsistent naming**: Toolbar uses `sku`, `offers`, `gtin`; App uses `sku_list`, `offer_list`, `gtin_list`
 - **Multi-variant products**: Single pages with multiple SKUs/prices (size variants, color options)
 - **Correlation maps**: `urlToSku` and `priceToSku` linking offers to specific identifiers
+- **Array formats**: Toolbar often wraps single values in arrays (e.g., `name: ["Product Name"]`)
 
 Without normalization, downstream consumers would need to handle all these variations. This package provides:
 
-- **Unified output schema** compatible with `CartProduct` from `@rr/cart-event-normalizer`
+- **Unified output schema** with shared product-level data and variant-specific arrays
 - **ID consolidation** from all available sources with deduplication
+- **Variant objects** for joining cart items to the correct product variant
 - **Dual convention support** for Toolbar and App field naming
 - **Rich metadata extraction** (brand, category, rating, color, description)
 - **Immutable output** for safe caching and sharing
@@ -36,11 +43,11 @@ Raw Product View Event → normalizeProductViewEvent → NormalizedProduct[]
 
 Consumers include:
 
+- Cart enrichment pipelines (joining cart items to product variants)
 - Snowflake data pipelines for product analytics
 - Catalog matching systems needing comprehensive identifiers
 - ML models for product recommendations
 - Brand-level analytics and reporting
-- Price tracking and competitive intelligence
 
 ### When to use it
 
@@ -48,6 +55,7 @@ Use this package when you need to:
 
 - Transform raw product view JSON into clean product arrays
 - Consolidate product IDs from multiple schema.org sources
+- Build variant-specific data for cart-to-product joining
 - Ensure consistent field naming across Toolbar and App data
 - Extract brand, category, and other metadata from PDP data
 
@@ -56,9 +64,12 @@ Use this package when you need to:
 ## Features
 
 - **Field normalization**: Handles both Toolbar (`sku`, `offers`) and App (`sku_list`, `offer_list`) conventions
+- **Array format support**: Handles Toolbar's array-wrapped single values (e.g., `name: ["Product"]`)
+- **Nested price objects**: Parses `{ amount: "29.99", currency: "USD" }` format from Toolbar
+- **Variant building**: Creates variant objects with SKU, URL, price, color, and extracted IDs
 - **ID consolidation**: Extracts from `sku`, `gtin`, `productID`, `mpn`, `offers`, `urlToSku`, `priceToSku`
 - **URL fallback**: Uses `@rr/product-id-extractor` when no schema IDs are available
-- **Deduplication**: Removes duplicate IDs across all sources
+- **Deduplication**: Removes duplicate IDs and variants across all sources
 - **Rich metadata**: Extracts brand, category, rating, color, description
 - **Type coercion**: Handles both string and numeric `store_id` values
 - **Immutable output**: Frozen arrays and objects for safe caching
@@ -82,33 +93,73 @@ import { normalizeProductViewEvent } from '@rr/product-event-normalizer';
 const rawEvent = {
   store_id: 5246,
   store_name: 'target.com',
-  name: 'Womens Short Sleeve Slim Fit Ribbed T-Shirt',
-  url: 'https://www.target.com/p/women-s-short-sleeve-slim-fit-ribbed-t-shirt/-/A-88056717',
+  name: ['Womens Short Sleeve Slim Fit Ribbed T-Shirt'], // Toolbar array format
+  url: ['https://www.target.com/p/women-s-short-sleeve-slim-fit-ribbed-t-shirt/-/A-88056717'],
   sku: ['88056717', '88056723', '88056720'],
   offers: [
-    { price: 800, sku: '88056717' },
-    { price: 800, sku: '88056723' },
+    { price: { amount: '8.00', currency: 'USD' }, sku: '88056717' },
+    { price: { amount: '8.00', currency: 'USD' }, sku: '88056723' },
+    { price: { amount: '9.00', currency: 'USD' }, sku: '88056720' },
   ],
-  brand: 'A New Day',
-  rating: 4.2,
-  category: "Women's Clothing",
+  brand: ['A New Day'],
+  rating: [4.2],
+  category: ["Women's Clothing"],
 };
 
 const products = normalizeProductViewEvent(rawEvent);
 // Returns:
 // [
 //   {
+//     // Shared product-level data
 //     title: 'Womens Short Sleeve Slim Fit Ribbed T-Shirt',
 //     url: 'https://www.target.com/p/...',
 //     storeId: '5246',
-//     price: 800,
-//     productIds: ['88056717', '88056723', '88056720'],
 //     brand: 'A New Day',
 //     rating: 4.2,
 //     category: "Women's Clothing",
-//     skus: ['88056717', '88056723', '88056720'],
+//
+//     // Aggregated identifiers
+//     ids: {
+//       productIds: [],
+//       extractedIds: ['88056717'],
+//       skus: ['88056717', '88056723', '88056720'],
+//       gtins: [],
+//       mpns: [],
+//     },
+//
+//     // Variant-specific data
+//     variants: [
+//       { sku: '88056717', price: 800, currency: 'USD' },
+//       { sku: '88056723', price: 800, currency: 'USD' },
+//       { sku: '88056720', price: 900, currency: 'USD' },
+//     ],
+//     variantCount: 3,
+//     hasVariants: true,
+//
+//     // Legacy/primary fields
+//     price: 800,
+//     currency: 'USD',
 //   }
 // ]
+```
+
+### With URL-to-SKU Correlation
+
+```typescript
+const eventWithUrlToSku = {
+  store_id: 5246,
+  name: 'Product with Variants',
+  urlToSku: {
+    'https://target.com/p/product/-/A-111': 'SKU-111',
+    'https://target.com/p/product/-/A-222': 'SKU-222',
+  },
+  url: ['https://target.com/p/product/-/A-111', 'https://target.com/p/product/-/A-222'],
+  image: ['https://image1.jpg', 'https://image2.jpg'],
+  color: ['Red', 'Blue'],
+};
+
+const products = normalizeProductViewEvent(eventWithUrlToSku);
+// variants will have correlated URLs, images, colors, and extractedIds
 ```
 
 ### With Validation
@@ -127,17 +178,7 @@ import { normalizeProductViewEvent } from '@rr/product-event-normalizer';
 
 // Skip metadata fields for leaner output
 const products = normalizeProductViewEvent(rawEvent, { includeMetadata: false });
-// Returns only: title, url, imageUrl, storeId, price, productIds
-```
-
-### Disable URL Extraction Fallback
-
-```typescript
-import { normalizeProductViewEvent } from '@rr/product-event-normalizer';
-
-// Skip URL-based ID extraction
-const products = normalizeProductViewEvent(rawEvent, { extractProductIds: false });
-// productIds will only contain schema-based IDs
+// Returns only: title, url, imageUrl, storeId, price, ids, variants
 ```
 
 ### App Format (Mobile)
@@ -158,6 +199,66 @@ const products = normalizeProductViewEvent(appEvent);
 // Handles _list suffix fields automatically
 ```
 
+## Output Schema
+
+The `NormalizedProduct` schema provides a clean, consistent structure:
+
+```typescript
+interface NormalizedProduct {
+  // ========== SHARED PRODUCT-LEVEL DATA ==========
+  title?: string;           // Product name (first value if array)
+  url?: string;             // Primary product URL
+  imageUrl?: string;        // Primary product image
+  storeId?: string;         // Rakuten store ID (coerced to string)
+  storeName?: string;       // Store name
+  brand?: string;           // Product brand
+  description?: string;     // Product description
+  category?: string;        // Category or breadcrumbs
+  rating?: number;          // Product rating (0-5)
+  canonicalUrl?: string;    // Canonical URL if provided
+
+  // ========== AGGREGATED IDENTIFIERS ==========
+  ids: {
+    productIds: readonly string[];   // From productID field
+    extractedIds: readonly string[]; // From URL extraction
+    skus: readonly string[];         // All SKUs from all sources
+    gtins: readonly string[];        // All GTINs
+    mpns: readonly string[];         // All MPNs
+  };
+
+  // ========== VARIANT-SPECIFIC DATA ==========
+  variants: readonly ProductVariant[];  // Array of variant objects
+  variantCount: number;                 // Number of variants
+  hasVariants: boolean;                 // True if multiple variants
+
+  // ========== LEGACY/PRIMARY FIELDS ==========
+  price?: number;     // Primary price in cents
+  currency?: string;  // Primary currency code
+  color?: string;     // Primary color
+}
+
+interface ProductVariant {
+  sku: string;                          // Required: variant SKU
+  url?: string;                         // Variant-specific URL
+  imageUrl?: string;                    // Variant-specific image
+  price?: number;                       // Price in cents
+  currency?: string;                    // Currency code
+  color?: string;                       // Variant color
+  extractedIds?: readonly string[];     // IDs extracted from variant URL
+}
+```
+
+## Variant Building Priority
+
+Variants are built from these sources in priority order:
+
+1. **urlToSku map** (highest priority) - Most reliable for variant correlation
+2. **Toolbar offers array** - Contains SKU, URL, and price
+3. **App offer_list array** - Contains offer_sku, offer_amount, offer_currency
+4. **SKU array fallback** - Uses parallel arrays for correlation
+
+When `urlToSku` is present, variants include correlated image, color, and price data based on array index matching.
+
 ## Input Schema
 
 The `RawProductViewEvent` schema accepts product view events from both Toolbar and App sources:
@@ -165,20 +266,21 @@ The `RawProductViewEvent` schema accepts product view events from both Toolbar a
 ```typescript
 interface RawProductViewEvent {
   // Store identification
-  store_id?: string | number; // App sends string, Toolbar sends number
+  store_id?: string | number;
   store_name?: string;
 
-  // Product info
-  name?: string;
-  url?: string;
+  // Product info - can be string OR array (Toolbar uses arrays)
+  name?: string | string[];
+  url?: string | string[];
   product_url?: string;
   page_url?: string;
 
-  // Images - Toolbar vs App
+  // Images
+  image?: string[];
   image_url?: string;
   image_url_list?: string[];
 
-  // Product identifiers - Toolbar (singular) vs App (_list suffix)
+  // Product identifiers - both singular and _list formats supported
   sku?: string[];
   sku_list?: string[];
   gtin?: string[];
@@ -188,140 +290,53 @@ interface RawProductViewEvent {
   mpn?: string[];
   mpn_list?: string[];
 
-  // Offers - Toolbar vs App
-  offers?: Array<{ price?: number; sku?: string; url?: string }>;
-  offer_list?: Array<{ offer_amount?: number; offer_currency?: string; offer_sku?: string }>;
+  // Offers - Toolbar vs App format
+  offers?: Array<{
+    price?: number | { amount?: string | number; currency?: string };
+    sku?: string;
+    url?: string;
+  }>;
+  offer_list?: Array<{
+    offer_amount?: string | number;
+    offer_currency?: string;
+    offer_sku?: string;
+  }>;
 
   // SKU correlation maps (Toolbar only)
-  urlToSku?: Record<string, string>;
-  priceToSku?: Record<string, string>;
+  urlToSku?: Record<string, string | string[]>;
+  priceToSku?: Record<string, string | string[]>;
 
-  // Metadata
-  brand?: string;
+  // Metadata - can be string OR array
+  brand?: string | string[];
   brand_list?: string[];
-  rating?: number;
-  description?: string;
-  category?: string;
-  breadcrumbs?: string;
-  color?: string;
+  rating?: number | string | (number | string)[];
+  description?: string | string[];
+  category?: string | string[];
+  breadcrumbs?: string | string[];
+  color?: string | string[];
   color_list?: string[];
-
-  // ... source metadata fields
+  canonical?: string[];
 }
-```
-
-## Output Schema
-
-The `NormalizedProduct` schema provides a clean, consistent structure:
-
-```typescript
-interface NormalizedProduct {
-  // Core fields (compatible with CartProduct)
-  title?: string; // Mapped from name
-  url?: string; // Best URL from url/product_url/page_url
-  imageUrl?: string; // From image_url or image_url_list[0]
-  storeId?: string; // Always string, coerced from event
-  price?: number; // From offers[0].price or offer_list[0].offer_amount
-  productIds: readonly string[]; // Consolidated from all sources
-
-  // Extended metadata fields
-  brand?: string; // From brand or brand_list[0]
-  category?: string; // From category or breadcrumbs
-  description?: string;
-  rating?: number;
-  color?: string; // From color or color_list[0]
-
-  // Specific identifier arrays (when includeMetadata: true)
-  skus?: readonly string[]; // Deduplicated SKUs
-  gtins?: readonly string[]; // Deduplicated GTINs
-  mpns?: readonly string[]; // Deduplicated MPNs
-}
-```
-
-## Product ID Extraction Sources
-
-IDs are collected from these sources (in order of processing):
-
-1. **sku / sku_list** - Direct SKU arrays
-2. **gtin / gtin_list** - Global Trade Item Numbers
-3. **productID / productid_list** - Generic product identifiers
-4. **mpn / mpn_list** - Manufacturer Part Numbers
-5. **offers[].sku / offer_list[].offer_sku** - SKUs from offer objects
-6. **urlToSku** - Map values correlating URLs to SKUs
-7. **priceToSku** - Map values correlating prices to SKUs
-8. **URL extraction** - Fallback via `@rr/product-id-extractor` if no schema IDs found
-
-All IDs are deduplicated and empty/whitespace values are filtered.
-
-### Dual Format Support (Important)
-
-> **Note**: Both singular (`sku`, `gtin`, `mpn`, `productID`) and list (`sku_list`, `gtin_list`, `mpn_list`, `productid_list`) formats are supported and **combined** when both are present.
-
-This dual format support exists because:
-
-- **Platform differences**: Toolbar (browser extension) uses singular format (`sku`), while App (mobile) uses list format (`sku_list`)
-- **Historical data variations**: Snowflake data may contain either format depending on when it was captured
-- **Data capture structure changes**: The data capture layer has evolved over time, resulting in different field naming conventions
-
-The normalizer automatically merges values from both formats:
-
-```typescript
-const event = {
-  sku: ['SKU-1'],           // Toolbar format
-  sku_list: ['SKU-2'],      // App format
-  gtin: ['GTIN-1'],
-  gtin_list: ['GTIN-2'],
-};
-
-const products = normalizeProductViewEvent(event);
-// products[0].skus = ['SKU-1', 'SKU-2']  // Combined and deduplicated
-// products[0].gtins = ['GTIN-1', 'GTIN-2']
 ```
 
 ## Field Mapping
 
-| Input Field            | Output Field   | Notes                            |
-| ---------------------- | -------------- | -------------------------------- |
-| `name`                 | `title`        | Whitespace-only names excluded   |
-| `url/product_url/page_url` | `url`      | Priority: url > product_url > page_url |
-| `image_url/image_url_list[0]` | `imageUrl` | Prefers image_url              |
-| `store_id`             | `storeId`      | Coerced to string                |
-| `offers[0].price`      | `price`        | Or offer_list[0].offer_amount    |
-| `brand/brand_list[0]`  | `brand`        | Prefers brand                    |
-| `category/breadcrumbs` | `category`     | Prefers category                 |
-| `color/color_list[0]`  | `color`        | Prefers color                    |
-| _(consolidated)_       | `productIds`   | From all sources above           |
-
-## Store ID Handling
-
-The `store_id` field is coerced to a string regardless of input type:
-
-```typescript
-// Toolbar events - numeric store_id
-{ store_id: 5246 } → storeId: '5246'
-
-// App events - string store_id
-{ store_id: '8333' } → storeId: '8333'
-
-// Non-numeric string IDs preserved
-{ store_id: 'uk-87262' } → storeId: 'uk-87262'
-
-// Empty/whitespace - undefined
-{ store_id: '   ' } → storeId: undefined
-```
-
-## Immutability
-
-All output is frozen for safe caching and sharing:
-
-```typescript
-const products = normalizeProductViewEvent(event);
-
-Object.isFrozen(products); // true
-Object.isFrozen(products[0]); // true
-Object.isFrozen(products[0].productIds); // true
-Object.isFrozen(products[0].skus); // true
-```
+| Input Field                       | Output Field        | Notes                                      |
+| --------------------------------- | ------------------- | ------------------------------------------ |
+| `name` (first value)              | `title`             | Extracts first string from array           |
+| `url/product_url/page_url`        | `url`               | Priority: canonical > url > product_url    |
+| `image_url/image[0]`              | `imageUrl`          | Prefers image_url                          |
+| `store_id`                        | `storeId`           | Coerced to string                          |
+| `offers[0].price`                 | `price`             | Converted to cents                         |
+| `brand` (first value)             | `brand`             | Extracts first string from array           |
+| `category/breadcrumbs`            | `category`          | Prefers category                           |
+| `color` (first value)             | `color`             | Extracts first string from array           |
+| `sku + sku_list + offers.sku`     | `ids.skus`          | Deduplicated from all sources              |
+| `gtin + gtin_list`                | `ids.gtins`         | Combined and deduplicated                  |
+| `mpn + mpn_list`                  | `ids.mpns`          | Combined and deduplicated                  |
+| `productID + productid_list`      | `ids.productIds`    | Combined and deduplicated                  |
+| URL extraction                    | `ids.extractedIds`  | From primary URL via product-id-extractor  |
+| `urlToSku/offers/offer_list/sku`  | `variants`          | Built in priority order                    |
 
 ## API Reference
 
@@ -333,22 +348,12 @@ Normalizes a raw product view event into an array of NormalizedProduct objects.
 
 - `event` (RawProductViewEvent) - Raw product view event from apps/extensions
 - `options.validate` (boolean, default: false) - Enable Zod schema validation
-- `options.extractProductIds` (boolean, default: true) - Enable URL-based ID extraction fallback
+- `options.extractProductIds` (boolean, default: true) - Enable URL-based ID extraction
 - `options.includeMetadata` (boolean, default: true) - Include extended metadata fields
 
 **Returns:**
 
-- `readonly NormalizedProduct[]` - Frozen array of normalized products
-
-**Example:**
-
-```typescript
-const products = normalizeProductViewEvent(rawEvent, {
-  validate: true,
-  extractProductIds: true,
-  includeMetadata: true,
-});
-```
+- `readonly NormalizedProduct[]` - Frozen array of normalized products (typically 1)
 
 ### Exported Schemas
 
@@ -358,6 +363,7 @@ import {
   ToolbarOfferSchema,
   AppOfferSchema,
   NormalizedProductSchema,
+  ProductVariantSchema,
 } from '@rr/product-event-normalizer';
 ```
 
@@ -369,8 +375,23 @@ import type {
   ToolbarOffer,
   AppOffer,
   NormalizedProduct,
+  ProductVariant,
   NormalizeProductViewEventOptions,
 } from '@rr/product-event-normalizer';
+```
+
+## Immutability
+
+All output is frozen for safe caching and sharing:
+
+```typescript
+const products = normalizeProductViewEvent(event);
+
+Object.isFrozen(products); // true
+Object.isFrozen(products[0]); // true
+Object.isFrozen(products[0].ids); // true
+Object.isFrozen(products[0].ids.skus); // true
+Object.isFrozen(products[0].variants); // true
 ```
 
 ## Testing
@@ -386,11 +407,13 @@ pnpm --filter @rr/product-event-normalizer test
 The test suite covers:
 
 - Basic normalization for Toolbar and App events
-- ID consolidation from all sources (sku, gtin, offers, urlToSku, etc.)
-- Deduplication across sources
+- Array format handling (Toolbar wrapping single values)
+- Nested price object parsing
+- Variant building from all sources (urlToSku, offers, offer_list, sku arrays)
+- Variant deduplication by SKU
+- Variant-specific extractedIds from URLs
+- ID consolidation from all sources
 - Store ID type coercion
-- Field extraction and mapping
-- URL fallback behavior
 - Metadata extraction (brand, rating, category, color)
 - Validation option behavior
 - Immutability guarantees
@@ -401,7 +424,7 @@ The test suite covers:
 - `zod` - Schema validation and type inference
 - `@rr/product-id-extractor` - Extract product IDs from URLs
 - `@rr/url-parser` - Parse URL components for extraction
-- `@rr/shared` - Shared utilities (coerceStoreId)
+- `@rr/shared` - Shared utilities and ProductIds type
 
 ## Maintenance
 
@@ -411,4 +434,5 @@ When updating:
 2. Update extraction logic in `src/normalizer.ts`
 3. Add test fixtures for new edge cases
 4. Run full test suite: `pnpm --filter @rr/product-event-normalizer test`
-5. Update this README with new examples
+5. Regenerate OpenAPI spec: `pnpm --filter @rr/product-service run openapi:generate`
+6. Update this README with new examples

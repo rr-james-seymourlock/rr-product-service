@@ -115,7 +115,7 @@
       "priority": "P1",
       "estimatedComplexity": "L",
       "dependencies": [],
-      "notes": "Implemented variant handling with variantSkus, variantCount, hasVariants fields. Uses urlToSku and priceToSku maps. All variant SKUs consolidated and deduplicated.",
+      "notes": "Implemented variant handling with variants[] array (ProductVariant objects), variantCount, hasVariants fields. Uses urlToSku and priceToSku maps for correlation. All variant SKUs consolidated in ids.skus. See US008 for variant object structure.",
       "completedAt": "2025-12-10"
     },
     {
@@ -180,6 +180,28 @@
       "dependencies": [],
       "notes": "Implemented nested ids object structure with productIds (schema.org productID only), extractedIds (URL-based), skus, gtins, mpns. Supports dual format (singular + _list). All arrays frozen and deduplicated.",
       "completedAt": "2025-12-10"
+    },
+    {
+      "id": "US008",
+      "title": "Have Variant-specific Data As",
+      "userStory": "As a data pipeline engineer, I want to have variant-specific data as objects with SKU, URL, price, color, and extractedIds so that I can join cart items (which have specific SKU/URL) to the correct product variant for cart enrichment",
+      "businessValue": "I can join cart items (which have specific SKU/URL) to the correct product variant for cart enrichment",
+      "acceptanceCriteria": [
+        "Output NormalizedProduct has 'variants' array of ProductVariant objects",
+        "Each variant has required 'sku' field and optional url, imageUrl, price, currency, color, extractedIds",
+        "Variants are built with priority: urlToSku > offers > offer_list > sku array",
+        "Variant extractedIds are populated from per-variant URL extraction",
+        "variantCount reflects number of variant objects",
+        "hasVariants is true when variantCount > 1",
+        "Legacy price/currency/color fields populated from first variant for backwards compatibility",
+        "Variants are deduplicated by SKU"
+      ],
+      "status": "completed",
+      "priority": "P0",
+      "estimatedComplexity": "L",
+      "dependencies": [],
+      "notes": "Implemented variant objects array with SKU, URL, imageUrl, price, currency, color, extractedIds. Priority system: urlToSku > offers > offer_list > sku array. Variants deduplicated by SKU. Legacy fields populated from first variant.",
+      "completedAt": "2025-12-10"
     }
   ],
   "technicalRequirements": {
@@ -204,8 +226,8 @@
   },
   "progress": {
     "overall": 100,
-    "completed": 7,
-    "total": 7,
+    "completed": 8,
+    "total": 8,
     "blocked": 0
   }
 }

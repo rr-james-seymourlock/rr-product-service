@@ -4,6 +4,7 @@ export type {
   ToolbarOffer,
   AppOffer,
   NormalizedProduct,
+  ProductVariant,
   NormalizeProductViewEventOptions,
 } from './types.js';
 export {
@@ -11,8 +12,9 @@ export {
   ToolbarOfferSchema,
   AppOfferSchema,
   NormalizedProductSchema,
+  ProductVariantSchema,
 } from './types.js';
 
-// Re-export base type for consumers that need it
-export type { BaseNormalizedProduct } from '@rr/shared/types';
-export { BaseNormalizedProductSchema } from '@rr/shared/types';
+// Re-export ProductIds type for consumers
+export type { ProductIds } from '@rr/shared/types';
+export { ProductIdsSchema } from '@rr/shared/types';

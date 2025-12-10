@@ -3,9 +3,12 @@ import { coerceStoreId, createLogger } from '@rr/shared/utils';
 import { parseUrlComponents } from '@rr/url-parser';
 
 import type {
+  AppOffer,
   NormalizeProductViewEventOptions,
   NormalizedProduct,
+  ProductVariant,
   RawProductViewEvent,
+  ToolbarOffer,
 } from './types.js';
 import { RawProductViewEventSchema } from './types.js';
 
@@ -13,10 +16,71 @@ const logger = createLogger('product-event-normalizer');
 
 // Pre-frozen empty array constant to avoid repeated Object.freeze([]) calls
 const EMPTY_FROZEN_ARRAY: readonly string[] = Object.freeze([]);
+const EMPTY_FROZEN_VARIANTS: readonly ProductVariant[] = Object.freeze([]);
+
+// =============================================================================
+// HELPER FUNCTIONS
+// =============================================================================
+
+/**
+ * Extract first string from string or array
+ */
+function extractFirstString(value: string | string[] | undefined): string | undefined {
+  if (!value) return undefined;
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    return trimmed !== '' ? trimmed : undefined;
+  }
+  if (Array.isArray(value) && value.length > 0) {
+    const first = value[0];
+    if (first) {
+      const trimmed = first.trim();
+      return trimmed !== '' ? trimmed : undefined;
+    }
+  }
+  return undefined;
+}
+
+/**
+ * Extract all strings from string or array (for variant-level data)
+ */
+function extractAllStrings(value: string | string[] | undefined): string[] {
+  if (!value) return [];
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    return trimmed !== '' ? [trimmed] : [];
+  }
+  if (Array.isArray(value)) {
+    return value.filter((s) => s && s.trim() !== '').map((s) => s.trim());
+  }
+  return [];
+}
+
+/**
+ * Extract first number from number, string, or array
+ */
+function extractFirstNumber(
+  value: number | string | (string | number)[] | undefined,
+): number | undefined {
+  if (value === undefined || value === null) return undefined;
+  if (typeof value === 'number') return value;
+  if (typeof value === 'string') {
+    const parsed = parseFloat(value);
+    return isNaN(parsed) ? undefined : parsed;
+  }
+  if (Array.isArray(value) && value.length > 0) {
+    const first = value[0];
+    if (typeof first === 'number') return first;
+    if (typeof first === 'string') {
+      const parsed = parseFloat(first);
+      return isNaN(parsed) ? undefined : parsed;
+    }
+  }
+  return undefined;
+}
 
 /**
  * Helper to filter non-empty strings from an array.
- * Caches the trimmed value to avoid double-trim operations.
  */
 function filterNonEmpty(arr: string[] | undefined): string[] {
   if (!arr || arr.length === 0) return [];
@@ -33,10 +97,59 @@ function filterNonEmpty(arr: string[] | undefined): string[] {
 }
 
 /**
- * Helper to check if a string is non-empty (with cached trim)
+ * Helper to check if a string is non-empty
  */
 function isNonEmptyString(s: string | undefined): s is string {
   return s !== undefined && s.trim() !== '';
+}
+
+/**
+ * Parse price from various formats to cents (integer)
+ */
+function parsePriceToCents(price: unknown): {
+  amount: number | undefined;
+  currency: string | undefined;
+} {
+  if (price === undefined || price === null) {
+    return { amount: undefined, currency: undefined };
+  }
+
+  // Already a number (assume cents)
+  if (typeof price === 'number') {
+    return { amount: Math.round(price), currency: undefined };
+  }
+
+  // String - parse as dollars and convert to cents
+  if (typeof price === 'string') {
+    const parsed = parseFloat(price);
+    if (!isNaN(parsed)) {
+      // If it looks like dollars (has decimal or < 1000), convert to cents
+      // If it looks like cents (integer > 1000), keep as-is
+      const amount = price.includes('.') || parsed < 100 ? Math.round(parsed * 100) : parsed;
+      return { amount, currency: undefined };
+    }
+    return { amount: undefined, currency: undefined };
+  }
+
+  // Nested object { amount, currency }
+  if (typeof price === 'object' && price !== null && 'amount' in price) {
+    const priceObj = price as { amount?: string | number; currency?: string };
+    const priceAmount = priceObj.amount;
+    const currency = priceObj.currency;
+    if (priceAmount !== undefined) {
+      const parsed =
+        typeof priceAmount === 'number' ? priceAmount : parseFloat(String(priceAmount));
+      if (!isNaN(parsed)) {
+        // Convert dollars to cents if it looks like dollars
+        const amount =
+          String(priceAmount).includes('.') || parsed < 100 ? Math.round(parsed * 100) : parsed;
+        return { amount, currency };
+      }
+    }
+    return { amount: undefined, currency };
+  }
+
+  return { amount: undefined, currency: undefined };
 }
 
 /**
@@ -58,7 +171,6 @@ function extractProductIdsFromUrl(
     });
     return result.productIds;
   } catch (error) {
-    // Log extraction failures for observability at scale
     logger.debug(
       { url, storeId, error: error instanceof Error ? error.message : String(error) },
       'URL parsing or extraction failed',
@@ -67,202 +179,467 @@ function extractProductIdsFromUrl(
   }
 }
 
-/**
- * Collect all product identifiers from schema.org sources
- * Handles both Toolbar and App naming conventions
- *
- * Separates parent product IDs from variant SKUs:
- * - productIds: Parent product identifiers (from productID/productid_list)
- * - variantSkus: Size/color variant SKUs (from sku, offers, urlToSku, priceToSku)
- * - gtins/mpns: May be parent-level or variant-level (kept separate)
- *
- * Optimized for performance:
- * - Uses single helper function for filtering
- * - Avoids intermediate array allocations where possible
- * - Lazy array initialization (only create if needed)
- */
-function collectSchemaProductIds(event: RawProductViewEvent): {
+// =============================================================================
+// IDENTIFIER COLLECTION
+// =============================================================================
+
+interface CollectedIdentifiers {
   skus: string[];
   gtins: string[];
   mpns: string[];
   productIds: string[];
-  variantSkus: string[];
-} {
-  // Lazy initialization - only create arrays when needed
-  let skus: string[] | undefined;
-  let gtins: string[] | undefined;
-  let mpns: string[] | undefined;
-  let productIds: string[] | undefined;
-  let variantSkus: string[] | undefined;
+}
 
-  // Helper to get or create array
-  const getSkus = () => (skus ??= []);
-  const getGtins = () => (gtins ??= []);
-  const getMpns = () => (mpns ??= []);
-  const getProductIds = () => (productIds ??= []);
-  const getVariantSkus = () => (variantSkus ??= []);
+/**
+ * Collect all product identifiers from schema.org sources
+ * Handles both Toolbar and App naming conventions
+ */
+function collectSchemaIdentifiers(event: RawProductViewEvent): CollectedIdentifiers {
+  const skus: string[] = [];
+  const gtins: string[] = [];
+  const mpns: string[] = [];
+  const productIds: string[] = [];
 
-  // =============================================================================
-  // DUAL FORMAT SUPPORT: Both singular and _list formats are supported
-  // =============================================================================
-  // We support both formats because:
-  // 1. Platform differences: Toolbar uses singular (sku), App uses list (sku_list)
-  // 2. Historical data: Snowflake data may contain either format depending on capture date
-  // 3. Data capture evolution: The capture layer has changed over time
-  //
-  // When both formats are present, values are COMBINED and later deduplicated.
-  // =============================================================================
+  // Collect SKUs from sku/sku_list arrays
+  skus.push(...filterNonEmpty(event.sku));
+  skus.push(...filterNonEmpty(event.sku_list));
 
-  // Collect SKUs from sku/sku_list arrays (both formats supported)
-  // These go to both skus (for backwards compat) and variantSkus (for variant tracking)
-  const skuFiltered = filterNonEmpty(event.sku);
-  if (skuFiltered.length > 0) {
-    getSkus().push(...skuFiltered);
-    getVariantSkus().push(...skuFiltered);
-  }
+  // Collect GTINs
+  gtins.push(...filterNonEmpty(event.gtin));
+  gtins.push(...filterNonEmpty(event.gtin_list));
 
-  const skuListFiltered = filterNonEmpty(event.sku_list);
-  if (skuListFiltered.length > 0) {
-    getSkus().push(...skuListFiltered);
-    getVariantSkus().push(...skuListFiltered);
-  }
+  // Collect MPNs
+  mpns.push(...filterNonEmpty(event.mpn));
+  mpns.push(...filterNonEmpty(event.mpn_list));
 
-  // Collect GTINs from gtin/gtin_list arrays (both formats supported)
-  const gtinFiltered = filterNonEmpty(event.gtin);
-  if (gtinFiltered.length > 0) getGtins().push(...gtinFiltered);
-
-  const gtinListFiltered = filterNonEmpty(event.gtin_list);
-  if (gtinListFiltered.length > 0) getGtins().push(...gtinListFiltered);
-
-  // Collect MPNs from mpn/mpn_list arrays (both formats supported)
-  const mpnFiltered = filterNonEmpty(event.mpn);
-  if (mpnFiltered.length > 0) getMpns().push(...mpnFiltered);
-
-  const mpnListFiltered = filterNonEmpty(event.mpn_list);
-  if (mpnListFiltered.length > 0) getMpns().push(...mpnListFiltered);
-
-  // Collect product IDs from productID/productid_list arrays (both formats supported)
-  const pidFiltered = filterNonEmpty(event.productID);
-  if (pidFiltered.length > 0) getProductIds().push(...pidFiltered);
-
-  const pidListFiltered = filterNonEmpty(event.productid_list);
-  if (pidListFiltered.length > 0) getProductIds().push(...pidListFiltered);
+  // Collect product IDs
+  productIds.push(...filterNonEmpty(event.productID));
+  productIds.push(...filterNonEmpty(event.productid_list));
 
   // Extract SKUs from offers (Toolbar: offers[].sku)
-  // These are variant-level SKUs
   if (event.offers && event.offers.length > 0) {
     for (const offer of event.offers) {
       if (isNonEmptyString(offer.sku)) {
-        getSkus().push(offer.sku);
-        getVariantSkus().push(offer.sku);
+        skus.push(offer.sku);
       }
     }
   }
 
   // Extract SKUs from offer_list (App: offer_list[].offer_sku)
-  // These are variant-level SKUs
   if (event.offer_list && event.offer_list.length > 0) {
     for (const offer of event.offer_list) {
       if (isNonEmptyString(offer.offer_sku)) {
-        getSkus().push(offer.offer_sku);
-        getVariantSkus().push(offer.offer_sku);
+        skus.push(offer.offer_sku);
       }
     }
   }
 
-  // Extract SKUs from urlToSku map values (Toolbar only)
-  // These are variant-level SKUs (each URL represents a variant)
+  // Extract SKUs from urlToSku map values
   if (event.urlToSku) {
-    for (const sku of Object.values(event.urlToSku)) {
-      if (isNonEmptyString(sku)) {
-        getSkus().push(sku);
-        getVariantSkus().push(sku);
+    for (const value of Object.values(event.urlToSku)) {
+      if (typeof value === 'string' && isNonEmptyString(value)) {
+        skus.push(value);
+      } else if (Array.isArray(value)) {
+        skus.push(...filterNonEmpty(value));
       }
     }
   }
 
-  // Extract SKUs from priceToSku map values (Toolbar only)
-  // These are variant-level SKUs (grouped by price)
+  // Extract SKUs from priceToSku map values
   if (event.priceToSku) {
-    for (const sku of Object.values(event.priceToSku)) {
-      if (isNonEmptyString(sku)) {
-        getSkus().push(sku);
-        getVariantSkus().push(sku);
+    for (const value of Object.values(event.priceToSku)) {
+      if (typeof value === 'string' && isNonEmptyString(value)) {
+        skus.push(value);
+      } else if (Array.isArray(value)) {
+        skus.push(...filterNonEmpty(value));
       }
     }
   }
 
-  return {
-    skus: skus ?? [],
-    gtins: gtins ?? [],
-    mpns: mpns ?? [],
-    productIds: productIds ?? [],
-    variantSkus: variantSkus ?? [],
-  };
+  return { skus, gtins, mpns, productIds };
+}
+
+// =============================================================================
+// VARIANT BUILDING
+// =============================================================================
+
+interface VariantData {
+  sku: string;
+  url?: string;
+  imageUrl?: string;
+  price?: number;
+  currency?: string;
+  color?: string;
 }
 
 /**
- * Deduplicate productIds and variant SKUs
- *
- * Note: productIds contains ONLY schema.org productID/productid_list values,
- * NOT SKUs, GTINs, or MPNs (those are separate fields in the output)
+ * Build variants from Toolbar offers array
  */
-function consolidateProductIds(collected: {
-  skus: string[];
-  gtins: string[];
-  mpns: string[];
-  productIds: string[];
-  variantSkus: string[];
-}): {
-  productIds: readonly string[];
-  variantSkus: readonly string[];
-} {
-  // Deduplicate productIds (only schema.org productID field values)
-  const productIdSet = new Set(collected.productIds);
-  const productIds =
-    productIdSet.size > 0 ? Object.freeze(Array.from(productIdSet)) : EMPTY_FROZEN_ARRAY;
+function buildVariantsFromToolbarOffers(
+  offers: ToolbarOffer[],
+  _storeId: string | undefined,
+): VariantData[] {
+  const variants: VariantData[] = [];
 
-  // Deduplicate variant SKUs
-  const variantSkuSet = new Set(collected.variantSkus);
-  const variantSkus =
-    variantSkuSet.size > 0 ? Object.freeze(Array.from(variantSkuSet)) : EMPTY_FROZEN_ARRAY;
+  for (const offer of offers) {
+    if (!offer.sku) continue;
 
-  return { productIds, variantSkus };
+    const variant: VariantData = { sku: offer.sku };
+
+    if (offer.url) {
+      variant.url = offer.url;
+    }
+
+    // Parse price from flat or nested format
+    const { amount, currency } = parsePriceToCents(offer.price);
+    if (amount !== undefined) {
+      variant.price = amount;
+    }
+    if (currency) {
+      variant.currency = currency;
+    }
+
+    variants.push(variant);
+  }
+
+  return variants;
 }
 
 /**
- * Extract the primary URL from the event
+ * Build variants from App offer_list array
  */
-function extractUrl(event: RawProductViewEvent): string | undefined {
-  // Prefer url, then product_url, then page_url
-  if (isNonEmptyString(event.url)) return event.url;
+function buildVariantsFromAppOffers(
+  offers: AppOffer[],
+  _storeId: string | undefined,
+): VariantData[] {
+  const variants: VariantData[] = [];
+
+  for (const offer of offers) {
+    if (!offer.offer_sku) continue;
+
+    const variant: VariantData = { sku: offer.offer_sku };
+
+    if (offer.offer_amount !== undefined) {
+      const parsed =
+        typeof offer.offer_amount === 'number'
+          ? offer.offer_amount
+          : parseFloat(offer.offer_amount);
+      if (!isNaN(parsed)) {
+        // Convert to cents if looks like dollars
+        variant.price =
+          String(offer.offer_amount).includes('.') || parsed < 100
+            ? Math.round(parsed * 100)
+            : parsed;
+      }
+    }
+
+    if (offer.offer_currency) {
+      variant.currency = offer.offer_currency;
+    }
+
+    variants.push(variant);
+  }
+
+  return variants;
+}
+
+/**
+ * Build variants from urlToSku map (each URL is a variant)
+ * This is the most reliable source for variant correlation
+ */
+function buildVariantsFromUrlToSku(
+  urlToSku: Record<string, string | string[]>,
+  event: RawProductViewEvent,
+  _storeId: string | undefined,
+): VariantData[] {
+  const variants: VariantData[] = [];
+  const urlArray = extractAllStrings(event.url);
+  const imageArray = event.image ?? event.image_url_list ?? [];
+  const colorArray = extractAllStrings(event.color).concat(event.color_list ?? []);
+  const priceArray = event.price ?? [];
+
+  for (const [url, skuValue] of Object.entries(urlToSku)) {
+    const skus = typeof skuValue === 'string' ? [skuValue] : skuValue;
+
+    for (const sku of skus) {
+      if (!sku || sku.trim() === '') continue;
+
+      const variant: VariantData = { sku, url };
+
+      // Find corresponding index in url array for correlation
+      const urlIndex = urlArray.indexOf(url);
+      if (urlIndex !== -1) {
+        // Get correlated image
+        if (urlIndex < imageArray.length) {
+          const img = imageArray[urlIndex];
+          if (img && img.trim() !== '') {
+            variant.imageUrl = img;
+          }
+        }
+
+        // Get correlated color (less reliable, colors may not match 1:1)
+        if (urlIndex < colorArray.length) {
+          const color = colorArray[urlIndex];
+          if (color && color.trim() !== '') {
+            variant.color = color;
+          }
+        }
+
+        // Get correlated price
+        if (urlIndex < priceArray.length) {
+          const { amount, currency } = parsePriceToCents(priceArray[urlIndex]);
+          if (amount !== undefined) {
+            variant.price = amount;
+          }
+          if (currency) {
+            variant.currency = currency;
+          }
+        }
+      }
+
+      variants.push(variant);
+    }
+  }
+
+  return variants;
+}
+
+/**
+ * Build variants from parallel arrays when no urlToSku map
+ * Falls back to SKU array + tries to correlate with other arrays
+ */
+function buildVariantsFromParallelArrays(
+  event: RawProductViewEvent,
+  collectedSkus: string[],
+  _storeId: string | undefined,
+): VariantData[] {
+  const variants: VariantData[] = [];
+
+  // Get unique SKUs
+  const uniqueSkus = [...new Set(collectedSkus)];
+  if (uniqueSkus.length === 0) return variants;
+
+  // Get arrays for correlation
+  const urlArray = extractAllStrings(event.url);
+  const imageArray = event.image ?? event.image_url_list ?? [];
+  const colorArray = extractAllStrings(event.color).concat(event.color_list ?? []);
+  const priceArray = event.price ?? [];
+
+  // Try to match SKUs with offers for price/URL info
+  const skuToOffer = new Map<string, { url?: string; price?: number; currency?: string }>();
+
+  if (event.offers) {
+    for (const offer of event.offers) {
+      if (offer.sku) {
+        const { amount, currency } = parsePriceToCents(offer.price);
+        const offerData: { url?: string; price?: number; currency?: string } = {};
+        if (offer.url) offerData.url = offer.url;
+        if (amount !== undefined) offerData.price = amount;
+        if (currency) offerData.currency = currency;
+        skuToOffer.set(offer.sku, offerData);
+      }
+    }
+  }
+
+  if (event.offer_list) {
+    for (const offer of event.offer_list) {
+      if (offer.offer_sku) {
+        const offerData: { url?: string; price?: number; currency?: string } = {};
+        if (offer.offer_amount !== undefined) {
+          const amount =
+            typeof offer.offer_amount === 'number'
+              ? offer.offer_amount
+              : parseFloat(String(offer.offer_amount));
+          if (!isNaN(amount)) {
+            offerData.price =
+              String(offer.offer_amount).includes('.') || amount < 100
+                ? Math.round(amount * 100)
+                : amount;
+          }
+        }
+        if (offer.offer_currency) offerData.currency = offer.offer_currency;
+        skuToOffer.set(offer.offer_sku, offerData);
+      }
+    }
+  }
+
+  for (let i = 0; i < uniqueSkus.length; i++) {
+    const sku = uniqueSkus[i];
+    if (!sku) continue;
+
+    const variant: VariantData = { sku };
+
+    // Check for offer data first
+    const offerData = skuToOffer.get(sku);
+    if (offerData) {
+      if (offerData.url) variant.url = offerData.url;
+      if (offerData.price !== undefined) variant.price = offerData.price;
+      if (offerData.currency) variant.currency = offerData.currency;
+    }
+
+    // If no URL from offer, try index-based correlation (less reliable)
+    if (!variant.url && i < urlArray.length) {
+      const urlValue = urlArray[i];
+      if (urlValue) {
+        variant.url = urlValue;
+      }
+    }
+
+    // Index-based image correlation
+    if (i < imageArray.length) {
+      const img = imageArray[i];
+      if (img && img.trim() !== '') {
+        variant.imageUrl = img;
+      }
+    }
+
+    // Index-based color correlation
+    if (i < colorArray.length) {
+      const color = colorArray[i];
+      if (color && color.trim() !== '') {
+        variant.color = color;
+      }
+    }
+
+    // Index-based price correlation (if not from offer)
+    if (variant.price === undefined && i < priceArray.length) {
+      const { amount, currency } = parsePriceToCents(priceArray[i]);
+      if (amount !== undefined) {
+        variant.price = amount;
+      }
+      if (currency && !variant.currency) {
+        variant.currency = currency;
+      }
+    }
+
+    variants.push(variant);
+  }
+
+  return variants;
+}
+
+/**
+ * Build final ProductVariant objects with extracted IDs
+ */
+function buildProductVariants(
+  variantData: VariantData[],
+  storeId: string | undefined,
+  shouldExtractFromUrl: boolean,
+): readonly ProductVariant[] {
+  if (variantData.length === 0) {
+    return EMPTY_FROZEN_VARIANTS;
+  }
+
+  const variants: ProductVariant[] = [];
+  const seenSkus = new Set<string>();
+
+  for (const data of variantData) {
+    // Dedupe by SKU
+    if (seenSkus.has(data.sku)) continue;
+    seenSkus.add(data.sku);
+
+    const variant: ProductVariant = { sku: data.sku };
+
+    if (data.url) {
+      variant.url = data.url;
+
+      // Extract IDs from variant URL for joining
+      if (shouldExtractFromUrl) {
+        const extracted = extractProductIdsFromUrl(data.url, storeId);
+        if (extracted.length > 0) {
+          variant.extractedIds = extracted;
+        }
+      }
+    }
+
+    if (data.imageUrl) {
+      variant.imageUrl = data.imageUrl;
+    }
+
+    if (data.price !== undefined) {
+      variant.price = data.price;
+    }
+
+    if (data.currency) {
+      variant.currency = data.currency;
+    }
+
+    if (data.color) {
+      variant.color = data.color;
+    }
+
+    variants.push(variant);
+  }
+
+  return Object.freeze(variants);
+}
+
+// =============================================================================
+// SHARED FIELD EXTRACTION
+// =============================================================================
+
+/**
+ * Extract the primary URL from the event (for product-level URL)
+ */
+function extractPrimaryUrl(event: RawProductViewEvent): string | undefined {
+  // Prefer canonical URL if available
+  if (event.canonical && event.canonical.length > 0) {
+    const canonical = event.canonical[0];
+    if (canonical && canonical.trim() !== '') {
+      return canonical;
+    }
+  }
+
+  // Then url field (first if array)
+  const url = extractFirstString(event.url);
+  if (url) return url;
+
+  // Then product_url
   if (isNonEmptyString(event.product_url)) return event.product_url;
+
+  // Then page_url
   if (isNonEmptyString(event.page_url)) return event.page_url;
+
   return undefined;
 }
 
 /**
  * Extract the primary image URL from the event
  */
-function extractImageUrl(event: RawProductViewEvent): string | undefined {
-  // Prefer image_url, then first item of image_url_list
-  if (isNonEmptyString(event.image_url)) return event.image_url;
-  if (event.image_url_list && event.image_url_list.length > 0) {
-    const firstImage = event.image_url_list[0];
-    if (isNonEmptyString(firstImage)) return firstImage;
+function extractPrimaryImageUrl(event: RawProductViewEvent): string | undefined {
+  // Prefer image array (Toolbar format)
+  if (event.image && event.image.length > 0) {
+    const img = event.image[0];
+    if (img && img.trim() !== '') return img;
   }
+
+  // Then image_url (single string)
+  if (isNonEmptyString(event.image_url)) return event.image_url;
+
+  // Then image_url_list (App format)
+  if (event.image_url_list && event.image_url_list.length > 0) {
+    const img = event.image_url_list[0];
+    if (img && img.trim() !== '') return img;
+  }
+
   return undefined;
 }
 
 /**
- * Extract the primary price from the event
+ * Extract primary price (for backwards compatibility)
  */
-function extractPrice(event: RawProductViewEvent): number | undefined {
+function extractPrimaryPrice(event: RawProductViewEvent): {
+  price: number | undefined;
+  currency: string | undefined;
+} {
   // Try Toolbar offers first
   if (event.offers && event.offers.length > 0) {
     const firstOffer = event.offers[0];
-    if (firstOffer?.price !== undefined) {
-      return firstOffer.price;
+    if (firstOffer) {
+      const { amount, currency } = parsePriceToCents(firstOffer.price);
+      if (amount !== undefined) {
+        return { price: amount, currency };
+      }
     }
   }
 
@@ -270,22 +647,52 @@ function extractPrice(event: RawProductViewEvent): number | undefined {
   if (event.offer_list && event.offer_list.length > 0) {
     const firstOffer = event.offer_list[0];
     if (firstOffer?.offer_amount !== undefined) {
-      return firstOffer.offer_amount;
+      const parsed =
+        typeof firstOffer.offer_amount === 'number'
+          ? firstOffer.offer_amount
+          : parseFloat(firstOffer.offer_amount);
+      if (!isNaN(parsed)) {
+        const price =
+          String(firstOffer.offer_amount).includes('.') || parsed < 100
+            ? Math.round(parsed * 100)
+            : parsed;
+        return { price, currency: firstOffer.offer_currency };
+      }
     }
   }
 
-  return undefined;
+  // Try price array
+  if (event.price && event.price.length > 0) {
+    const { amount, currency } = parsePriceToCents(event.price[0]);
+    if (amount !== undefined) {
+      return { price: amount, currency: currency ?? event.priceCurrency?.[0] };
+    }
+  }
+
+  // Try priceInCents array
+  if (event.priceInCents && event.priceInCents.length > 0) {
+    const first = event.priceInCents[0];
+    const parsed = typeof first === 'number' ? first : parseInt(String(first), 10);
+    if (!isNaN(parsed)) {
+      return { price: parsed, currency: event.priceCurrency?.[0] };
+    }
+  }
+
+  return { price: undefined, currency: undefined };
 }
 
 /**
  * Extract brand from the event
  */
 function extractBrand(event: RawProductViewEvent): string | undefined {
-  if (isNonEmptyString(event.brand)) return event.brand;
+  const brand = extractFirstString(event.brand);
+  if (brand) return brand;
+
   if (event.brand_list && event.brand_list.length > 0) {
     const firstBrand = event.brand_list[0];
-    if (isNonEmptyString(firstBrand)) return firstBrand;
+    if (firstBrand && firstBrand.trim() !== '') return firstBrand;
   }
+
   return undefined;
 }
 
@@ -293,107 +700,48 @@ function extractBrand(event: RawProductViewEvent): string | undefined {
  * Extract category from the event
  */
 function extractCategory(event: RawProductViewEvent): string | undefined {
-  if (isNonEmptyString(event.category)) return event.category;
-  if (isNonEmptyString(event.breadcrumbs)) return event.breadcrumbs;
+  const category = extractFirstString(event.category);
+  if (category) return category;
+
+  const breadcrumbs = extractFirstString(event.breadcrumbs);
+  if (breadcrumbs) return breadcrumbs;
+
   return undefined;
 }
 
 /**
- * Extract color from the event
+ * Extract color from the event (primary color)
  */
-function extractColor(event: RawProductViewEvent): string | undefined {
-  if (isNonEmptyString(event.color)) return event.color;
+function extractPrimaryColor(event: RawProductViewEvent): string | undefined {
+  const color = extractFirstString(event.color);
+  if (color) return color;
+
   if (event.color_list && event.color_list.length > 0) {
     const firstColor = event.color_list[0];
-    if (isNonEmptyString(firstColor)) return firstColor;
+    if (firstColor && firstColor.trim() !== '') return firstColor;
   }
+
   return undefined;
 }
 
-/**
- * Build a fingerprint for a normalized product to enable deduplication.
- * Uses available schema.org identifiers and core product fields.
- * Returns undefined if no meaningful fingerprint can be created.
- *
- * Fingerprint includes (when available):
- * - title, url, price (core identifying fields)
- * - skus, gtins, mpns, productIds (schema.org identifiers)
- */
-function buildProductFingerprint(product: NormalizedProduct): string | undefined {
-  const parts: string[] = [];
-
-  // Core identifying fields
-  if (product.title) {
-    parts.push(`title:${product.title}`);
-  }
-  if (product.url) {
-    parts.push(`url:${product.url}`);
-  }
-  if (product.price !== undefined) {
-    parts.push(`price:${product.price}`);
-  }
-
-  // Schema.org identifiers from ids object (sorted for consistent fingerprints)
-  if (product.ids.skus && product.ids.skus.length > 0) {
-    parts.push(`skus:${[...product.ids.skus].sort().join(',')}`);
-  }
-  if (product.ids.gtins && product.ids.gtins.length > 0) {
-    parts.push(`gtins:${[...product.ids.gtins].sort().join(',')}`);
-  }
-  if (product.ids.mpns && product.ids.mpns.length > 0) {
-    parts.push(`mpns:${[...product.ids.mpns].sort().join(',')}`);
-  }
-
-  // productIds from ids object
-  if (product.ids.productIds.length > 0) {
-    parts.push(`ids:${[...product.ids.productIds].sort().join(',')}`);
-  }
-
-  // If we have nothing to fingerprint, can't deduplicate
-  if (parts.length === 0) {
-    return undefined;
-  }
-
-  return parts.join('|');
-}
-
-/**
- * Deduplicate products based on their fingerprint.
- * Keeps the first occurrence of each unique product.
- * Products without a fingerprint (no identifiable data) are always kept.
- */
-function deduplicateProducts(products: NormalizedProduct[]): NormalizedProduct[] {
-  const seen = new Set<string>();
-  const result: NormalizedProduct[] = [];
-
-  for (const product of products) {
-    const fingerprint = buildProductFingerprint(product);
-
-    if (fingerprint === undefined) {
-      // No fingerprint means we can't deduplicate - keep the product
-      result.push(product);
-    } else if (!seen.has(fingerprint)) {
-      seen.add(fingerprint);
-      result.push(product);
-    }
-    // If fingerprint already seen, skip this duplicate
-  }
-
-  return result;
-}
+// =============================================================================
+// MAIN NORMALIZER
+// =============================================================================
 
 /**
  * Normalize a raw product view event into a clean NormalizedProduct array
  *
+ * The output structure separates:
+ * - Shared product-level data (title, brand, description, rating, category)
+ * - Aggregated identifiers in `ids` (productIds, extractedIds, all SKUs, GTINs, MPNs)
+ * - Variant-specific data in `variants` array (sku, url, image, price, color)
+ *
+ * This enables joining cart items (which have specific SKU/URL) to the right variant
+ * while inheriting shared product metadata.
+ *
  * @param event - Raw product view event from apps/extensions
  * @param options - Normalization options
- * @returns Frozen array of normalized product objects
- *
- * @example
- * ```ts
- * const products = normalizeProductViewEvent(rawEvent);
- * // [{ title: "Product", url: "...", storeId: "8333", productIds: ["SKU123", "GTIN456"] }]
- * ```
+ * @returns Frozen array of normalized product objects (typically 1 product)
  */
 export function normalizeProductViewEvent(
   event: RawProductViewEvent,
@@ -413,29 +761,53 @@ export function normalizeProductViewEvent(
   // Coerce store_id to string
   const storeId = coerceStoreId(event.store_id);
 
-  // Collect all schema-based product identifiers
-  const collected = collectSchemaProductIds(event);
+  // Collect all schema-based identifiers
+  const collected = collectSchemaIdentifiers(event);
 
-  // Consolidate and deduplicate schema.org productID values and variant SKUs
-  const consolidated = consolidateProductIds(collected);
-  const productIds = consolidated.productIds;
-  const variantSkus = consolidated.variantSkus;
-
-  // Extract URL and attempt URL-based extraction (always, as separate data source)
-  const url = extractUrl(event);
+  // Extract primary URL and get extractedIds
+  const primaryUrl = extractPrimaryUrl(event);
   let extractedIds: readonly string[] = EMPTY_FROZEN_ARRAY;
-  if (shouldExtractFromUrl && url) {
-    extractedIds = extractProductIdsFromUrl(url, storeId);
+  if (shouldExtractFromUrl && primaryUrl) {
+    extractedIds = extractProductIdsFromUrl(primaryUrl, storeId);
   }
 
-  // Build the ids object with all identifier types
-  // SKUs, GTINs, MPNs are only included when metadata is enabled and values exist
+  // Build variants from the best available source
+  let variantData: VariantData[] = [];
+
+  // Priority 1: urlToSku map (most reliable for variant correlation)
+  if (event.urlToSku && Object.keys(event.urlToSku).length > 0) {
+    variantData = buildVariantsFromUrlToSku(event.urlToSku, event, storeId);
+  }
+  // Priority 2: Toolbar offers with SKUs
+  else if (event.offers && event.offers.length > 0 && event.offers.some((o) => o.sku)) {
+    variantData = buildVariantsFromToolbarOffers(event.offers, storeId);
+  }
+  // Priority 3: App offer_list with SKUs
+  else if (
+    event.offer_list &&
+    event.offer_list.length > 0 &&
+    event.offer_list.some((o) => o.offer_sku)
+  ) {
+    variantData = buildVariantsFromAppOffers(event.offer_list, storeId);
+  }
+  // Priority 4: Fall back to parallel arrays
+  else if (collected.skus.length > 0) {
+    variantData = buildVariantsFromParallelArrays(event, collected.skus, storeId);
+  }
+
+  // Build final variant objects with extracted IDs
+  const variants = buildProductVariants(variantData, storeId, shouldExtractFromUrl);
+
+  // Build the ids object with all identifier types (deduplicated)
   const ids: NormalizedProduct['ids'] = {
-    productIds,
+    productIds:
+      collected.productIds.length > 0
+        ? Object.freeze([...new Set(collected.productIds)])
+        : EMPTY_FROZEN_ARRAY,
     extractedIds,
   };
 
-  // Add specific identifier arrays (deduplicated) when metadata is enabled
+  // Add specific identifier arrays when metadata is enabled
   if (includeMetadata) {
     if (collected.skus.length > 0) {
       ids.skus = Object.freeze([...new Set(collected.skus)]);
@@ -448,21 +820,33 @@ export function normalizeProductViewEvent(
     }
   }
 
-  // Build the normalized product with nested ids object
+  // Build the normalized product
   const normalized: NormalizedProduct = {
     ids: Object.freeze(ids),
+    variants,
+    variantCount: variants.length,
+    hasVariants: variants.length > 1,
   };
 
-  // Add core fields
-  if (event.name && event.name.trim() !== '') {
-    normalized.title = event.name;
+  // Add shared product-level fields
+  const title = extractFirstString(event.name);
+  if (title) {
+    normalized.title = title;
   }
 
-  if (url) {
-    normalized.url = url;
+  if (primaryUrl) {
+    normalized.url = primaryUrl;
   }
 
-  const imageUrl = extractImageUrl(event);
+  // Add canonical URL if different from primary URL
+  if (event.canonical && event.canonical.length > 0) {
+    const canonical = event.canonical[0];
+    if (canonical && canonical.trim() !== '' && canonical !== primaryUrl) {
+      normalized.canonicalUrl = canonical;
+    }
+  }
+
+  const imageUrl = extractPrimaryImageUrl(event);
   if (imageUrl) {
     normalized.imageUrl = imageUrl;
   }
@@ -471,9 +855,8 @@ export function normalizeProductViewEvent(
     normalized.storeId = storeId;
   }
 
-  const price = extractPrice(event);
-  if (price !== undefined) {
-    normalized.price = price;
+  if (event.store_name) {
+    normalized.storeName = event.store_name;
   }
 
   // Add metadata fields if enabled
@@ -483,36 +866,35 @@ export function normalizeProductViewEvent(
       normalized.brand = brand;
     }
 
+    const description = extractFirstString(event.description);
+    if (description) {
+      normalized.description = description;
+    }
+
     const category = extractCategory(event);
     if (category) {
       normalized.category = category;
     }
 
-    if (event.description && event.description.trim() !== '') {
-      normalized.description = event.description;
+    const rating = extractFirstNumber(event.rating);
+    if (rating !== undefined) {
+      normalized.rating = rating;
     }
 
-    if (event.rating !== undefined) {
-      normalized.rating = event.rating;
+    // Add primary/legacy fields for backwards compatibility
+    const { price, currency } = extractPrimaryPrice(event);
+    if (price !== undefined) {
+      normalized.price = price;
+    }
+    if (currency) {
+      normalized.currency = currency;
     }
 
-    const color = extractColor(event);
+    const color = extractPrimaryColor(event);
     if (color) {
       normalized.color = color;
     }
-
-    // Add variant information if there are multiple variant SKUs
-    if (variantSkus.length > 0) {
-      normalized.variantSkus = variantSkus;
-      normalized.variantCount = variantSkus.length;
-      normalized.hasVariants = variantSkus.length > 1;
-    }
   }
 
-  // Wrap in array and deduplicate
-  // Note: Currently single-product, but deduplication supports future multi-product handling
-  const products = [normalized];
-  const deduplicated = deduplicateProducts(products);
-
-  return Object.freeze(deduplicated.map((p) => Object.freeze(p)));
+  return Object.freeze([Object.freeze(normalized)]);
 }
