@@ -5,7 +5,7 @@
       "id": "1",
       "title": "Create @rr/product-image-fetcher package structure",
       "description": "Initialize the new package with standard monorepo configuration including package.json, tsconfig.json, vitest.config.ts, and src directory structure",
-      "status": "pending",
+      "status": "done",
       "priority": "high",
       "dependencies": [],
       "details": "Use existing packages as template (e.g., @rr/product-event-normalizer). Include: src/index.ts exports, src/types.ts for Zod schemas, src/config.ts for constants, src/__tests__/ directory. Add to pnpm-workspace.yaml if needed.",
@@ -13,15 +13,16 @@
       "subtasks": [],
       "userStoryId": "US001",
       "createdAt": "2025-12-10T15:55:43.643Z",
-      "updatedAt": "2025-12-10T15:58:00.370Z",
+      "updatedAt": "2025-12-10T16:42:33.570Z",
       "complexity": 4,
-      "recommendedSubtasks": 3
+      "recommendedSubtasks": 3,
+      "completedAt": "2025-12-10T16:42:33.570Z"
     },
     {
       "id": "2",
       "title": "Define Zod schemas for image fetch request/response",
       "description": "Create TypeScript types and Zod schemas for ImageFetchRequest, ImageFetchResponse, ImageFetchError, and configuration options",
-      "status": "pending",
+      "status": "done",
       "priority": "high",
       "dependencies": ["1"],
       "details": "ImageFetchRequest: { storeId: string, productUrl: string, imageUrl: string }. ImageFetchResponse: { success: true, storagePath: string, contentType: string, sizeBytes: number } | { success: false, error: ImageFetchError }. ImageFetchError: { code: string, message: string, isPermanent: boolean, statusCode?: number, retryAfter?: number, domain: string }",
@@ -31,50 +32,54 @@
           "id": "2.1",
           "title": "Research and design for define zod schemas for image fetch request/response",
           "description": "Implementation step 1 for: Define Zod schemas for image fetch request/response",
-          "status": "pending",
+          "status": "done",
           "priority": "high",
           "dependencies": [],
           "subtasks": [],
           "userStoryId": "US001",
           "createdAt": "2025-12-10T15:58:05.862Z",
-          "updatedAt": "2025-12-10T15:58:05.862Z"
+          "updatedAt": "2025-12-10T16:42:33.813Z",
+          "completedAt": "2025-12-10T16:42:33.813Z"
         },
         {
           "id": "2.2",
           "title": "Set up foundation for define zod schemas for image fetch request/response",
           "description": "Implementation step 2 for: Define Zod schemas for image fetch request/response",
-          "status": "pending",
+          "status": "done",
           "priority": "high",
           "dependencies": ["2.1"],
           "subtasks": [],
           "userStoryId": "US001",
           "createdAt": "2025-12-10T15:58:05.862Z",
-          "updatedAt": "2025-12-10T15:58:05.862Z"
+          "updatedAt": "2025-12-10T16:42:33.813Z",
+          "completedAt": "2025-12-10T16:42:33.813Z"
         },
         {
           "id": "2.3",
           "title": "Implement core logic for define zod schemas for image fetch request/response",
           "description": "Implementation step 3 for: Define Zod schemas for image fetch request/response",
-          "status": "pending",
+          "status": "done",
           "priority": "high",
           "dependencies": ["2.2"],
           "subtasks": [],
           "userStoryId": "US001",
           "createdAt": "2025-12-10T15:58:05.862Z",
-          "updatedAt": "2025-12-10T15:58:05.862Z"
+          "updatedAt": "2025-12-10T16:42:33.813Z",
+          "completedAt": "2025-12-10T16:42:33.813Z"
         }
       ],
       "userStoryId": "US001",
       "createdAt": "2025-12-10T15:55:44.003Z",
-      "updatedAt": "2025-12-10T15:58:05.862Z",
+      "updatedAt": "2025-12-10T16:42:33.813Z",
       "complexity": 5,
-      "recommendedSubtasks": 3
+      "recommendedSubtasks": 3,
+      "completedAt": "2025-12-10T16:42:33.813Z"
     },
     {
       "id": "3",
       "title": "Implement image format validation",
       "description": "Create validation logic for allowed image formats based on URL extension and content-type",
-      "status": "pending",
+      "status": "done",
       "priority": "high",
       "dependencies": ["1"],
       "details": "Key insight: Many CDNs (like Adobe Scene7/Macy's) use arbitrary URL extensions but serve actual images in standard formats based on content negotiation. Example: .tif URL returns image/jpeg.\n\nApproach: Do NOT block based on URL extension. Only validate response content-type.\n\nConfig: ALLOWED_CONTENT_TYPES = ['image/jpeg', 'image/png', 'image/webp']. BLOCKED_CONTENT_TYPES = ['image/gif', 'image/svg+xml', 'image/bmp', 'image/x-icon'].\n\nPre-fetch: Only validate URL is well-formed (can be parsed).\nPost-fetch: Validate content-type header against allowed list.\n\nExport isAllowedContentType(contentType: string) function. Log URL extension vs actual content-type for analytics on CDN behavior.",
@@ -82,15 +87,16 @@
       "subtasks": [],
       "userStoryId": "US004",
       "createdAt": "2025-12-10T15:55:44.373Z",
-      "updatedAt": "2025-12-10T15:58:00.370Z",
+      "updatedAt": "2025-12-10T16:42:34.196Z",
       "complexity": 4,
-      "recommendedSubtasks": 3
+      "recommendedSubtasks": 3,
+      "completedAt": "2025-12-10T16:42:34.196Z"
     },
     {
       "id": "4",
       "title": "Implement image fetcher core logic",
       "description": "Create the main fetchImage() function that fetches images with appropriate headers and handles responses",
-      "status": "pending",
+      "status": "done",
       "priority": "high",
       "dependencies": ["2", "3"],
       "details": "Use native fetch or undici. Set headers: User-Agent (Chrome 120+), Referer (productUrl), Accept (image/webp,image/png,image/jpeg). Configure timeout (default 10s). Stream response to avoid memory buffering. Return response with headers, status, and readable stream.",
@@ -100,50 +106,54 @@
           "id": "4.1",
           "title": "Research and design for implement image fetcher core logic",
           "description": "Implementation step 1 for: Implement image fetcher core logic",
-          "status": "pending",
+          "status": "done",
           "priority": "high",
           "dependencies": [],
           "subtasks": [],
           "userStoryId": "US007",
           "createdAt": "2025-12-10T15:58:05.903Z",
-          "updatedAt": "2025-12-10T15:58:05.903Z"
+          "updatedAt": "2025-12-10T16:42:34.689Z",
+          "completedAt": "2025-12-10T16:42:34.689Z"
         },
         {
           "id": "4.2",
           "title": "Set up foundation for implement image fetcher core logic",
           "description": "Implementation step 2 for: Implement image fetcher core logic",
-          "status": "pending",
+          "status": "done",
           "priority": "high",
           "dependencies": ["4.1"],
           "subtasks": [],
           "userStoryId": "US007",
           "createdAt": "2025-12-10T15:58:05.903Z",
-          "updatedAt": "2025-12-10T15:58:05.903Z"
+          "updatedAt": "2025-12-10T16:42:34.689Z",
+          "completedAt": "2025-12-10T16:42:34.689Z"
         },
         {
           "id": "4.3",
           "title": "Implement core logic for implement image fetcher core logic",
           "description": "Implementation step 3 for: Implement image fetcher core logic",
-          "status": "pending",
+          "status": "done",
           "priority": "high",
           "dependencies": ["4.2"],
           "subtasks": [],
           "userStoryId": "US007",
           "createdAt": "2025-12-10T15:58:05.903Z",
-          "updatedAt": "2025-12-10T15:58:05.903Z"
+          "updatedAt": "2025-12-10T16:42:34.689Z",
+          "completedAt": "2025-12-10T16:42:34.689Z"
         }
       ],
       "userStoryId": "US007",
       "createdAt": "2025-12-10T15:56:15.531Z",
-      "updatedAt": "2025-12-10T15:58:05.903Z",
+      "updatedAt": "2025-12-10T16:42:34.689Z",
       "complexity": 5,
-      "recommendedSubtasks": 3
+      "recommendedSubtasks": 3,
+      "completedAt": "2025-12-10T16:42:34.689Z"
     },
     {
       "id": "5",
       "title": "Implement error categorization logic",
       "description": "Create error classification system to distinguish permanent vs retriable failures",
-      "status": "pending",
+      "status": "done",
       "priority": "high",
       "dependencies": ["2"],
       "details": "Permanent failures (isPermanent: true): 400, 401, 403, 404, 410, invalid content-type, blocked extension. Retriable failures (isPermanent: false): 429 (parse Retry-After header), 500, 502, 503, 504, network timeout, ECONNRESET. Create categorizeError(statusCode, error) function. Include domain extraction from URL for logging.",
@@ -151,15 +161,16 @@
       "subtasks": [],
       "userStoryId": "US002",
       "createdAt": "2025-12-10T15:56:15.908Z",
-      "updatedAt": "2025-12-10T15:58:00.370Z",
+      "updatedAt": "2025-12-10T16:42:35.112Z",
       "complexity": 4,
-      "recommendedSubtasks": 3
+      "recommendedSubtasks": 3,
+      "completedAt": "2025-12-10T16:42:35.112Z"
     },
     {
       "id": "6",
       "title": "Implement image size validation",
       "description": "Create validation for response content-length and actual downloaded size",
-      "status": "pending",
+      "status": "done",
       "priority": "medium",
       "dependencies": [],
       "details": "Config: MIN_IMAGE_SIZE = 1024 (1KB, reject placeholder pixels), MAX_IMAGE_SIZE = 10485760 (10MB). Check Content-Length header before download if available. Abort download if stream exceeds MAX_IMAGE_SIZE. Return permanent failure for size violations with actual size in error.",
@@ -167,15 +178,16 @@
       "subtasks": [],
       "userStoryId": "US005",
       "createdAt": "2025-12-10T15:56:16.302Z",
-      "updatedAt": "2025-12-10T15:58:00.370Z",
+      "updatedAt": "2025-12-10T16:42:35.495Z",
       "complexity": 2,
-      "recommendedSubtasks": 2
+      "recommendedSubtasks": 2,
+      "completedAt": "2025-12-10T16:42:35.495Z"
     },
     {
       "id": "7",
       "title": "Implement storage path generation",
       "description": "Create deterministic storage path generation based on storeId and image URL hash",
-      "status": "pending",
+      "status": "done",
       "priority": "medium",
       "dependencies": [],
       "details": "Path format: {storeId}/{hash}.{ext}. Hash: SHA-256 of imageUrl, truncated to 16 chars. Extension: derived from validated content-type (jpeg->jpg, png->png, webp->webp). Export generateStoragePath(storeId, imageUrl, contentType) function. Ensure same input always produces same output.",
@@ -183,15 +195,16 @@
       "subtasks": [],
       "userStoryId": "US006",
       "createdAt": "2025-12-10T15:56:32.897Z",
-      "updatedAt": "2025-12-10T15:58:00.370Z",
+      "updatedAt": "2025-12-10T16:42:35.883Z",
       "complexity": 2,
-      "recommendedSubtasks": 2
+      "recommendedSubtasks": 2,
+      "completedAt": "2025-12-10T16:42:35.883Z"
     },
     {
       "id": "8",
       "title": "Implement local file storage backend",
       "description": "Create storage backend for writing images to local filesystem (phase 1)",
-      "status": "pending",
+      "status": "done",
       "priority": "medium",
       "dependencies": [],
       "details": "Interface: StorageBackend { write(path: string, stream: ReadableStream): Promise<StorageResult> }. LocalStorageBackend: writes to configurable base directory (default: ./fetched-images for dev, /tmp for Lambda). Create directories recursively. Return { storagePath, sizeBytes }. Add to .gitignore.",
@@ -199,15 +212,16 @@
       "subtasks": [],
       "userStoryId": "US008",
       "createdAt": "2025-12-10T15:56:34.656Z",
-      "updatedAt": "2025-12-10T15:58:00.370Z",
+      "updatedAt": "2025-12-10T16:42:36.269Z",
       "complexity": 2,
-      "recommendedSubtasks": 2
+      "recommendedSubtasks": 2,
+      "completedAt": "2025-12-10T16:42:36.269Z"
     },
     {
       "id": "9",
       "title": "Implement structured logging for observability",
       "description": "Add structured JSON logging for all fetch attempts with per-merchant metrics",
-      "status": "pending",
+      "status": "done",
       "priority": "high",
       "dependencies": ["1"],
       "details": "Use @rr/shared logger (pino). Log fields: storeId, domain (extracted from imageUrl), statusCode, durationMs, sizeBytes, errorCategory, isPermanent. Log levels: info for success, warn for retriable failures, error for permanent failures. Namespace: product-image-fetcher.",
@@ -215,15 +229,16 @@
       "subtasks": [],
       "userStoryId": "US003",
       "createdAt": "2025-12-10T15:56:36.176Z",
-      "updatedAt": "2025-12-10T15:58:00.370Z",
+      "updatedAt": "2025-12-10T16:42:36.653Z",
       "complexity": 4,
-      "recommendedSubtasks": 3
+      "recommendedSubtasks": 3,
+      "completedAt": "2025-12-10T16:42:36.653Z"
     },
     {
       "id": "10",
       "title": "Create main fetchAndStoreImage orchestrator",
       "description": "Create the main exported function that orchestrates validation, fetching, and storage",
-      "status": "pending",
+      "status": "done",
       "priority": "high",
       "dependencies": ["4", "5", "6", "7", "8", "9"],
       "details": "Export fetchAndStoreImage(request: ImageFetchRequest, options?: FetchOptions): Promise<ImageFetchResponse>. Flow: 1) Validate imageUrl extension, 2) Fetch with headers, 3) Validate content-type and size, 4) Generate storage path, 5) Write to storage, 6) Return result. Handle errors at each stage with appropriate categorization.",
@@ -233,56 +248,61 @@
           "id": "10.1",
           "title": "Research and design for create main fetchandstoreimage orchestrator",
           "description": "Implementation step 1 for: Create main fetchAndStoreImage orchestrator",
-          "status": "pending",
+          "status": "done",
           "priority": "high",
           "dependencies": [],
           "subtasks": [],
           "userStoryId": "US001",
           "createdAt": "2025-12-10T15:58:05.953Z",
-          "updatedAt": "2025-12-10T15:58:05.953Z"
+          "updatedAt": "2025-12-10T16:42:37.039Z",
+          "completedAt": "2025-12-10T16:42:37.039Z"
         },
         {
           "id": "10.2",
           "title": "Set up foundation for create main fetchandstoreimage orchestrator",
           "description": "Implementation step 2 for: Create main fetchAndStoreImage orchestrator",
-          "status": "pending",
+          "status": "done",
           "priority": "high",
           "dependencies": ["10.1"],
           "subtasks": [],
           "userStoryId": "US001",
           "createdAt": "2025-12-10T15:58:05.953Z",
-          "updatedAt": "2025-12-10T15:58:05.953Z"
+          "updatedAt": "2025-12-10T16:42:37.039Z",
+          "completedAt": "2025-12-10T16:42:37.039Z"
         },
         {
           "id": "10.3",
           "title": "Implement core logic for create main fetchandstoreimage orchestrator",
           "description": "Implementation step 3 for: Create main fetchAndStoreImage orchestrator",
-          "status": "pending",
+          "status": "done",
           "priority": "high",
           "dependencies": ["10.2"],
           "subtasks": [],
           "userStoryId": "US001",
           "createdAt": "2025-12-10T15:58:05.953Z",
-          "updatedAt": "2025-12-10T15:58:05.953Z"
+          "updatedAt": "2025-12-10T16:42:37.039Z",
+          "completedAt": "2025-12-10T16:42:37.039Z"
         },
         {
           "id": "10.4",
           "title": "Add error handling for create main fetchandstoreimage orchestrator",
           "description": "Implementation step 4 for: Create main fetchAndStoreImage orchestrator",
-          "status": "pending",
+          "status": "done",
           "priority": "high",
           "dependencies": ["10.3"],
           "subtasks": [],
           "userStoryId": "US001",
           "createdAt": "2025-12-10T15:58:05.953Z",
-          "updatedAt": "2025-12-10T15:58:05.953Z"
+          "updatedAt": "2025-12-10T16:42:37.039Z",
+          "completedAt": "2025-12-10T16:42:37.039Z"
         }
       ],
       "userStoryId": "US001",
       "createdAt": "2025-12-10T15:56:54.493Z",
-      "updatedAt": "2025-12-10T15:58:05.953Z",
+      "updatedAt": "2025-12-10T16:42:37.039Z",
       "complexity": 6,
-      "recommendedSubtasks": 4
+      "recommendedSubtasks": 4,
+      "completedAt": "2025-12-10T16:42:37.039Z"
     },
     {
       "id": "11",
@@ -368,9 +388,9 @@
   "metadata": {
     "version": "1.0",
     "created": "2025-12-10T15:55:43.643Z",
-    "lastUpdated": "2025-12-10T15:58:05.953Z",
+    "lastUpdated": "2025-12-10T16:42:37.039Z",
     "totalTasks": 25,
-    "completedTasks": 0,
+    "completedTasks": 20,
     "blockedTasks": 0
   }
 }
