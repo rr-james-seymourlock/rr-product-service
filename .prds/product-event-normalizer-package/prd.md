@@ -49,7 +49,7 @@ A lightweight package that accepts raw product view event JSON and outputs an ar
 
 ### Priority P0
 
-#### US001: Normalize Raw Product View ⏳ [M]
+#### US001: Normalize Raw Product View ✅ [M]
 
 **User Story:** As a data pipeline engineer, I want to normalize raw product view events into a consistent CartProduct format so that I can process product views from both Toolbar and App sources with a unified schema
 
@@ -62,7 +62,7 @@ A lightweight package that accepts raw product view event JSON and outputs an ar
 - Empty/invalid events return empty frozen array
 - All output arrays and objects are frozen (immutable)
 
-#### US002: Have Product Ids Consolidated ⏳ [L]
+#### US002: Have Product Ids Consolidated ✅ [L]
 
 **User Story:** As a data pipeline engineer, I want to have product IDs consolidated from multiple schema.org sources so that I get comprehensive product identification without needing to know the source field
 
@@ -77,7 +77,7 @@ A lightweight package that accepts raw product view event JSON and outputs an ar
 - Deduplicate IDs across all sources
 - Fallback to URL-based extraction via @rr/product-id-extractor when schema sources are empty
 
-#### US003: Normalize Both Toolbar And ⏳ [M]
+#### US003: Normalize Both Toolbar And ✅ [M]
 
 **User Story:** As a data pipeline engineer, I want to normalize both Toolbar and App field naming conventions so that I can process events from either source without special handling
 
@@ -90,9 +90,26 @@ A lightweight package that accepts raw product view event JSON and outputs an ar
 - Support both string and number store_id values
 - Support both naming conventions in the same codebase
 
+#### US007: Have All Product Identifiers ✅ [XL]
+
+**User Story:** As a data pipeline engineer, I want to have all product identifiers grouped in a nested 'ids' object with separate fields for each identifier type so that I get clean separation between product data and identifier data, with productIds reserved for schema.org productID values only, and separate fields for skus, gtins, mpns, and extractedIds
+
+**Business Value:** I get clean separation between product data and identifier data, with productIds reserved for schema.org productID values only, and separate fields for skus, gtins, mpns, and extractedIds
+
+**Acceptance Criteria:**
+- Output NormalizedProduct has 'ids' object containing all identifier fields
+- ids.productIds contains ONLY schema.org productID/productid_list values (not SKUs, GTINs, MPNs)
+- ids.extractedIds contains IDs extracted from product URLs
+- ids.skus contains all SKU values from sku, sku_list, offers, urlToSku, priceToSku
+- ids.gtins contains GTIN values from gtin, gtin_list
+- ids.mpns contains MPN values from mpn, mpn_list
+- Both singular and _list formats are combined and deduplicated
+- All identifier arrays are readonly and frozen
+- Output structure aligns with @rr/cart-event-normalizer output
+
 ### Priority P1
 
-#### US004: Handle Multi-variant Products (single ⏳ [L]
+#### US004: Handle Multi-variant Products (single ✅ [L]
 
 **User Story:** As a data pipeline engineer, I want to handle multi-variant products (single page with multiple SKUs/prices) so that I can process product pages that show multiple variants like size/color options
 
@@ -106,7 +123,7 @@ A lightweight package that accepts raw product view event JSON and outputs an ar
 - Return single CartProduct with all productIds consolidated when variants share same page
 - Handle HP-style pages with multiple distinct products (return multiple CartProducts)
 
-#### US006: Normalize Product View Events ⏳ [L]
+#### US006: Normalize Product View Events ✅ [L]
 
 **User Story:** As a API consumer, I want to normalize product view events via REST endpoint so that I can integrate product view normalization into my application via HTTP
 
@@ -122,7 +139,7 @@ A lightweight package that accepts raw product view event JSON and outputs an ar
 
 ### Priority P2
 
-#### US005: Extract Rich Metadata When ⏳ [L]
+#### US005: Extract Rich Metadata When ✅ [L]
 
 **User Story:** As a data pipeline engineer, I want to extract rich metadata when available so that I have additional product context for analytics and ML models
 
@@ -139,7 +156,7 @@ A lightweight package that accepts raw product view event JSON and outputs an ar
 
 ## Progress
 
-**Overall:** 0% (0/6 stories)
+**Overall:** 100% (7/7 stories)
 
 ---
 

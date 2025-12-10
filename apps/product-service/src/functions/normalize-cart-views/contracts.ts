@@ -72,7 +72,10 @@ const successResultSchema = z
           storeId: '8333',
           price: 4900,
           quantity: 1,
-          productIds: ['12345'],
+          ids: {
+            productIds: [],
+            extractedIds: ['12345'],
+          },
         },
       ],
     }),
@@ -133,7 +136,10 @@ export const normalizeCartViewsResponseSchema = z
               storeId: '8333',
               price: 4900,
               quantity: 1,
-              productIds: ['12345'],
+              ids: {
+                productIds: [],
+                extractedIds: ['12345'],
+              },
             },
           ],
           productCount: 1,

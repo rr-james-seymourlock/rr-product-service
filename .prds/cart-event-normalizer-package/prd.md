@@ -48,7 +48,7 @@ A lightweight package that accepts raw cart event JSON and outputs an array of n
 
 ### Priority P0
 
-#### US001: Normalize Raw Cart Event ⏳ [M]
+#### US001: Normalize Raw Cart Event ✅ [M]
 
 **User Story:** As a data engineer, I want to normalize raw cart event JSON into a clean product array so that I can ingest consistent, well-structured product data into Snowflake without writing custom parsing logic
 
@@ -61,7 +61,7 @@ A lightweight package that accepts raw cart event JSON and outputs an array of n
 - Empty product_list returns empty array (not error)
 - Invalid/malformed events throw descriptive errors
 
-#### US002: Have Product Ids Automatically ⏳ [M]
+#### US002: Have Product Ids Automatically ✅ [M]
 
 **User Story:** As a data engineer, I want to have product IDs automatically extracted from product URLs so that I get enriched product data with identifiers ready for catalog matching without additional processing
 
@@ -74,7 +74,7 @@ A lightweight package that accepts raw cart event JSON and outputs an array of n
 - Store ID from parent event used for store-specific pattern matching
 - Extraction failures don't break normalization (graceful degradation)
 
-#### US003: Have The Store_id From ⏳ [M]
+#### US003: Have The Store_id From ✅ [M]
 
 **User Story:** As a data engineer, I want to have the store_id from the cart event included on each product so that I can filter and group products by store without joining back to the parent event
 
@@ -86,7 +86,7 @@ A lightweight package that accepts raw cart event JSON and outputs an array of n
 - Works with numeric store_id values
 - Handles missing store_id gracefully (use undefined or default)
 
-#### US007: Handle Products Without Urls ⏳ [M]
+#### US007: Handle Products Without Urls ✅ [M]
 
 **User Story:** As a data engineer, I want to handle products without URLs gracefully so that I don't lose product data when URLs are missing, and I can still track cart activity
 
@@ -99,7 +99,7 @@ A lightweight package that accepts raw cart event JSON and outputs an array of n
 - Products with only price are valid (minimal product)
 - Empty product objects are filtered out
 
-#### US008: Handle Store_id As Both ⏳ [M]
+#### US008: Handle Store_id As Both ✅ [M]
 
 **User Story:** As a data engineer, I want to handle store_id as both string and number types so that I can process events from both App (string IDs) and Toolbar (numeric IDs) sources without type errors
 
@@ -111,9 +111,36 @@ A lightweight package that accepts raw cart event JSON and outputs an array of n
 - Output storeId is always number type
 - Invalid store_id values handled gracefully
 
+#### US011: Handle Store_id As Both ✅ [L]
+
+**User Story:** As a data engineer, I want to handle store_id as both string and number input types with consistent string output so that I can process events from both App (string IDs) and Toolbar (numeric IDs) sources, and always get a consistent string output that supports non-numeric store IDs like 'uk-87262'
+
+**Business Value:** I can process events from both App (string IDs) and Toolbar (numeric IDs) sources, and always get a consistent string output that supports non-numeric store IDs like 'uk-87262'
+
+**Acceptance Criteria:**
+- Numeric store_id input (e.g., 8333) coerced to string '8333'
+- String store_id input (e.g., '8333') preserved as string
+- Non-numeric string store_id (e.g., 'uk-87262') preserved as-is
+- Output storeId is always string type (or undefined)
+- Empty/whitespace store_id returns undefined
+- Shared coerceStoreId utility in @rr/shared/utils
+
+#### US012: Have All Product Identifiers ✅ [M]
+
+**User Story:** As a data pipeline engineer, I want to have all product identifiers grouped in a nested 'ids' object so that I get a clean separation between product data (title, price, etc.) and identifier data (productIds, extractedIds), making the output schema more organized and aligned with the product-event-normalizer
+
+**Business Value:** I get a clean separation between product data (title, price, etc.) and identifier data (productIds, extractedIds), making the output schema more organized and aligned with the product-event-normalizer
+
+**Acceptance Criteria:**
+- Output CartProduct has 'ids' object containing productIds and extractedIds
+- ids.productIds is always an empty array (cart events have no schema.org data)
+- ids.extractedIds contains IDs extracted from product URLs
+- Both arrays are readonly and frozen
+- Output structure aligns with @rr/product-event-normalizer output
+
 ### Priority P1
 
-#### US004: Have Consistent Field Naming ⏳ [L]
+#### US004: Have Consistent Field Naming ✅ [L]
 
 **User Story:** As a analytics engineer, I want to have consistent field naming across all normalized products so that I can build dashboards and queries without handling field name variations
 
@@ -127,7 +154,7 @@ A lightweight package that accepts raw cart event JSON and outputs an array of n
 - store_id -> storeId (camelCase)
 - All output fields use camelCase convention
 
-#### US005: Validate Input Events Against ⏳ [M]
+#### US005: Validate Input Events Against ✅ [M]
 
 **User Story:** As a data engineer, I want to validate input events against a Zod schema so that I get clear error messages when upstream data format changes unexpectedly
 
@@ -140,7 +167,7 @@ A lightweight package that accepts raw cart event JSON and outputs an array of n
 - Optional: dev-mode validation, prod skips for performance
 - Schemas exported for consumers to use
 
-#### US006: Have Normalized Output Be ⏳ [M]
+#### US006: Have Normalized Output Be ✅ [M]
 
 **User Story:** As a backend developer, I want to have normalized output be immutable so that I can safely cache and share results without defensive copying
 
@@ -152,7 +179,7 @@ A lightweight package that accepts raw cart event JSON and outputs an array of n
 - Nested arrays (productIds) are frozen
 - TypeScript types use readonly modifiers
 
-#### US009: Include Quantity And Line_total ⏳ [M]
+#### US009: Include Quantity And Line_total ✅ [M]
 
 **User Story:** As a data engineer, I want to include quantity and line_total in the normalized output so that I can calculate accurate cart analytics including total items and revenue
 
@@ -164,10 +191,25 @@ A lightweight package that accepts raw cart event JSON and outputs an array of n
 - Both fields are optional (default to undefined if missing)
 - quantity of 0 is valid (e.g., wishlists)
 
+#### US010: Call A Rest Api ✅ [L]
+
+**User Story:** As a backend developer, I want to call a REST API endpoint to normalize cart events so that I can integrate cart normalization into any service without importing the package directly, enabling language-agnostic access and centralized processing
+
+**Business Value:** I can integrate cart normalization into any service without importing the package directly, enabling language-agnostic access and centralized processing
+
+**Acceptance Criteria:**
+- POST /cart-events/normalize endpoint accepts RawCartEvent JSON body
+- Returns normalized CartProduct[] array with extracted product IDs
+- Follows existing product-service patterns (Middy middleware, Zod validation, error handling)
+- Supports batch processing of multiple cart events in single request
+- Returns per-event success/failure results with summary statistics
+- OpenAPI documentation auto-generated from Zod schemas
+- Comprehensive test suite following existing patterns
+
 
 ## Progress
 
-**Overall:** 0% (0/9 stories)
+**Overall:** 100% (12/12 stories)
 
 ---
 

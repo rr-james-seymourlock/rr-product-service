@@ -71,12 +71,20 @@ function normalizeProduct(
   storeId: string | undefined,
   extractIds: boolean,
 ): CartProduct {
-  const productIds = extractIds
+  // Cart events don't have schema.org data, so productIds is always empty
+  // URL-extracted IDs go in extractedIds
+  const extractedIds = extractIds
     ? extractProductIdsFromUrl(product.url, storeId)
     : EMPTY_FROZEN_STRING_ARRAY;
 
+  // Build the ids object - cart events only have extractedIds (no schema.org data)
+  const ids: CartProduct['ids'] = Object.freeze({
+    productIds: EMPTY_FROZEN_STRING_ARRAY,
+    extractedIds,
+  });
+
   const normalized: CartProduct = {
-    productIds,
+    ids,
   };
 
   // Only include fields that have values
@@ -113,7 +121,7 @@ function normalizeProduct(
 
 /**
  * Generate a deduplication key for a product
- * Uses URL if available, otherwise falls back to productIds joined
+ * Uses URL if available, otherwise falls back to extractedIds joined
  */
 function getDeduplicationKey(product: CartProduct): string | undefined {
   // Prefer URL as the deduplication key
@@ -121,18 +129,18 @@ function getDeduplicationKey(product: CartProduct): string | undefined {
     return product.url;
   }
 
-  // Fall back to productIds if no URL
-  if (product.productIds.length > 0) {
-    return product.productIds.join('|');
+  // Fall back to extractedIds if no URL
+  if (product.ids.extractedIds.length > 0) {
+    return product.ids.extractedIds.join('|');
   }
 
-  // No deduplication possible without URL or productIds
+  // No deduplication possible without URL or extractedIds
   return undefined;
 }
 
 /**
  * Deduplicate products, keeping the first occurrence
- * Products without a deduplication key (no URL, no productIds) are always kept
+ * Products without a deduplication key (no URL, no extractedIds) are always kept
  */
 function deduplicateProducts(products: CartProduct[]): CartProduct[] {
   const seen = new Set<string>();
@@ -164,7 +172,7 @@ function deduplicateProducts(products: CartProduct[]): CartProduct[] {
  * @example
  * ```ts
  * const products = normalizeCartEvent(rawEvent);
- * // [{ title: "Product", url: "...", storeId: "8333", price: 4200, productIds: ["123"] }]
+ * // [{ title: "Product", url: "...", storeId: "8333", price: 4200, productIds: [], extractedIds: ["123"] }]
  * ```
  */
 export function normalizeCartEvent(

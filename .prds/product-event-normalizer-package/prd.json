@@ -51,10 +51,12 @@
         "Empty/invalid events return empty frozen array",
         "All output arrays and objects are frozen (immutable)"
       ],
-      "status": "not_started",
+      "status": "completed",
       "priority": "P0",
       "estimatedComplexity": "M",
-      "dependencies": []
+      "dependencies": [],
+      "notes": "Implemented normalizeProductViewEvent() that returns readonly NormalizedProduct[]. Output includes nested ids object with productIds, extractedIds, skus, gtins, mpns. Store_id coerced to string.",
+      "completedAt": "2025-12-10"
     },
     {
       "id": "US002",
@@ -70,10 +72,12 @@
         "Deduplicate IDs across all sources",
         "Fallback to URL-based extraction via @rr/product-id-extractor when schema sources are empty"
       ],
-      "status": "not_started",
+      "status": "completed",
       "priority": "P0",
       "estimatedComplexity": "L",
-      "dependencies": []
+      "dependencies": [],
+      "notes": "Implemented ID consolidation from all schema.org sources. productIds contains ONLY productID/productid_list values. SKUs, GTINs, MPNs go in separate fields within ids object. URL extraction via @rr/product-id-extractor populates ids.extractedIds.",
+      "completedAt": "2025-12-10"
     },
     {
       "id": "US003",
@@ -87,10 +91,12 @@
         "Support both string and number store_id values",
         "Support both naming conventions in the same codebase"
       ],
-      "status": "not_started",
+      "status": "completed",
       "priority": "P0",
       "estimatedComplexity": "M",
-      "dependencies": []
+      "dependencies": [],
+      "notes": "Implemented dual format support for both Toolbar (sku, gtin, mpn, productID, offers) and App (_list suffix variants). Both formats are combined when present.",
+      "completedAt": "2025-12-10"
     },
     {
       "id": "US004",
@@ -105,10 +111,12 @@
         "Return single CartProduct with all productIds consolidated when variants share same page",
         "Handle HP-style pages with multiple distinct products (return multiple CartProducts)"
       ],
-      "status": "not_started",
+      "status": "completed",
       "priority": "P1",
       "estimatedComplexity": "L",
-      "dependencies": []
+      "dependencies": [],
+      "notes": "Implemented variant handling with variants[] array (ProductVariant objects), variantCount, hasVariants fields. Uses urlToSku and priceToSku maps for correlation. All variant SKUs consolidated in ids.skus. See US008 for variant object structure.",
+      "completedAt": "2025-12-10"
     },
     {
       "id": "US005",
@@ -123,10 +131,12 @@
         "Extract color from color or color_list fields",
         "All metadata fields are optional in output"
       ],
-      "status": "not_started",
+      "status": "completed",
       "priority": "P2",
       "estimatedComplexity": "L",
-      "dependencies": []
+      "dependencies": [],
+      "notes": "Implemented rich metadata extraction: brand, rating, description, category (with breadcrumbs fallback), color. All fields optional. Controlled by includeMetadata option.",
+      "completedAt": "2025-12-10"
     },
     {
       "id": "US006",
@@ -141,10 +151,57 @@
         "400 response for validation errors with detailed messages",
         "500 response for internal errors"
       ],
-      "status": "not_started",
+      "status": "completed",
       "priority": "P1",
       "estimatedComplexity": "L",
-      "dependencies": []
+      "dependencies": [],
+      "notes": "Implemented POST /product-views/normalize endpoint. Accepts 1-100 events, returns results with success/failure per event, summary stats. OpenAPI documented.",
+      "completedAt": "2025-12-10"
+    },
+    {
+      "id": "US007",
+      "title": "Have All Product Identifiers",
+      "userStory": "As a data pipeline engineer, I want to have all product identifiers grouped in a nested 'ids' object with separate fields for each identifier type so that I get clean separation between product data and identifier data, with productIds reserved for schema.org productID values only, and separate fields for skus, gtins, mpns, and extractedIds",
+      "businessValue": "I get clean separation between product data and identifier data, with productIds reserved for schema.org productID values only, and separate fields for skus, gtins, mpns, and extractedIds",
+      "acceptanceCriteria": [
+        "Output NormalizedProduct has 'ids' object containing all identifier fields",
+        "ids.productIds contains ONLY schema.org productID/productid_list values (not SKUs, GTINs, MPNs)",
+        "ids.extractedIds contains IDs extracted from product URLs",
+        "ids.skus contains all SKU values from sku, sku_list, offers, urlToSku, priceToSku",
+        "ids.gtins contains GTIN values from gtin, gtin_list",
+        "ids.mpns contains MPN values from mpn, mpn_list",
+        "Both singular and _list formats are combined and deduplicated",
+        "All identifier arrays are readonly and frozen",
+        "Output structure aligns with @rr/cart-event-normalizer output"
+      ],
+      "status": "completed",
+      "priority": "P0",
+      "estimatedComplexity": "XL",
+      "dependencies": [],
+      "notes": "Implemented nested ids object structure with productIds (schema.org productID only), extractedIds (URL-based), skus, gtins, mpns. Supports dual format (singular + _list). All arrays frozen and deduplicated.",
+      "completedAt": "2025-12-10"
+    },
+    {
+      "id": "US008",
+      "title": "Have Variant-specific Data As",
+      "userStory": "As a data pipeline engineer, I want to have variant-specific data as objects with SKU, URL, price, color, and extractedIds so that I can join cart items (which have specific SKU/URL) to the correct product variant for cart enrichment",
+      "businessValue": "I can join cart items (which have specific SKU/URL) to the correct product variant for cart enrichment",
+      "acceptanceCriteria": [
+        "Output NormalizedProduct has 'variants' array of ProductVariant objects",
+        "Each variant has required 'sku' field and optional url, imageUrl, price, currency, color, extractedIds",
+        "Variants are built with priority: urlToSku > offers > offer_list > sku array",
+        "Variant extractedIds are populated from per-variant URL extraction",
+        "variantCount reflects number of variant objects",
+        "hasVariants is true when variantCount > 1",
+        "Legacy price/currency/color fields populated from first variant for backwards compatibility",
+        "Variants are deduplicated by SKU"
+      ],
+      "status": "completed",
+      "priority": "P0",
+      "estimatedComplexity": "L",
+      "dependencies": [],
+      "notes": "Implemented variant objects array with SKU, URL, imageUrl, price, currency, color, extractedIds. Priority system: urlToSku > offers > offer_list > sku array. Variants deduplicated by SKU. Legacy fields populated from first variant.",
+      "completedAt": "2025-12-10"
     }
   ],
   "technicalRequirements": {
@@ -164,13 +221,13 @@
   "metadata": {
     "version": "1.0",
     "created": "2025-12-09",
-    "lastUpdated": "2025-12-09",
+    "lastUpdated": "2025-12-10",
     "approver": ""
   },
   "progress": {
-    "overall": 0,
-    "completed": 0,
-    "total": 6,
+    "overall": 100,
+    "completed": 8,
+    "total": 8,
     "blocked": 0
   }
 }

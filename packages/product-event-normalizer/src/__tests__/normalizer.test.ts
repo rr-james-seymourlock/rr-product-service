@@ -59,9 +59,11 @@ describe('normalizeProductViewEvent', () => {
         color: 'Dark Wash',
       });
       // Should consolidate all 9 SKUs
-      expect(result[0]?.skus).toHaveLength(9);
-      expect(result[0]?.productIds).toContain('874532012');
-      expect(result[0]?.productIds).toContain('874532002'); // productID
+      expect(result[0]?.ids.skus).toHaveLength(9);
+      // productIds only contains productID values (not SKUs)
+      expect(result[0]?.ids.productIds).toContain('874532002'); // productID
+      // SKUs are in the skus field
+      expect(result[0]?.ids.skus).toContain('874532012');
     });
 
     it('should normalize HP event with multiple distinct products', () => {
@@ -74,9 +76,9 @@ describe('normalizeProductViewEvent', () => {
         brand: 'HP',
       });
       // Should have all SKUs, GTINs, and MPNs
-      expect(result[0]?.skus).toHaveLength(8);
-      expect(result[0]?.gtins).toHaveLength(8);
-      expect(result[0]?.mpns).toHaveLength(8);
+      expect(result[0]?.ids.skus).toHaveLength(8);
+      expect(result[0]?.ids.gtins).toHaveLength(8);
+      expect(result[0]?.ids.mpns).toHaveLength(8);
     });
 
     it('should handle Kate Spade Outlet sparse event', () => {
@@ -104,9 +106,9 @@ describe('normalizeProductViewEvent', () => {
         color: 'Black',
         rating: 4.5,
       });
-      expect(result[0]?.skus).toContain('123456789');
-      expect(result[0]?.gtins).toContain('0887276123456');
-      expect(result[0]?.mpns).toContain('UN65TU7000');
+      expect(result[0]?.ids.skus).toContain('123456789');
+      expect(result[0]?.ids.gtins).toContain('0887276123456');
+      expect(result[0]?.ids.mpns).toContain('UN65TU7000');
       expect(result[0]?.category).toBe('Electronics > TVs > Samsung TVs');
     });
 
@@ -122,13 +124,13 @@ describe('normalizeProductViewEvent', () => {
         rating: 4.7,
       });
       // ASIN should be in both sku and productID
-      expect(result[0]?.productIds).toContain('B0D1XD1ZV3');
-      expect(result[0]?.skus).toContain('B0D1XD1ZV3');
+      expect(result[0]?.ids.productIds).toContain('B0D1XD1ZV3');
+      expect(result[0]?.ids.skus).toContain('B0D1XD1ZV3');
     });
   });
 
   describe('product ID consolidation', () => {
-    it('should consolidate IDs from sku array', () => {
+    it('should put SKUs in skus field, not productIds', () => {
       const event: RawProductViewEvent = {
         store_id: 1234,
         name: 'Test',
@@ -137,13 +139,13 @@ describe('normalizeProductViewEvent', () => {
 
       const result = normalizeProductViewEvent(event);
 
-      expect(result[0]?.productIds).toContain('SKU1');
-      expect(result[0]?.productIds).toContain('SKU2');
-      expect(result[0]?.productIds).toContain('SKU3');
-      expect(result[0]?.skus).toEqual(['SKU1', 'SKU2', 'SKU3']);
+      // SKUs should NOT be in productIds (only productID values go there)
+      expect(result[0]?.ids.productIds).toEqual([]);
+      // SKUs go in the skus field
+      expect(result[0]?.ids.skus).toEqual(['SKU1', 'SKU2', 'SKU3']);
     });
 
-    it('should consolidate IDs from sku_list array (App format)', () => {
+    it('should put sku_list values in skus field (App format)', () => {
       const event: RawProductViewEvent = {
         store_id: '1234',
         name: 'Test',
@@ -152,11 +154,29 @@ describe('normalizeProductViewEvent', () => {
 
       const result = normalizeProductViewEvent(event);
 
-      expect(result[0]?.productIds).toContain('SKU-A');
-      expect(result[0]?.productIds).toContain('SKU-B');
+      // SKUs should NOT be in productIds
+      expect(result[0]?.ids.productIds).toEqual([]);
+      expect(result[0]?.ids.skus).toContain('SKU-A');
+      expect(result[0]?.ids.skus).toContain('SKU-B');
     });
 
-    it('should consolidate IDs from gtin array', () => {
+    it('should combine both sku and sku_list values in skus field', () => {
+      const event: RawProductViewEvent = {
+        store_id: '1234',
+        name: 'Test',
+        sku: ['SKU-FROM-SKU'],
+        sku_list: ['SKU-FROM-LIST'],
+      };
+
+      const result = normalizeProductViewEvent(event);
+
+      // Both sources should be combined
+      expect(result[0]?.ids.skus).toContain('SKU-FROM-SKU');
+      expect(result[0]?.ids.skus).toContain('SKU-FROM-LIST');
+      expect(result[0]?.ids.skus).toHaveLength(2);
+    });
+
+    it('should put GTINs in gtins field, not productIds', () => {
       const event: RawProductViewEvent = {
         store_id: 1234,
         name: 'Test',
@@ -165,11 +185,29 @@ describe('normalizeProductViewEvent', () => {
 
       const result = normalizeProductViewEvent(event);
 
-      expect(result[0]?.productIds).toContain('0123456789012');
-      expect(result[0]?.gtins).toContain('0123456789012');
+      // GTINs should NOT be in productIds (only productID values go there)
+      expect(result[0]?.ids.productIds).toEqual([]);
+      expect(result[0]?.ids.gtins).toContain('0123456789012');
+      expect(result[0]?.ids.gtins).toContain('0123456789013');
     });
 
-    it('should consolidate IDs from productID array', () => {
+    it('should combine both gtin and gtin_list values in gtins field', () => {
+      const event: RawProductViewEvent = {
+        store_id: '1234',
+        name: 'Test',
+        gtin: ['GTIN-FROM-GTIN'],
+        gtin_list: ['GTIN-FROM-LIST'],
+      };
+
+      const result = normalizeProductViewEvent(event);
+
+      // Both sources should be combined
+      expect(result[0]?.ids.gtins).toContain('GTIN-FROM-GTIN');
+      expect(result[0]?.ids.gtins).toContain('GTIN-FROM-LIST');
+      expect(result[0]?.ids.gtins).toHaveLength(2);
+    });
+
+    it('should put productID values in productIds', () => {
       const event: RawProductViewEvent = {
         store_id: 1234,
         name: 'Test',
@@ -178,10 +216,11 @@ describe('normalizeProductViewEvent', () => {
 
       const result = normalizeProductViewEvent(event);
 
-      expect(result[0]?.productIds).toContain('PID-001');
+      expect(result[0]?.ids.productIds).toContain('PID-001');
+      expect(result[0]?.ids.productIds).toContain('PID-002');
     });
 
-    it('should consolidate IDs from mpn array', () => {
+    it('should put MPNs in mpns field, not productIds', () => {
       const event: RawProductViewEvent = {
         store_id: 1234,
         name: 'Test',
@@ -190,11 +229,29 @@ describe('normalizeProductViewEvent', () => {
 
       const result = normalizeProductViewEvent(event);
 
-      expect(result[0]?.productIds).toContain('MPN-ABC');
-      expect(result[0]?.mpns).toContain('MPN-ABC');
+      // MPNs should NOT be in productIds (only productID values go there)
+      expect(result[0]?.ids.productIds).toEqual([]);
+      expect(result[0]?.ids.mpns).toContain('MPN-ABC');
+      expect(result[0]?.ids.mpns).toContain('MPN-DEF');
     });
 
-    it('should extract SKUs from offers (Toolbar format)', () => {
+    it('should combine both mpn and mpn_list values in mpns field', () => {
+      const event: RawProductViewEvent = {
+        store_id: '1234',
+        name: 'Test',
+        mpn: ['MPN-FROM-MPN'],
+        mpn_list: ['MPN-FROM-LIST'],
+      };
+
+      const result = normalizeProductViewEvent(event);
+
+      // Both sources should be combined
+      expect(result[0]?.ids.mpns).toContain('MPN-FROM-MPN');
+      expect(result[0]?.ids.mpns).toContain('MPN-FROM-LIST');
+      expect(result[0]?.ids.mpns).toHaveLength(2);
+    });
+
+    it('should put offer SKUs in skus field (Toolbar format)', () => {
       const event: RawProductViewEvent = {
         store_id: 1234,
         name: 'Test',
@@ -203,11 +260,13 @@ describe('normalizeProductViewEvent', () => {
 
       const result = normalizeProductViewEvent(event);
 
-      expect(result[0]?.productIds).toContain('OFFER-SKU-1');
-      expect(result[0]?.productIds).toContain('OFFER-SKU-2');
+      // Offer SKUs should NOT be in productIds
+      expect(result[0]?.ids.productIds).toEqual([]);
+      expect(result[0]?.ids.skus).toContain('OFFER-SKU-1');
+      expect(result[0]?.ids.skus).toContain('OFFER-SKU-2');
     });
 
-    it('should extract SKUs from offer_list (App format)', () => {
+    it('should put offer_list SKUs in skus field (App format)', () => {
       const event: RawProductViewEvent = {
         store_id: '1234',
         name: 'Test',
@@ -216,11 +275,13 @@ describe('normalizeProductViewEvent', () => {
 
       const result = normalizeProductViewEvent(event);
 
-      expect(result[0]?.productIds).toContain('APP-SKU-1');
-      expect(result[0]?.productIds).toContain('APP-SKU-2');
+      // App SKUs should NOT be in productIds
+      expect(result[0]?.ids.productIds).toEqual([]);
+      expect(result[0]?.ids.skus).toContain('APP-SKU-1');
+      expect(result[0]?.ids.skus).toContain('APP-SKU-2');
     });
 
-    it('should extract SKUs from urlToSku map', () => {
+    it('should put urlToSku values in skus field', () => {
       const event: RawProductViewEvent = {
         store_id: 1234,
         name: 'Test',
@@ -232,11 +293,13 @@ describe('normalizeProductViewEvent', () => {
 
       const result = normalizeProductViewEvent(event);
 
-      expect(result[0]?.productIds).toContain('URL-SKU-1');
-      expect(result[0]?.productIds).toContain('URL-SKU-2');
+      // urlToSku values should NOT be in productIds
+      expect(result[0]?.ids.productIds).toEqual([]);
+      expect(result[0]?.ids.skus).toContain('URL-SKU-1');
+      expect(result[0]?.ids.skus).toContain('URL-SKU-2');
     });
 
-    it('should extract SKUs from priceToSku map', () => {
+    it('should put priceToSku values in skus field', () => {
       const event: RawProductViewEvent = {
         store_id: 1234,
         name: 'Test',
@@ -248,66 +311,89 @@ describe('normalizeProductViewEvent', () => {
 
       const result = normalizeProductViewEvent(event);
 
-      expect(result[0]?.productIds).toContain('PRICE-SKU-1');
-      expect(result[0]?.productIds).toContain('PRICE-SKU-2');
+      // priceToSku values should NOT be in productIds
+      expect(result[0]?.ids.productIds).toEqual([]);
+      expect(result[0]?.ids.skus).toContain('PRICE-SKU-1');
+      expect(result[0]?.ids.skus).toContain('PRICE-SKU-2');
     });
 
-    it('should deduplicate IDs across all sources', () => {
+    it('should deduplicate productID values', () => {
       const event: RawProductViewEvent = {
         store_id: 1234,
         name: 'Test',
-        sku: ['DUPE-SKU', 'UNIQUE-1'],
-        productID: ['DUPE-SKU', 'UNIQUE-2'],
-        offers: [{ sku: 'DUPE-SKU' }],
-        urlToSku: { url1: 'DUPE-SKU' },
+        productID: ['PID-001', 'PID-001', 'PID-002'],
+        productid_list: ['PID-001', 'PID-003'],
       };
 
       const result = normalizeProductViewEvent(event);
 
-      // DUPE-SKU should only appear once in productIds
-      const dupeCount = result[0]?.productIds.filter((id) => id === 'DUPE-SKU').length;
-      expect(dupeCount).toBe(1);
-      expect(result[0]?.productIds).toContain('UNIQUE-1');
-      expect(result[0]?.productIds).toContain('UNIQUE-2');
+      // productIds should be deduplicated
+      expect(result[0]?.ids.productIds).toHaveLength(3);
+      expect(result[0]?.ids.productIds).toContain('PID-001');
+      expect(result[0]?.ids.productIds).toContain('PID-002');
+      expect(result[0]?.ids.productIds).toContain('PID-003');
     });
 
     it('should filter empty and whitespace IDs', () => {
       const result = normalizeProductViewEvent(whitespaceEvent);
 
-      expect(result[0]?.productIds).toContain('VALID-SKU');
-      expect(result[0]?.productIds).toContain('VALID-OFFER-SKU');
-      expect(result[0]?.productIds).not.toContain('');
-      expect(result[0]?.productIds).not.toContain('  ');
+      // SKUs go in skus field, not productIds
+      expect(result[0]?.ids.skus).toContain('VALID-SKU');
+      expect(result[0]?.ids.skus).toContain('VALID-OFFER-SKU');
+      expect(result[0]?.ids.skus).not.toContain('');
+      expect(result[0]?.ids.skus).not.toContain('  ');
     });
   });
 
-  describe('URL-based ID extraction fallback', () => {
-    it('should fallback to URL extraction when no schema IDs available', () => {
+  describe('URL-based ID extraction (extractedIds)', () => {
+    it('should extract IDs from URL into extractedIds', () => {
       const result = normalizeProductViewEvent(noSchemaIdsEvent);
 
-      // URL extraction should kick in as fallback
-      expect(result[0]?.productIds).toBeDefined();
-      expect(Array.isArray(result[0]?.productIds)).toBe(true);
+      // URL extraction goes into extractedIds, not productIds
+      expect(result[0]?.ids.extractedIds).toBeDefined();
+      expect(Array.isArray(result[0]?.ids.extractedIds)).toBe(true);
+      // productIds should be empty (no schema.org data)
+      expect(result[0]?.ids.productIds).toEqual([]);
     });
 
-    it('should not use URL extraction when schema IDs are present', () => {
+    it('should keep productID values in productIds and URL IDs in extractedIds separately', () => {
       const event: RawProductViewEvent = {
         store_id: 1234,
         name: 'Test',
         url: 'https://example.com/product/URL-ID-123',
+        productID: ['SCHEMA-PRODUCT-ID'],
         sku: ['SCHEMA-SKU'],
       };
 
       const result = normalizeProductViewEvent(event);
 
-      expect(result[0]?.productIds).toContain('SCHEMA-SKU');
-      // Should not contain the URL-based ID since we have schema IDs
+      // Only productID values go in productIds (not SKUs)
+      expect(result[0]?.ids.productIds).toContain('SCHEMA-PRODUCT-ID');
+      expect(result[0]?.ids.productIds).not.toContain('SCHEMA-SKU');
+      // SKUs go in skus field
+      expect(result[0]?.ids.skus).toContain('SCHEMA-SKU');
+      // URL-extracted IDs go in extractedIds (always extracted when available)
+      expect(result[0]?.ids.extractedIds).toBeDefined();
+      expect(Array.isArray(result[0]?.ids.extractedIds)).toBe(true);
     });
 
     it('should skip URL extraction when extractProductIds option is false', () => {
       const result = normalizeProductViewEvent(noSchemaIdsEvent, { extractProductIds: false });
 
-      expect(result[0]?.productIds).toEqual([]);
+      expect(result[0]?.ids.productIds).toEqual([]);
+      expect(result[0]?.ids.extractedIds).toEqual([]);
+    });
+
+    it('should always include extractedIds array even when empty', () => {
+      const event: RawProductViewEvent = {
+        store_id: 1234,
+        name: 'Test',
+        // No URL, so no extraction possible
+      };
+
+      const result = normalizeProductViewEvent(event);
+
+      expect(result[0]?.ids.extractedIds).toEqual([]);
     });
   });
 
@@ -506,7 +592,7 @@ describe('normalizeProductViewEvent', () => {
       expect(result[0]?.brand).toBe('A New Day');
       expect(result[0]?.rating).toBe(4.2);
       expect(result[0]?.category).toBe("Women's Clothing");
-      expect(result[0]?.skus).toBeDefined();
+      expect(result[0]?.ids.skus).toBeDefined();
     });
 
     it('should exclude metadata when includeMetadata is false', () => {
@@ -515,14 +601,14 @@ describe('normalizeProductViewEvent', () => {
       expect(result[0]?.brand).toBeUndefined();
       expect(result[0]?.rating).toBeUndefined();
       expect(result[0]?.category).toBeUndefined();
-      expect(result[0]?.skus).toBeUndefined();
-      expect(result[0]?.gtins).toBeUndefined();
-      expect(result[0]?.mpns).toBeUndefined();
+      expect(result[0]?.ids.skus).toBeUndefined();
+      expect(result[0]?.ids.gtins).toBeUndefined();
+      expect(result[0]?.ids.mpns).toBeUndefined();
 
       // Core fields should still be present
       expect(result[0]?.title).toBe('Womens Short Sleeve Slim Fit Ribbed T-Shirt');
       expect(result[0]?.storeId).toBe('5246');
-      expect(result[0]?.productIds).toBeDefined();
+      expect(result[0]?.ids.productIds).toBeDefined();
     });
   });
 
@@ -569,15 +655,15 @@ describe('normalizeProductViewEvent', () => {
     it('should return frozen productIds array', () => {
       const result = normalizeProductViewEvent(targetToolbarEvent);
 
-      expect(Object.isFrozen(result[0]?.productIds)).toBe(true);
+      expect(Object.isFrozen(result[0]?.ids.productIds)).toBe(true);
     });
 
     it('should return frozen skus/gtins/mpns arrays', () => {
       const result = normalizeProductViewEvent(hpMultiProductEvent);
 
-      expect(Object.isFrozen(result[0]?.skus)).toBe(true);
-      expect(Object.isFrozen(result[0]?.gtins)).toBe(true);
-      expect(Object.isFrozen(result[0]?.mpns)).toBe(true);
+      expect(Object.isFrozen(result[0]?.ids.skus)).toBe(true);
+      expect(Object.isFrozen(result[0]?.ids.gtins)).toBe(true);
+      expect(Object.isFrozen(result[0]?.ids.mpns)).toBe(true);
     });
 
     it('should not mutate input event', () => {
@@ -619,8 +705,8 @@ describe('normalizeProductViewEvent', () => {
       // Each event produces one unique product
       expect(result1).toHaveLength(1);
       expect(result2).toHaveLength(1);
-      expect(result1[0]?.skus).toContain('SKU-RED');
-      expect(result2[0]?.skus).toContain('SKU-BLUE');
+      expect(result1[0]?.ids.skus).toContain('SKU-RED');
+      expect(result2[0]?.ids.skus).toContain('SKU-BLUE');
     });
 
     it('should keep product without fingerprint (no identifying data)', () => {
@@ -726,8 +812,8 @@ describe('normalizeProductViewEvent', () => {
       const result2 = normalizeProductViewEvent(event2);
 
       // Different SKUs = different fingerprints = both kept
-      expect(result1[0]?.skus).toContain('SKU-A');
-      expect(result2[0]?.skus).toContain('SKU-B');
+      expect(result1[0]?.ids.skus).toContain('SKU-A');
+      expect(result2[0]?.ids.skus).toContain('SKU-B');
     });
 
     it('should include gtins in fingerprint', () => {
@@ -747,8 +833,8 @@ describe('normalizeProductViewEvent', () => {
       const result2 = normalizeProductViewEvent(event2);
 
       // Different GTINs = different fingerprints = both kept
-      expect(result1[0]?.gtins).toContain('0123456789012');
-      expect(result2[0]?.gtins).toContain('0123456789013');
+      expect(result1[0]?.ids.gtins).toContain('0123456789012');
+      expect(result2[0]?.ids.gtins).toContain('0123456789013');
     });
 
     it('should include mpns in fingerprint', () => {
@@ -768,8 +854,8 @@ describe('normalizeProductViewEvent', () => {
       const result2 = normalizeProductViewEvent(event2);
 
       // Different MPNs = different fingerprints = both kept
-      expect(result1[0]?.mpns).toContain('MPN-A');
-      expect(result2[0]?.mpns).toContain('MPN-B');
+      expect(result1[0]?.ids.mpns).toContain('MPN-A');
+      expect(result2[0]?.ids.mpns).toContain('MPN-B');
     });
 
     it('should include productIds in fingerprint', () => {
@@ -789,8 +875,8 @@ describe('normalizeProductViewEvent', () => {
       const result2 = normalizeProductViewEvent(event2);
 
       // Different productIDs = different fingerprints = both kept
-      expect(result1[0]?.productIds).toContain('PID-A');
-      expect(result2[0]?.productIds).toContain('PID-B');
+      expect(result1[0]?.ids.productIds).toContain('PID-A');
+      expect(result2[0]?.ids.productIds).toContain('PID-B');
     });
 
     it('should sort identifiers for consistent fingerprints', () => {
@@ -812,8 +898,255 @@ describe('normalizeProductViewEvent', () => {
       // Same SKUs in different order should produce same fingerprint
       // Both should be kept as they're normalized separately, but fingerprints would match
       // Copy frozen arrays before sorting
-      expect([...(result1[0]?.skus ?? [])].sort()).toEqual(['SKU-A', 'SKU-B', 'SKU-C']);
-      expect([...(result2[0]?.skus ?? [])].sort()).toEqual(['SKU-A', 'SKU-B', 'SKU-C']);
+      expect([...(result1[0]?.ids.skus ?? [])].sort()).toEqual(['SKU-A', 'SKU-B', 'SKU-C']);
+      expect([...(result2[0]?.ids.skus ?? [])].sort()).toEqual(['SKU-A', 'SKU-B', 'SKU-C']);
+    });
+  });
+
+  describe('variant handling', () => {
+    it('should detect variants from sku array', () => {
+      const event: RawProductViewEvent = {
+        store_id: 1234,
+        name: 'Test Product',
+        productID: ['PARENT-123'],
+        sku: ['VARIANT-S', 'VARIANT-M', 'VARIANT-L'],
+      };
+
+      const result = normalizeProductViewEvent(event);
+      const variantSkus = result[0]?.variants.map((v) => v.sku);
+
+      expect(variantSkus).toEqual(['VARIANT-S', 'VARIANT-M', 'VARIANT-L']);
+      expect(result[0]?.variantCount).toBe(3);
+      expect(result[0]?.hasVariants).toBe(true);
+    });
+
+    it('should detect variants from offers with price and URL', () => {
+      const event: RawProductViewEvent = {
+        store_id: 1234,
+        name: 'Test Product',
+        productID: ['PARENT-123'],
+        offers: [
+          { sku: 'OFFER-SKU-1', price: 999, url: 'https://example.com/sku1' },
+          { sku: 'OFFER-SKU-2', price: 1299, url: 'https://example.com/sku2' },
+        ],
+      };
+
+      const result = normalizeProductViewEvent(event);
+      const variantSkus = result[0]?.variants.map((v) => v.sku);
+
+      expect(variantSkus).toContain('OFFER-SKU-1');
+      expect(variantSkus).toContain('OFFER-SKU-2');
+      expect(result[0]?.hasVariants).toBe(true);
+
+      // Verify variant objects have price and URL
+      const variant1 = result[0]?.variants.find((v) => v.sku === 'OFFER-SKU-1');
+      expect(variant1?.price).toBe(999);
+      expect(variant1?.url).toBe('https://example.com/sku1');
+    });
+
+    it('should detect variants from urlToSku map with URL correlation', () => {
+      const event: RawProductViewEvent = {
+        store_id: 1234,
+        name: 'Test Product',
+        productID: ['PARENT-123'],
+        urlToSku: {
+          'https://example.com/size-s': 'SIZE-S',
+          'https://example.com/size-m': 'SIZE-M',
+        },
+      };
+
+      const result = normalizeProductViewEvent(event);
+      const variantSkus = result[0]?.variants.map((v) => v.sku);
+
+      expect(variantSkus).toContain('SIZE-S');
+      expect(variantSkus).toContain('SIZE-M');
+      expect(result[0]?.hasVariants).toBe(true);
+
+      // Verify variant objects have URL from urlToSku
+      const variantS = result[0]?.variants.find((v) => v.sku === 'SIZE-S');
+      expect(variantS?.url).toBe('https://example.com/size-s');
+    });
+
+    it('should detect variants from priceToSku map', () => {
+      const event: RawProductViewEvent = {
+        store_id: 1234,
+        name: 'Test Product',
+        productID: ['PARENT-123'],
+        sku: ['REGULAR-SKU', 'PREMIUM-SKU'],
+        priceToSku: {
+          '1999': 'REGULAR-SKU',
+          '2999': 'PREMIUM-SKU',
+        },
+      };
+
+      const result = normalizeProductViewEvent(event);
+      const variantSkus = result[0]?.variants.map((v) => v.sku);
+
+      expect(variantSkus).toContain('REGULAR-SKU');
+      expect(variantSkus).toContain('PREMIUM-SKU');
+      expect(result[0]?.hasVariants).toBe(true);
+    });
+
+    it('should set hasVariants=false when only one variant', () => {
+      const event: RawProductViewEvent = {
+        store_id: 1234,
+        name: 'Test Product',
+        productID: ['PARENT-123'],
+        sku: ['SINGLE-SKU'],
+      };
+
+      const result = normalizeProductViewEvent(event);
+      const variantSkus = result[0]?.variants.map((v) => v.sku);
+
+      expect(variantSkus).toEqual(['SINGLE-SKU']);
+      expect(result[0]?.variantCount).toBe(1);
+      expect(result[0]?.hasVariants).toBe(false);
+    });
+
+    it('should have empty variants array when no variants detected', () => {
+      const event: RawProductViewEvent = {
+        store_id: 1234,
+        name: 'Test Product',
+        productID: ['PARENT-123'],
+        // No sku, offers, urlToSku, or priceToSku
+      };
+
+      const result = normalizeProductViewEvent(event);
+
+      expect(result[0]?.variants).toEqual([]);
+      expect(result[0]?.variantCount).toBe(0);
+      expect(result[0]?.hasVariants).toBe(false);
+    });
+
+    it('should deduplicate variants by SKU within offers', () => {
+      const event: RawProductViewEvent = {
+        store_id: 1234,
+        name: 'Test Product',
+        productID: ['PARENT-123'],
+        // When offers have SKUs, variants are built from offers (takes priority)
+        offers: [
+          { sku: 'DUPE-SKU', price: 999 },
+          { sku: 'DUPE-SKU', price: 1099 }, // Duplicate SKU
+          { sku: 'UNIQUE-SKU', price: 1299 },
+        ],
+      };
+
+      const result = normalizeProductViewEvent(event);
+      const variantSkus = result[0]?.variants.map((v) => v.sku);
+
+      // Should deduplicate DUPE-SKU
+      const dupeCount = variantSkus?.filter((s: string) => s === 'DUPE-SKU').length;
+      expect(dupeCount).toBe(1);
+      expect(variantSkus).toContain('UNIQUE-SKU');
+      expect(result[0]?.variantCount).toBe(2);
+    });
+
+    it('should handle Old Navy variant event with variants from offers', () => {
+      const result = normalizeProductViewEvent(oldNavyVariantsEvent);
+
+      // Old Navy fixture has offers with SKUs, so variants are built from offers (3 offers)
+      // Priority: offers > sku array when offers have SKUs
+      expect(result[0]?.variants.length).toBe(3);
+      expect(result[0]?.variantCount).toBe(3);
+      expect(result[0]?.hasVariants).toBe(true);
+
+      // Parent productID should still be in productIds
+      expect(result[0]?.ids.productIds).toContain('874532002');
+
+      // All 9 SKUs from sku array should still be in ids.skus (aggregated identifiers)
+      expect(result[0]?.ids.skus).toHaveLength(9);
+    });
+
+    it('should keep variant SKUs in skus and variants array, productIds only for productID values', () => {
+      const event: RawProductViewEvent = {
+        store_id: 1234,
+        name: 'Test Product',
+        productID: ['PARENT-123'],
+        sku: ['VARIANT-S', 'VARIANT-M', 'VARIANT-L'],
+      };
+
+      const result = normalizeProductViewEvent(event);
+      const variantSkus = result[0]?.variants.map((v) => v.sku);
+
+      // productIds should only contain productID values
+      expect(result[0]?.ids.productIds).toContain('PARENT-123');
+      expect(result[0]?.ids.productIds).not.toContain('VARIANT-S');
+      // Variant SKUs are in skus field
+      expect(result[0]?.ids.skus).toContain('VARIANT-S');
+      expect(result[0]?.ids.skus).toContain('VARIANT-M');
+      expect(result[0]?.ids.skus).toContain('VARIANT-L');
+      // And also in variants array
+      expect(variantSkus).toContain('VARIANT-S');
+    });
+
+    it('should still include variants when includeMetadata is false', () => {
+      const event: RawProductViewEvent = {
+        store_id: 1234,
+        name: 'Test Product',
+        productID: ['PARENT-123'],
+        sku: ['VARIANT-S', 'VARIANT-M', 'VARIANT-L'],
+      };
+
+      const result = normalizeProductViewEvent(event, { includeMetadata: false });
+
+      // Variants are structural data, not metadata - they're needed for joining
+      expect(result[0]?.variants.length).toBe(3);
+      expect(result[0]?.variantCount).toBe(3);
+      expect(result[0]?.hasVariants).toBe(true);
+      // But skus field is metadata and should be excluded
+      expect(result[0]?.ids.skus).toBeUndefined();
+
+      // productIds should only contain productID values
+      expect(result[0]?.ids.productIds).toContain('PARENT-123');
+      expect(result[0]?.ids.productIds).not.toContain('VARIANT-S');
+    });
+
+    it('should return frozen variants array', () => {
+      const event: RawProductViewEvent = {
+        store_id: 1234,
+        name: 'Test Product',
+        sku: ['SKU-1', 'SKU-2'],
+      };
+
+      const result = normalizeProductViewEvent(event);
+
+      expect(Object.isFrozen(result[0]?.variants)).toBe(true);
+    });
+
+    it('should handle Target event with variant data in offers and urlToSku', () => {
+      const result = normalizeProductViewEvent(targetToolbarEvent);
+      const variantSkus = result[0]?.variants.map((v) => v.sku);
+
+      // Target event has offers with SKUs
+      expect(result[0]?.variants.length).toBeGreaterThan(0);
+      expect(variantSkus).toContain('88056717');
+      expect(variantSkus).toContain('88056723');
+      expect(variantSkus).toContain('88056720');
+      expect(result[0]?.hasVariants).toBe(true);
+    });
+
+    it('should include variant-specific extractedIds from URLs', () => {
+      const event: RawProductViewEvent = {
+        store_id: '5246', // Target store ID
+        name: 'Test Product',
+        urlToSku: {
+          // Note: Target regex expects lowercase 'a-' prefix (real URLs use uppercase A- but regex is case-sensitive)
+          'https://www.target.com/p/product-name/-/a-12345678': 'SKU-12345',
+          'https://www.target.com/p/product-name/-/a-67890123': 'SKU-67890',
+        },
+      };
+
+      const result = normalizeProductViewEvent(event);
+
+      // Each variant should have extractedIds from its URL
+      const variant1 = result[0]?.variants.find((v) => v.sku === 'SKU-12345');
+      const variant2 = result[0]?.variants.find((v) => v.sku === 'SKU-67890');
+
+      // Verify extractedIds exist and contain expected values
+      expect(variant1?.extractedIds).toBeDefined();
+      expect(variant2?.extractedIds).toBeDefined();
+      expect(variant1?.extractedIds).toContain('12345678');
+      expect(variant2?.extractedIds).toContain('67890123');
     });
   });
 
@@ -834,7 +1167,7 @@ describe('normalizeProductViewEvent', () => {
 
       expect(result).toHaveLength(1);
       expect(result[0]?.storeId).toBe('1234');
-      expect(result[0]?.productIds).toEqual([]);
+      expect(result[0]?.ids.productIds).toEqual([]);
     });
 
     it('should filter whitespace values', () => {
@@ -863,8 +1196,8 @@ describe('normalizeProductViewEvent', () => {
       const result = normalizeProductViewEvent(event);
 
       expect(result).toHaveLength(1);
-      expect(result[0]?.productIds).toEqual([]);
-      expect(result[0]?.skus).toBeUndefined();
+      expect(result[0]?.ids.productIds).toEqual([]);
+      expect(result[0]?.ids.skus).toBeUndefined();
     });
 
     it('should handle event with undefined arrays', () => {
@@ -877,7 +1210,7 @@ describe('normalizeProductViewEvent', () => {
       const result = normalizeProductViewEvent(event);
 
       expect(result).toHaveLength(1);
-      expect(result[0]?.productIds).toEqual([]);
+      expect(result[0]?.ids.productIds).toEqual([]);
     });
   });
 });
