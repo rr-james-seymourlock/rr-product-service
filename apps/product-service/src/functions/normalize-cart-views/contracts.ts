@@ -32,6 +32,7 @@ export const normalizeCartViewsRequestSchema = z
               {
                 name: "Women's Cotton Sweater",
                 url: 'https://macys.com/shop/product?ID=12345',
+                image_url: 'https://slimages.macysassets.com/is/image/MCY/products/12345.jpg',
                 item_price: 4900,
                 quantity: 1,
               },
@@ -67,6 +68,7 @@ const successResultSchema = z
         {
           title: "Women's Cotton Sweater",
           url: 'https://macys.com/shop/product?ID=12345',
+          imageUrl: 'https://slimages.macysassets.com/is/image/MCY/products/12345.jpg',
           storeId: '8333',
           price: 4900,
           quantity: 1,
@@ -127,6 +129,7 @@ export const normalizeCartViewsResponseSchema = z
             {
               title: "Women's Cotton Sweater",
               url: 'https://macys.com/shop/product?ID=12345',
+              imageUrl: 'https://slimages.macysassets.com/is/image/MCY/products/12345.jpg',
               storeId: '8333',
               price: 4900,
               quantity: 1,
