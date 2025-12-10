@@ -342,7 +342,7 @@
       "id": "13",
       "title": "Add batch processing support to handler",
       "description": "Extend the fetch-images handler to accept and process multiple image requests in a single API call",
-      "status": "pending",
+      "status": "done",
       "priority": "medium",
       "dependencies": ["11"],
       "details": "Accept array of ImageFetchRequest (max 100). Process concurrently with configurable concurrency limit (default 10). Return array of results in same order as input. Include summary: { total, successful, failed }. Individual failures don't fail entire batch.",
@@ -350,15 +350,16 @@
       "subtasks": [],
       "userStoryId": "US009",
       "createdAt": "2025-12-10T15:57:11.361Z",
-      "updatedAt": "2025-12-10T15:58:00.370Z",
+      "updatedAt": "2025-12-10T16:47:21.375Z",
       "complexity": 3,
-      "recommendedSubtasks": 2
+      "recommendedSubtasks": 2,
+      "completedAt": "2025-12-10T16:47:21.375Z"
     },
     {
       "id": "14",
       "title": "Add configuration management",
       "description": "Create centralized configuration with environment variable overrides for all tunable parameters",
-      "status": "pending",
+      "status": "done",
       "priority": "medium",
       "dependencies": ["1"],
       "details": "Config options: FETCH_TIMEOUT_MS (10000), MAX_IMAGE_SIZE_BYTES (10485760), MIN_IMAGE_SIZE_BYTES (1024), STORAGE_BASE_PATH (./fetched-images or /tmp), ALLOWED_CONTENT_TYPES, BATCH_CONCURRENCY (10), USER_AGENT. Use @rr/shared config pattern if exists, otherwise create config.ts with env var parsing.",
@@ -366,15 +367,16 @@
       "subtasks": [],
       "userStoryId": "US004",
       "createdAt": "2025-12-10T15:57:11.730Z",
-      "updatedAt": "2025-12-10T15:58:00.370Z",
+      "updatedAt": "2025-12-10T16:47:21.417Z",
       "complexity": 3,
-      "recommendedSubtasks": 2
+      "recommendedSubtasks": 2,
+      "completedAt": "2025-12-10T16:47:21.417Z"
     },
     {
       "id": "15",
       "title": "Write comprehensive test suite",
       "description": "Create thorough test coverage for the package including unit, integration, and edge case tests",
-      "status": "pending",
+      "status": "done",
       "priority": "high",
       "dependencies": ["10"],
       "details": "Unit tests: validation functions, error categorization, path generation, config. Integration tests: mock HTTP server for various response scenarios (success, 403, 429, timeout, invalid content-type). Edge cases: very large images, slow responses, redirect chains, malformed URLs. Target >90% coverage.",
@@ -382,17 +384,18 @@
       "subtasks": [],
       "userStoryId": "US001",
       "createdAt": "2025-12-10T15:57:12.130Z",
-      "updatedAt": "2025-12-10T15:58:00.370Z",
+      "updatedAt": "2025-12-10T16:47:21.474Z",
       "complexity": 4,
-      "recommendedSubtasks": 3
+      "recommendedSubtasks": 3,
+      "completedAt": "2025-12-10T16:47:21.474Z"
     }
   ],
   "metadata": {
     "version": "1.0",
     "created": "2025-12-10T15:55:43.643Z",
-    "lastUpdated": "2025-12-10T16:46:41.430Z",
+    "lastUpdated": "2025-12-10T16:47:21.474Z",
     "totalTasks": 25,
-    "completedTasks": 22,
+    "completedTasks": 25,
     "blockedTasks": 0
   }
 }
