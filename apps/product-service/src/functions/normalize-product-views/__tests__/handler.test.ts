@@ -160,7 +160,7 @@ describe('Normalize Product Views Handler', () => {
   });
 
   describe('product ID extraction', () => {
-    it('should extract SKUs from sku array', async () => {
+    it('should put SKUs in skus field (not productIds)', async () => {
       const event = createMockEvent({
         events: [createValidProductView({ sku: ['SKU-001', 'SKU-002'] })],
       });
@@ -169,12 +169,15 @@ describe('Normalize Product Views Handler', () => {
 
       const firstResult = body.results[0];
       if (firstResult && 'products' in firstResult) {
-        expect(firstResult.products[0]?.productIds).toContain('SKU-001');
-        expect(firstResult.products[0]?.productIds).toContain('SKU-002');
+        // SKUs go in skus field, not productIds
+        expect(firstResult.products[0]?.ids.skus).toContain('SKU-001');
+        expect(firstResult.products[0]?.ids.skus).toContain('SKU-002');
+        // productIds is only for productID values
+        expect(firstResult.products[0]?.ids.productIds).toEqual([]);
       }
     });
 
-    it('should extract SKUs from offers', async () => {
+    it('should put offer SKUs in skus field', async () => {
       const event = createMockEvent({
         events: [
           createValidProductView({
@@ -188,11 +191,11 @@ describe('Normalize Product Views Handler', () => {
 
       const firstResult = body.results[0];
       if (firstResult && 'products' in firstResult) {
-        expect(firstResult.products[0]?.productIds).toContain('OFFER-SKU');
+        expect(firstResult.products[0]?.ids.skus).toContain('OFFER-SKU');
       }
     });
 
-    it('should extract IDs from App format (sku_list)', async () => {
+    it('should put sku_list values in skus field (App format)', async () => {
       const event = createMockEvent({
         events: [
           {
@@ -210,12 +213,12 @@ describe('Normalize Product Views Handler', () => {
 
       const firstResult = body.results[0];
       if (firstResult && 'products' in firstResult) {
-        expect(firstResult.products[0]?.productIds).toContain('APP-SKU-1');
-        expect(firstResult.products[0]?.productIds).toContain('APP-SKU-2');
+        expect(firstResult.products[0]?.ids.skus).toContain('APP-SKU-1');
+        expect(firstResult.products[0]?.ids.skus).toContain('APP-SKU-2');
       }
     });
 
-    it('should extract GTINs and MPNs', async () => {
+    it('should put GTINs in gtins field and MPNs in mpns field', async () => {
       const event = createMockEvent({
         events: [
           createValidProductView({
@@ -229,12 +232,14 @@ describe('Normalize Product Views Handler', () => {
 
       const firstResult = body.results[0];
       if (firstResult && 'products' in firstResult) {
-        expect(firstResult.products[0]?.productIds).toContain('0123456789012');
-        expect(firstResult.products[0]?.productIds).toContain('MPN-ABC');
+        expect(firstResult.products[0]?.ids.gtins).toContain('0123456789012');
+        expect(firstResult.products[0]?.ids.mpns).toContain('MPN-ABC');
+        // productIds should be empty (no productID values)
+        expect(firstResult.products[0]?.ids.productIds).toEqual([]);
       }
     });
 
-    it('should deduplicate IDs from multiple sources', async () => {
+    it('should deduplicate SKUs from multiple sources', async () => {
       const event = createMockEvent({
         events: [
           createValidProductView({
@@ -249,10 +254,27 @@ describe('Normalize Product Views Handler', () => {
 
       const firstResult = body.results[0];
       if (firstResult && 'products' in firstResult) {
-        const dupeCount = firstResult.products[0]?.productIds.filter(
+        const dupeCount = firstResult.products[0]?.ids.skus?.filter(
           (id) => id === 'DUPE-SKU',
         ).length;
         expect(dupeCount).toBe(1);
+      }
+    });
+
+    it('should put productID values in productIds', async () => {
+      const event = createMockEvent({
+        events: [
+          createValidProductView({
+            productID: ['PRODUCT-ID-123'],
+          }),
+        ],
+      });
+      const result = await normalizeProductViewsHandler(event);
+      const body = JSON.parse(result.body) as NormalizeProductViewsResponse;
+
+      const firstResult = body.results[0];
+      if (firstResult && 'products' in firstResult) {
+        expect(firstResult.products[0]?.ids.productIds).toContain('PRODUCT-ID-123');
       }
     });
   });

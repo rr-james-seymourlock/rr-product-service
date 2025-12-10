@@ -253,6 +253,31 @@ IDs are collected from these sources (in order of processing):
 
 All IDs are deduplicated and empty/whitespace values are filtered.
 
+### Dual Format Support (Important)
+
+> **Note**: Both singular (`sku`, `gtin`, `mpn`, `productID`) and list (`sku_list`, `gtin_list`, `mpn_list`, `productid_list`) formats are supported and **combined** when both are present.
+
+This dual format support exists because:
+
+- **Platform differences**: Toolbar (browser extension) uses singular format (`sku`), while App (mobile) uses list format (`sku_list`)
+- **Historical data variations**: Snowflake data may contain either format depending on when it was captured
+- **Data capture structure changes**: The data capture layer has evolved over time, resulting in different field naming conventions
+
+The normalizer automatically merges values from both formats:
+
+```typescript
+const event = {
+  sku: ['SKU-1'],           // Toolbar format
+  sku_list: ['SKU-2'],      // App format
+  gtin: ['GTIN-1'],
+  gtin_list: ['GTIN-2'],
+};
+
+const products = normalizeProductViewEvent(event);
+// products[0].skus = ['SKU-1', 'SKU-2']  // Combined and deduplicated
+// products[0].gtins = ['GTIN-1', 'GTIN-2']
+```
+
 ## Field Mapping
 
 | Input Field            | Output Field   | Notes                            |

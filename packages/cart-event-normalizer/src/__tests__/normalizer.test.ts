@@ -26,7 +26,10 @@ describe('normalizeCartEvent', () => {
         price: 7499,
         quantity: 1,
         lineTotal: 7499,
-        productIds: [],
+        ids: {
+          productIds: [],
+          extractedIds: [],
+        },
       });
       expect(result[0]?.imageUrl).toContain('fanatics.frgimages.com');
     });
@@ -288,7 +291,10 @@ describe('normalizeCartEvent', () => {
         price: 2999,
         quantity: 2,
         lineTotal: 5998,
-        productIds: [],
+        ids: {
+          productIds: [],
+          extractedIds: [],
+        },
       });
     });
 
@@ -302,43 +308,51 @@ describe('normalizeCartEvent', () => {
       expect(result[0]).toEqual({
         title: 'Minimal',
         price: 100,
-        productIds: [],
+        ids: {
+          productIds: [],
+          extractedIds: [],
+        },
       });
-      expect(Object.keys(result[0] ?? {})).toEqual(['productIds', 'title', 'price']);
+      expect(Object.keys(result[0] ?? {})).toEqual(['ids', 'title', 'price']);
     });
   });
 
   describe('product ID extraction', () => {
-    it('should extract product IDs when extractProductIds is true (default)', () => {
+    it('should extract IDs from URLs when extractProductIds is true (default)', () => {
       const result = normalizeCartEvent(ultaWithProductEvent);
 
-      // The extractor should find IDs in the URLs
-      expect(result[0]?.productIds).toBeDefined();
-      expect(Array.isArray(result[0]?.productIds)).toBe(true);
+      // Cart events don't have schema.org data, so productIds is always empty
+      expect(result[0]?.ids.productIds).toEqual([]);
+      // URL-extracted IDs go in extractedIds
+      expect(result[0]?.ids.extractedIds).toBeDefined();
+      expect(Array.isArray(result[0]?.ids.extractedIds)).toBe(true);
     });
 
-    it('should not extract product IDs when extractProductIds is false', () => {
+    it('should not extract IDs when extractProductIds is false', () => {
       const result = normalizeCartEvent(barnesNobleEvent, { extractProductIds: false });
 
       result.forEach((product) => {
-        expect(product.productIds).toEqual([]);
+        expect(product.ids.productIds).toEqual([]);
+        expect(product.ids.extractedIds).toEqual([]);
       });
     });
 
-    it('should return empty productIds array for products without URLs', () => {
+    it('should return empty extractedIds array for products without URLs', () => {
       const result = normalizeCartEvent(mlbShopEvent);
 
-      expect(result[0]?.productIds).toEqual([]);
+      expect(result[0]?.ids.productIds).toEqual([]);
+      expect(result[0]?.ids.extractedIds).toEqual([]);
     });
 
     it('should handle products with different URL extraction results', () => {
       const result = normalizeCartEvent(lowesEvent);
 
       expect(result).toHaveLength(2);
-      // All products should have productIds array (even if empty)
+      // All products should have both productIds and extractedIds arrays in ids object
       result.forEach((product) => {
-        expect(product.productIds).toBeDefined();
-        expect(Array.isArray(product.productIds)).toBe(true);
+        expect(product.ids.productIds).toEqual([]); // Cart events have no schema.org data
+        expect(product.ids.extractedIds).toBeDefined();
+        expect(Array.isArray(product.ids.extractedIds)).toBe(true);
       });
     });
   });

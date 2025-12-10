@@ -71,6 +71,11 @@ function extractProductIdsFromUrl(
  * Collect all product identifiers from schema.org sources
  * Handles both Toolbar and App naming conventions
  *
+ * Separates parent product IDs from variant SKUs:
+ * - productIds: Parent product identifiers (from productID/productid_list)
+ * - variantSkus: Size/color variant SKUs (from sku, offers, urlToSku, priceToSku)
+ * - gtins/mpns: May be parent-level or variant-level (kept separate)
+ *
  * Optimized for performance:
  * - Uses single helper function for filtering
  * - Avoids intermediate array allocations where possible
@@ -81,41 +86,62 @@ function collectSchemaProductIds(event: RawProductViewEvent): {
   gtins: string[];
   mpns: string[];
   productIds: string[];
+  variantSkus: string[];
 } {
   // Lazy initialization - only create arrays when needed
   let skus: string[] | undefined;
   let gtins: string[] | undefined;
   let mpns: string[] | undefined;
   let productIds: string[] | undefined;
+  let variantSkus: string[] | undefined;
 
   // Helper to get or create array
   const getSkus = () => (skus ??= []);
   const getGtins = () => (gtins ??= []);
   const getMpns = () => (mpns ??= []);
   const getProductIds = () => (productIds ??= []);
+  const getVariantSkus = () => (variantSkus ??= []);
 
-  // Collect SKUs from sku/sku_list arrays
+  // =============================================================================
+  // DUAL FORMAT SUPPORT: Both singular and _list formats are supported
+  // =============================================================================
+  // We support both formats because:
+  // 1. Platform differences: Toolbar uses singular (sku), App uses list (sku_list)
+  // 2. Historical data: Snowflake data may contain either format depending on capture date
+  // 3. Data capture evolution: The capture layer has changed over time
+  //
+  // When both formats are present, values are COMBINED and later deduplicated.
+  // =============================================================================
+
+  // Collect SKUs from sku/sku_list arrays (both formats supported)
+  // These go to both skus (for backwards compat) and variantSkus (for variant tracking)
   const skuFiltered = filterNonEmpty(event.sku);
-  if (skuFiltered.length > 0) getSkus().push(...skuFiltered);
+  if (skuFiltered.length > 0) {
+    getSkus().push(...skuFiltered);
+    getVariantSkus().push(...skuFiltered);
+  }
 
   const skuListFiltered = filterNonEmpty(event.sku_list);
-  if (skuListFiltered.length > 0) getSkus().push(...skuListFiltered);
+  if (skuListFiltered.length > 0) {
+    getSkus().push(...skuListFiltered);
+    getVariantSkus().push(...skuListFiltered);
+  }
 
-  // Collect GTINs from gtin/gtin_list arrays
+  // Collect GTINs from gtin/gtin_list arrays (both formats supported)
   const gtinFiltered = filterNonEmpty(event.gtin);
   if (gtinFiltered.length > 0) getGtins().push(...gtinFiltered);
 
   const gtinListFiltered = filterNonEmpty(event.gtin_list);
   if (gtinListFiltered.length > 0) getGtins().push(...gtinListFiltered);
 
-  // Collect MPNs from mpn/mpn_list arrays
+  // Collect MPNs from mpn/mpn_list arrays (both formats supported)
   const mpnFiltered = filterNonEmpty(event.mpn);
   if (mpnFiltered.length > 0) getMpns().push(...mpnFiltered);
 
   const mpnListFiltered = filterNonEmpty(event.mpn_list);
   if (mpnListFiltered.length > 0) getMpns().push(...mpnListFiltered);
 
-  // Collect product IDs from productID/productid_list arrays
+  // Collect product IDs from productID/productid_list arrays (both formats supported)
   const pidFiltered = filterNonEmpty(event.productID);
   if (pidFiltered.length > 0) getProductIds().push(...pidFiltered);
 
@@ -123,37 +149,45 @@ function collectSchemaProductIds(event: RawProductViewEvent): {
   if (pidListFiltered.length > 0) getProductIds().push(...pidListFiltered);
 
   // Extract SKUs from offers (Toolbar: offers[].sku)
+  // These are variant-level SKUs
   if (event.offers && event.offers.length > 0) {
     for (const offer of event.offers) {
       if (isNonEmptyString(offer.sku)) {
         getSkus().push(offer.sku);
+        getVariantSkus().push(offer.sku);
       }
     }
   }
 
   // Extract SKUs from offer_list (App: offer_list[].offer_sku)
+  // These are variant-level SKUs
   if (event.offer_list && event.offer_list.length > 0) {
     for (const offer of event.offer_list) {
       if (isNonEmptyString(offer.offer_sku)) {
         getSkus().push(offer.offer_sku);
+        getVariantSkus().push(offer.offer_sku);
       }
     }
   }
 
   // Extract SKUs from urlToSku map values (Toolbar only)
+  // These are variant-level SKUs (each URL represents a variant)
   if (event.urlToSku) {
     for (const sku of Object.values(event.urlToSku)) {
       if (isNonEmptyString(sku)) {
         getSkus().push(sku);
+        getVariantSkus().push(sku);
       }
     }
   }
 
   // Extract SKUs from priceToSku map values (Toolbar only)
+  // These are variant-level SKUs (grouped by price)
   if (event.priceToSku) {
     for (const sku of Object.values(event.priceToSku)) {
       if (isNonEmptyString(sku)) {
         getSkus().push(sku);
+        getVariantSkus().push(sku);
       }
     }
   }
@@ -163,44 +197,37 @@ function collectSchemaProductIds(event: RawProductViewEvent): {
     gtins: gtins ?? [],
     mpns: mpns ?? [],
     productIds: productIds ?? [],
+    variantSkus: variantSkus ?? [],
   };
 }
 
 /**
- * Deduplicate and combine all product identifiers
- * Optimized: Single set construction with all arrays
+ * Deduplicate productIds and variant SKUs
+ *
+ * Note: productIds contains ONLY schema.org productID/productid_list values,
+ * NOT SKUs, GTINs, or MPNs (those are separate fields in the output)
  */
 function consolidateProductIds(collected: {
   skus: string[];
   gtins: string[];
   mpns: string[];
   productIds: string[];
-}): readonly string[] {
-  // Early return if all arrays are empty
-  const totalLength =
-    collected.skus.length +
-    collected.gtins.length +
-    collected.mpns.length +
-    collected.productIds.length;
-  if (totalLength === 0) {
-    return EMPTY_FROZEN_ARRAY;
-  }
+  variantSkus: string[];
+}): {
+  productIds: readonly string[];
+  variantSkus: readonly string[];
+} {
+  // Deduplicate productIds (only schema.org productID field values)
+  const productIdSet = new Set(collected.productIds);
+  const productIds =
+    productIdSet.size > 0 ? Object.freeze(Array.from(productIdSet)) : EMPTY_FROZEN_ARRAY;
 
-  // Use Set constructor with pre-sized hint for better performance
-  const allIds = new Set<string>(collected.skus);
+  // Deduplicate variant SKUs
+  const variantSkuSet = new Set(collected.variantSkus);
+  const variantSkus =
+    variantSkuSet.size > 0 ? Object.freeze(Array.from(variantSkuSet)) : EMPTY_FROZEN_ARRAY;
 
-  // Add remaining arrays to the set
-  for (const gtin of collected.gtins) {
-    allIds.add(gtin);
-  }
-  for (const mpn of collected.mpns) {
-    allIds.add(mpn);
-  }
-  for (const pid of collected.productIds) {
-    allIds.add(pid);
-  }
-
-  return Object.freeze(Array.from(allIds));
+  return { productIds, variantSkus };
 }
 
 /**
@@ -306,20 +333,20 @@ function buildProductFingerprint(product: NormalizedProduct): string | undefined
     parts.push(`price:${product.price}`);
   }
 
-  // Schema.org identifiers (sorted for consistent fingerprints)
-  if (product.skus && product.skus.length > 0) {
-    parts.push(`skus:${[...product.skus].sort().join(',')}`);
+  // Schema.org identifiers from ids object (sorted for consistent fingerprints)
+  if (product.ids.skus && product.ids.skus.length > 0) {
+    parts.push(`skus:${[...product.ids.skus].sort().join(',')}`);
   }
-  if (product.gtins && product.gtins.length > 0) {
-    parts.push(`gtins:${[...product.gtins].sort().join(',')}`);
+  if (product.ids.gtins && product.ids.gtins.length > 0) {
+    parts.push(`gtins:${[...product.ids.gtins].sort().join(',')}`);
   }
-  if (product.mpns && product.mpns.length > 0) {
-    parts.push(`mpns:${[...product.mpns].sort().join(',')}`);
+  if (product.ids.mpns && product.ids.mpns.length > 0) {
+    parts.push(`mpns:${[...product.ids.mpns].sort().join(',')}`);
   }
 
-  // Consolidated productIds as fallback (includes all identifier types)
-  if (product.productIds.length > 0) {
-    parts.push(`ids:${[...product.productIds].sort().join(',')}`);
+  // productIds from ids object
+  if (product.ids.productIds.length > 0) {
+    parts.push(`ids:${[...product.ids.productIds].sort().join(',')}`);
   }
 
   // If we have nothing to fingerprint, can't deduplicate
@@ -389,18 +416,41 @@ export function normalizeProductViewEvent(
   // Collect all schema-based product identifiers
   const collected = collectSchemaProductIds(event);
 
-  // Consolidate and deduplicate
-  let productIds = consolidateProductIds(collected);
+  // Consolidate and deduplicate schema.org productID values and variant SKUs
+  const consolidated = consolidateProductIds(collected);
+  const productIds = consolidated.productIds;
+  const variantSkus = consolidated.variantSkus;
 
-  // If no schema IDs found and URL extraction is enabled, try URL-based extraction
+  // Extract URL and attempt URL-based extraction (always, as separate data source)
   const url = extractUrl(event);
-  if (productIds.length === 0 && shouldExtractFromUrl && url) {
-    productIds = extractProductIdsFromUrl(url, storeId);
+  let extractedIds: readonly string[] = EMPTY_FROZEN_ARRAY;
+  if (shouldExtractFromUrl && url) {
+    extractedIds = extractProductIdsFromUrl(url, storeId);
   }
 
-  // Build the normalized product
-  const normalized: NormalizedProduct = {
+  // Build the ids object with all identifier types
+  // SKUs, GTINs, MPNs are only included when metadata is enabled and values exist
+  const ids: NormalizedProduct['ids'] = {
     productIds,
+    extractedIds,
+  };
+
+  // Add specific identifier arrays (deduplicated) when metadata is enabled
+  if (includeMetadata) {
+    if (collected.skus.length > 0) {
+      ids.skus = Object.freeze([...new Set(collected.skus)]);
+    }
+    if (collected.gtins.length > 0) {
+      ids.gtins = Object.freeze([...new Set(collected.gtins)]);
+    }
+    if (collected.mpns.length > 0) {
+      ids.mpns = Object.freeze([...new Set(collected.mpns)]);
+    }
+  }
+
+  // Build the normalized product with nested ids object
+  const normalized: NormalizedProduct = {
+    ids: Object.freeze(ids),
   };
 
   // Add core fields
@@ -451,17 +501,11 @@ export function normalizeProductViewEvent(
       normalized.color = color;
     }
 
-    // Add specific identifier arrays (deduplicated)
-    if (collected.skus.length > 0) {
-      normalized.skus = Object.freeze([...new Set(collected.skus)]);
-    }
-
-    if (collected.gtins.length > 0) {
-      normalized.gtins = Object.freeze([...new Set(collected.gtins)]);
-    }
-
-    if (collected.mpns.length > 0) {
-      normalized.mpns = Object.freeze([...new Set(collected.mpns)]);
+    // Add variant information if there are multiple variant SKUs
+    if (variantSkus.length > 0) {
+      normalized.variantSkus = variantSkus;
+      normalized.variantCount = variantSkus.length;
+      normalized.hasVariants = variantSkus.length > 1;
     }
   }
 

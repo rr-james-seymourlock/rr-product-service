@@ -455,11 +455,41 @@
           "description": {
             "type": "string"
           },
-          "productIds": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
+          "ids": {
+            "type": "object",
+            "properties": {
+              "productIds": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "extractedIds": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "skus": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "gtins": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "mpns": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": ["productIds", "extractedIds"]
           },
           "quantity": {
             "type": "number"
@@ -468,7 +498,7 @@
             "type": "number"
           }
         },
-        "required": ["productIds"]
+        "required": ["ids"]
       },
       "NormalizationResult": {
         "anyOf": [
@@ -503,7 +533,10 @@
                         "storeId": "8333",
                         "price": 4900,
                         "quantity": 1,
-                        "productIds": ["12345"]
+                        "ids": {
+                          "productIds": [],
+                          "extractedIds": ["12345"]
+                        }
                       }
                     ]
                   },
@@ -577,7 +610,10 @@
                     "storeId": "8333",
                     "price": 4900,
                     "quantity": 1,
-                    "productIds": ["12345"]
+                    "ids": {
+                      "productIds": [],
+                      "extractedIds": ["12345"]
+                    }
                   }
                 ],
                 "productCount": 1,
@@ -898,11 +934,41 @@
                                       "description": {
                                         "type": "string"
                                       },
-                                      "productIds": {
-                                        "type": "array",
-                                        "items": {
-                                          "type": "string"
-                                        }
+                                      "ids": {
+                                        "type": "object",
+                                        "properties": {
+                                          "productIds": {
+                                            "type": "array",
+                                            "items": {
+                                              "type": "string"
+                                            }
+                                          },
+                                          "extractedIds": {
+                                            "type": "array",
+                                            "items": {
+                                              "type": "string"
+                                            }
+                                          },
+                                          "skus": {
+                                            "type": "array",
+                                            "items": {
+                                              "type": "string"
+                                            }
+                                          },
+                                          "gtins": {
+                                            "type": "array",
+                                            "items": {
+                                              "type": "string"
+                                            }
+                                          },
+                                          "mpns": {
+                                            "type": "array",
+                                            "items": {
+                                              "type": "string"
+                                            }
+                                          }
+                                        },
+                                        "required": ["productIds", "extractedIds"]
                                       },
                                       "category": {
                                         "type": "string"
@@ -913,23 +979,18 @@
                                       "color": {
                                         "type": "string"
                                       },
-                                      "skus": {
+                                      "variantSkus": {
                                         "type": "array",
                                         "items": {
                                           "type": "string"
                                         }
                                       },
-                                      "gtins": {
-                                        "type": "array",
-                                        "items": {
-                                          "type": "string"
-                                        }
+                                      "variantCount": {
+                                        "type": "integer",
+                                        "minimum": 0
                                       },
-                                      "mpns": {
-                                        "type": "array",
-                                        "items": {
-                                          "type": "string"
-                                        }
+                                      "hasVariants": {
+                                        "type": "boolean"
                                       }
                                     }
                                   }
@@ -943,8 +1004,15 @@
                                   "imageUrl": "https://target.scene7.com/is/image/Target/GUEST_88056717",
                                   "storeId": "5246",
                                   "price": 800,
-                                  "productIds": ["88056717"],
-                                  "brand": "A New Day"
+                                  "ids": {
+                                    "productIds": ["A-88056717"],
+                                    "extractedIds": ["88056717"],
+                                    "skus": ["88056717", "88056723", "88056720"]
+                                  },
+                                  "brand": "A New Day",
+                                  "variantSkus": ["88056717", "88056723", "88056720"],
+                                  "variantCount": 3,
+                                  "hasVariants": true
                                 }
                               ]
                             },
@@ -1011,8 +1079,15 @@
                     "imageUrl": "https://target.scene7.com/is/image/Target/GUEST_88056717",
                     "storeId": "5246",
                     "price": 800,
-                    "productIds": ["88056717"],
-                    "brand": "A New Day"
+                    "ids": {
+                      "productIds": ["A-88056717"],
+                      "extractedIds": ["88056717"],
+                      "skus": ["88056717", "88056723", "88056720"]
+                    },
+                    "brand": "A New Day",
+                    "variantSkus": ["88056717", "88056723", "88056720"],
+                    "variantCount": 3,
+                    "hasVariants": true
                   }
                 ],
                 "productCount": 1,

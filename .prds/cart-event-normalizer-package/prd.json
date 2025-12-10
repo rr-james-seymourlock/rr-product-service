@@ -238,6 +238,25 @@
       "dependencies": [],
       "notes": "Implemented coerceStoreId utility in @rr/shared/utils. storeId is now always output as string type.",
       "completedAt": "2025-12-09"
+    },
+    {
+      "id": "US012",
+      "title": "Have All Product Identifiers",
+      "userStory": "As a data pipeline engineer, I want to have all product identifiers grouped in a nested 'ids' object so that I get a clean separation between product data (title, price, etc.) and identifier data (productIds, extractedIds), making the output schema more organized and aligned with the product-event-normalizer",
+      "businessValue": "I get a clean separation between product data (title, price, etc.) and identifier data (productIds, extractedIds), making the output schema more organized and aligned with the product-event-normalizer",
+      "acceptanceCriteria": [
+        "Output CartProduct has 'ids' object containing productIds and extractedIds",
+        "ids.productIds is always an empty array (cart events have no schema.org data)",
+        "ids.extractedIds contains IDs extracted from product URLs",
+        "Both arrays are readonly and frozen",
+        "Output structure aligns with @rr/product-event-normalizer output"
+      ],
+      "status": "completed",
+      "priority": "P0",
+      "estimatedComplexity": "M",
+      "dependencies": [],
+      "notes": "Implemented nested ids object structure. ids.productIds is always empty (cart events have no schema.org data), ids.extractedIds contains URL-extracted IDs. Output aligns with product-event-normalizer.",
+      "completedAt": "2025-12-10"
     }
   ],
   "technicalRequirements": {
@@ -257,13 +276,13 @@
   "metadata": {
     "version": "1.0",
     "created": "2025-12-08",
-    "lastUpdated": "2025-12-09",
+    "lastUpdated": "2025-12-10",
     "approver": ""
   },
   "progress": {
     "overall": 100,
-    "completed": 11,
-    "total": 11,
+    "completed": 12,
+    "total": 12,
     "blocked": 0
   }
 }

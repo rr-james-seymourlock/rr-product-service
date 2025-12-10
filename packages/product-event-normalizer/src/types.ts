@@ -44,7 +44,12 @@ export const RawProductViewEventSchema = z.object({
   image_url: z.string().optional(),
   image_url_list: z.array(z.string()).optional(),
 
-  // Product identifiers - Toolbar uses singular, App uses _list suffix
+  // Product identifiers - DUAL FORMAT SUPPORT
+  // Both singular and _list formats are supported and COMBINED when both present.
+  // This is because:
+  // - Platform differences: Toolbar uses singular (sku), App uses list (sku_list)
+  // - Historical data: Snowflake data may contain either format depending on capture date
+  // - Data capture evolution: The capture layer has changed over time
   sku: z.array(z.string()).optional(),
   sku_list: z.array(z.string()).optional(),
   gtin: z.array(z.string()).optional(),
@@ -138,6 +143,9 @@ export type RawProductViewEvent = z.infer<typeof RawProductViewEventSchema>;
 /**
  * Normalized product output
  * Extends BaseNormalizedProductSchema with product view-specific fields
+ *
+ * Note: All identifier fields (productIds, extractedIds, skus, gtins, mpns)
+ * are now in the `ids` nested object from BaseNormalizedProductSchema
  */
 export const NormalizedProductSchema = BaseNormalizedProductSchema.extend({
   // Extended fields for product view data
@@ -156,21 +164,25 @@ export const NormalizedProductSchema = BaseNormalizedProductSchema.extend({
    */
   color: z.string().optional(),
 
-  // Specific identifier types (for downstream consumers that need them)
+  // Variant handling fields
   /**
-   * SKU identifiers extracted from schema.org data
+   * Variant SKUs - size/color combinations of the parent product
+   * Present when the product page shows multiple variants (e.g., different sizes)
+   * These are typically longer/more specific than the parent productId
    */
-  skus: z.array(z.string()).readonly().optional(),
+  variantSkus: z.array(z.string()).readonly().optional(),
 
   /**
-   * GTIN identifiers (UPC, EAN, ISBN) extracted from schema.org data
+   * Number of variants detected on the product page
+   * Useful for analytics and understanding product complexity
    */
-  gtins: z.array(z.string()).readonly().optional(),
+  variantCount: z.number().int().min(0).optional(),
 
   /**
-   * MPN (Manufacturer Part Number) identifiers
+   * Whether this product has multiple variants
+   * True if variantCount > 1
    */
-  mpns: z.array(z.string()).readonly().optional(),
+  hasVariants: z.boolean().optional(),
 });
 
 export type NormalizedProduct = z.infer<typeof NormalizedProductSchema>;
