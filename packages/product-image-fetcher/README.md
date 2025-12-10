@@ -50,6 +50,74 @@ Use this package when you need to:
 
 **Internal package**: This library is part of the rr-product-service monorepo and not published to npm.
 
+## Request Headers Strategy
+
+### Why User-Agent and Referer Matter
+
+Merchant CDNs and image servers use various signals to distinguish legitimate traffic from bots. Requests without proper headers are often blocked or rate-limited aggressively. This package uses two key headers to present as quality traffic:
+
+#### User-Agent Header
+
+```
+Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36
+```
+
+**Why it helps:**
+- **Bot detection systems** (Cloudflare, Akamai, etc.) flag requests with missing or generic User-Agents
+- **CDN caching** may serve different content based on User-Agent (mobile vs desktop, WebP support)
+- **Quality signal** - A realistic browser User-Agent indicates the request originates from a legitimate browsing context
+- **Reduced blocking** - Many merchants whitelist common browser User-Agents while blocking `curl`, `python-requests`, or empty User-Agents
+
+#### Referer Header
+
+The Referer is set to the `productUrl` parameter (the product page containing the image):
+
+```
+Referer: https://www.macys.com/shop/product/12345
+```
+
+**Why it helps:**
+- **Hotlink protection** - Many CDNs check that image requests come from their own domain pages
+- **Traffic validation** - A Referer from the same merchant domain indicates the request is part of normal page loading
+- **Anti-scraping measures** - Requests without Referer are often flagged as automated/bot traffic
+- **Analytics accuracy** - Helps merchants understand traffic patterns (though we're not their primary concern)
+
+#### Combined Effect
+
+Together, these headers make our requests appear as if they're coming from a user's browser viewing a product page:
+
+```
+Real browser loading image:
+  GET /image.jpg
+  User-Agent: Chrome/120...
+  Referer: https://merchant.com/product-page
+
+Our requests (mimicking browser):
+  GET /image.jpg
+  User-Agent: Chrome/120...
+  Referer: https://merchant.com/product-page  ← from productUrl parameter
+```
+
+This significantly reduces 403 Forbidden responses and improves success rates across merchants.
+
+### Per-Merchant Analysis
+
+When images fail to fetch, structured logs include the domain, enabling analysis of which merchants have stricter protections:
+
+```json
+{
+  "domain": "images.merchant.com",
+  "storeId": "12345",
+  "statusCode": 403,
+  "isPermanent": true
+}
+```
+
+This data helps identify merchants that may need:
+- IP whitelisting arrangements
+- Alternative image sources
+- Special handling or throttling
+
 ## Features
 
 - **Bot detection avoidance** - Realistic User-Agent and Referer headers
