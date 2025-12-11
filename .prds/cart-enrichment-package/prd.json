@@ -51,10 +51,12 @@
         "All output arrays and objects are frozen (immutable)",
         "Validates that cart and products have matching storeId"
       ],
-      "status": "not_started",
+      "status": "completed",
       "priority": "P0",
       "estimatedComplexity": "L",
-      "dependencies": []
+      "dependencies": [],
+      "notes": "Core enrichCart function implemented with full type safety and immutable output",
+      "completedAt": "2025-12-11"
     },
     {
       "id": "US002",
@@ -69,10 +71,12 @@
         "Match by title similarity: fuzzy match when other methods fail (configurable threshold)",
         "Matching stops at first successful strategy (highest confidence first)"
       ],
-      "status": "not_started",
+      "status": "completed",
       "priority": "P0",
       "estimatedComplexity": "L",
-      "dependencies": []
+      "dependencies": [],
+      "notes": "Multi-strategy matching implemented: SKU, variant_sku, image_sku, URL, extractedIds, title_color, title",
+      "completedAt": "2025-12-11"
     },
     {
       "id": "US003",
@@ -87,10 +91,12 @@
         "Title similarity matches get 'low' confidence",
         "Unmatched items get confidence 'none' and method null"
       ],
-      "status": "not_started",
+      "status": "completed",
       "priority": "P0",
       "estimatedComplexity": "L",
-      "dependencies": []
+      "dependencies": [],
+      "notes": "Confidence scoring and matchedSignals array with exact flag implemented",
+      "completedAt": "2025-12-11"
     },
     {
       "id": "US004",
@@ -105,10 +111,12 @@
         "All product identifiers merged: ids object combines both sources",
         "Matched variant data included when variant-level match occurs"
       ],
-      "status": "not_started",
+      "status": "completed",
       "priority": "P1",
       "estimatedComplexity": "L",
-      "dependencies": []
+      "dependencies": [],
+      "notes": "Field merging with precedence and variant data support implemented",
+      "completedAt": "2025-12-11"
     },
     {
       "id": "US005",
@@ -122,10 +130,12 @@
         "Each EnrichedCartItem has sources object tracking which fields came from which source",
         "EnrichedCart has summary stats: totalItems, matchedItems, unmatchedItems, matchRate"
       ],
-      "status": "not_started",
+      "status": "completed",
       "priority": "P1",
       "estimatedComplexity": "M",
-      "dependencies": []
+      "dependencies": [],
+      "notes": "Provenance tracking via sources object and summary stats implemented",
+      "completedAt": "2025-12-11"
     },
     {
       "id": "US006",
@@ -157,10 +167,12 @@
         "Threshold of 'medium' accepts SKU, URL, and extractedId matches",
         "Summary stats reflect matches above threshold only"
       ],
-      "status": "not_started",
+      "status": "completed",
       "priority": "P1",
       "estimatedComplexity": "L",
-      "dependencies": []
+      "dependencies": [],
+      "notes": "minConfidence option implemented with 'high' default",
+      "completedAt": "2025-12-11"
     },
     {
       "id": "US008",
@@ -196,10 +208,12 @@
         "Return 'title_fuzzy' as matchMethod with medium confidence when matched via fuzzy logic",
         "Falls back gracefully when no color is present - uses pure title similarity"
       ],
-      "status": "not_started",
+      "status": "completed",
       "priority": "P2",
       "estimatedComplexity": "XL",
-      "dependencies": []
+      "dependencies": [],
+      "notes": "Implemented multi-strategy title matching with Levenshtein, Dice coefficient, token-based, containment check, and Sam's Club format parsing",
+      "completedAt": "2025-12-11"
     }
   ],
   "technicalRequirements": {
@@ -223,8 +237,8 @@
     "approver": ""
   },
   "progress": {
-    "overall": 0,
-    "completed": 0,
+    "overall": 78,
+    "completed": 7,
     "total": 9,
     "blocked": 0
   }
