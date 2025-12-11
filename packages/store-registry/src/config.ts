@@ -134,6 +134,28 @@ const mutableStoreConfigs: StoreConfigInterface[] = [
     ],
   },
   {
+    id: '10086',
+    domain: 'samsclub.com',
+    pathnamePatterns: [
+      // Both /ip/ and /p/ URLs: captures last path segment (product ID)
+      // Examples: /ip/seort/16675013342, /ip/slug/prod24921152, /p/slug/P03002770
+      buildRegExp(
+        [
+          '/',
+          choiceOf('ip', 'p'),
+          '/',
+          repeat(choiceOf(word, digit, '-'), { min: 1 }),
+          '/',
+          capture(repeat(choiceOf(word, digit), { min: 6, max: 24 })),
+          choiceOf(endOfString, wordBoundary),
+        ],
+        { global: true },
+      ),
+    ],
+    // Strip prefixes (P, prod) to get just the numeric ID
+    transformId: (id: string) => id.replace(/^(prod|p)/i, ''),
+  },
+  {
     id: '3864',
     domain: 'gap.com',
     aliases: [
