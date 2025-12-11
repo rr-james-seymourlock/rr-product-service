@@ -14,14 +14,25 @@ export type MatchConfidence = z.infer<typeof MatchConfidenceSchema>;
  * - 'variant_sku': Cart SKU matches a product variant SKU
  * - 'image_sku': SKU extracted from cart image URL matches product SKU
  * - 'url': URL-based match
- * - 'extracted_id': Extracted IDs overlap
+ * - 'extracted_id': Extracted IDs overlap (cart.extractedIds ∩ product.extractedIds)
+ * - 'extracted_id_sku': Cart extracted ID matches product SKU (cart.extractedIds ∩ product.skus)
  * - 'title_color': Title + color match (cart "Sport Cap - White" matches product "Sport Cap" with color "White")
  * - 'title': Title similarity match (lowest confidence)
  * - 'price': Price match within tolerance (supporting signal only, never primary match)
  * - null: No match found
  */
 export const MatchMethodSchema = z
-  .enum(['sku', 'variant_sku', 'image_sku', 'url', 'extracted_id', 'title_color', 'title', 'price'])
+  .enum([
+    'sku',
+    'variant_sku',
+    'image_sku',
+    'url',
+    'extracted_id',
+    'extracted_id_sku',
+    'title_color',
+    'title',
+    'price',
+  ])
   .nullable();
 export type MatchMethod = z.infer<typeof MatchMethodSchema>;
 
@@ -34,6 +45,7 @@ export const MatchMethodNonNullSchema = z.enum([
   'image_sku',
   'url',
   'extracted_id',
+  'extracted_id_sku',
   'title_color',
   'title',
   'price',
@@ -275,6 +287,7 @@ export const EnrichmentSummarySchema = z.object({
     image_sku: z.number().int().min(0),
     url: z.number().int().min(0),
     extracted_id: z.number().int().min(0),
+    extracted_id_sku: z.number().int().min(0),
     title_color: z.number().int().min(0),
     title: z.number().int().min(0),
     price: z.number().int().min(0),

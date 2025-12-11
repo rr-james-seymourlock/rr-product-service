@@ -433,6 +433,53 @@ function tryExtractedIdMatch(
 }
 
 /**
+ * Try to match a cart item to products using cart extracted IDs against product SKUs
+ * This handles cases where the URL contains a SKU-like ID (extractedId) that matches
+ * a SKU in the product's variant list.
+ *
+ * Example: Cart URL has pid=7873200220004, product view has 7873200220004 in its skus array
+ * (even though the product view was for a different variant like pid=7873200220003)
+ *
+ * Returns high confidence since extractedIds from URLs are typically SKU-equivalent identifiers.
+ */
+function tryExtractedIdToSkuMatch(
+  cartItem: CartProduct,
+  products: readonly NormalizedProduct[],
+): StrategyMatch | null {
+  const cartIds = cartItem.ids.extractedIds;
+  if (cartIds.length === 0) return null;
+
+  for (const product of products) {
+    // Check if cart extractedId matches any product SKU
+    const productSkus = product.ids.skus ?? [];
+    if (hasIntersection(cartIds, productSkus)) {
+      return {
+        product,
+        variant: null,
+        confidence: 'high',
+        method: 'extracted_id_sku',
+        exact: true, // Extracted ID to SKU matching is exact string equality
+      };
+    }
+
+    // Also check variant SKUs
+    for (const variant of product.variants) {
+      if (cartIds.includes(variant.sku)) {
+        return {
+          product,
+          variant,
+          confidence: 'high',
+          method: 'extracted_id_sku',
+          exact: true,
+        };
+      }
+    }
+  }
+
+  return null;
+}
+
+/**
  * Try to match a cart item to products using title + color combination
  * This handles cases where cart titles have color appended (e.g., "Sport Cap - White")
  * and products have separate title ("Sport Cap") and color ("White") fields.
@@ -612,6 +659,7 @@ function matchCartItem(
     { fn: () => trySkuMatch(cartItem, products) },
     { fn: () => tryVariantSkuMatch(cartItem, products) },
     { fn: () => tryImageSkuMatch(cartItem, products) },
+    { fn: () => tryExtractedIdToSkuMatch(cartItem, products) }, // High confidence: cart extractedId matches product SKU
     { fn: () => tryUrlMatch(cartItem, products) },
     { fn: () => tryExtractedIdMatch(cartItem, products) },
     { fn: () => tryTitleColorMatch(cartItem, products) },
@@ -820,6 +868,7 @@ function calculateSummary(items: readonly EnrichedCartItem[]): EnrichmentSummary
     image_sku: 0,
     url: 0,
     extracted_id: 0,
+    extracted_id_sku: 0,
     title_color: 0,
     title: 0,
     price: 0,

@@ -62,7 +62,7 @@ Use this package when you need to:
 
 ## Features
 
-- **Multi-strategy matching**: SKU → variant SKU → image SKU → URL → extracted IDs → title+color → title similarity
+- **Multi-strategy matching**: SKU → variant SKU → image SKU → extractedId-to-SKU → URL → extracted IDs → title+color → title similarity
 - **Confidence scoring**: High (SKU), Medium (URL/IDs), Low (title)
 - **Multiple signals tracking**: All matching methods that succeeded are reported
 - **Exact match tracking**: Each signal marked as exact (true) or fuzzy (false)
@@ -188,6 +188,11 @@ The enricher tries multiple matching strategies in order of confidence:
 │  ┌─────────────┐                                                        │
 │  │ Image SKU   │  SKU extracted from cart imageUrl filename             │
 │  └──────┬──────┘                                                        │
+│         ▼                                                               │
+│  ┌─────────────┐                                                        │
+│  │ExtractedId→ │  cart.ids.extractedIds ∩ product.ids.skus            │
+│  │ SKU Match   │  (URL product ID matches product SKU list)             │
+│  └──────┬──────┘                                                        │
 │         │                                                               │
 │  MEDIUM CONFIDENCE                                                      │
 │         ▼                                                               │
@@ -218,16 +223,17 @@ The enricher tries multiple matching strategies in order of confidence:
 
 ### Strategy Details
 
-| Strategy     | Confidence | Exact | Description                                         |
-| ------------ | ---------- | ----- | --------------------------------------------------- |
-| `sku`        | high       | true  | Direct SKU intersection                             |
-| `variant_sku`| high       | true  | Cart SKU matches product variant SKU                |
-| `image_sku`  | high       | true  | SKU extracted from cart image URL filename          |
-| `url`        | medium     | true  | Normalized URL equality                             |
-| `extracted_id`| medium    | true  | Extracted IDs overlap (e.g., product IDs from URL)  |
-| `title_color`| medium     | true  | Title + color match (cart "Cap - White" → product "Cap" + color "White") |
-| `title`      | low        | false | Multi-strategy fuzzy title matching                 |
-| `price`      | low        | varies| Price within 10% tolerance (supporting signal only) |
+| Strategy           | Confidence | Exact | Description                                         |
+| ------------------ | ---------- | ----- | --------------------------------------------------- |
+| `sku`              | high       | true  | Direct SKU intersection                             |
+| `variant_sku`      | high       | true  | Cart SKU matches product variant SKU                |
+| `image_sku`        | high       | true  | SKU extracted from cart image URL filename          |
+| `extracted_id_sku` | high       | true  | Cart extractedId matches product SKU (variant cross-match) |
+| `url`              | medium     | true  | Normalized URL equality                             |
+| `extracted_id`     | medium     | true  | Extracted IDs overlap (e.g., product IDs from URL)  |
+| `title_color`      | medium     | true  | Title + color match (cart "Cap - White" → product "Cap" + color "White") |
+| `title`            | low        | false | Multi-strategy fuzzy title matching                 |
+| `price`            | low        | varies| Price within 10% tolerance (supporting signal only) |
 
 ## Title Matching Algorithms
 
