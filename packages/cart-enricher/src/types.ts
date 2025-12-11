@@ -17,10 +17,11 @@ export type MatchConfidence = z.infer<typeof MatchConfidenceSchema>;
  * - 'extracted_id': Extracted IDs overlap
  * - 'title_color': Title + color match (cart "Sport Cap - White" matches product "Sport Cap" with color "White")
  * - 'title': Title similarity match (lowest confidence)
+ * - 'price': Price match within tolerance (supporting signal only, never primary match)
  * - null: No match found
  */
 export const MatchMethodSchema = z
-  .enum(['sku', 'variant_sku', 'image_sku', 'url', 'extracted_id', 'title_color', 'title'])
+  .enum(['sku', 'variant_sku', 'image_sku', 'url', 'extracted_id', 'title_color', 'title', 'price'])
   .nullable();
 export type MatchMethod = z.infer<typeof MatchMethodSchema>;
 
@@ -35,6 +36,7 @@ export const MatchMethodNonNullSchema = z.enum([
   'extracted_id',
   'title_color',
   'title',
+  'price',
 ]);
 export type MatchMethodNonNull = z.infer<typeof MatchMethodNonNullSchema>;
 
@@ -51,6 +53,22 @@ export const MatchedSignalSchema = z.object({
    * Confidence level for this particular signal
    */
   confidence: MatchConfidenceSchema,
+
+  /**
+   * Whether this was an exact match (true) or fuzzy/within tolerance (false)
+   *
+   * Exact matches:
+   * - sku, variant_sku, image_sku: Always exact (string equality)
+   * - url: Always exact (normalized URL equality)
+   * - extracted_id: Always exact (string equality)
+   * - title_color: Always exact (normalized string equality)
+   * - price: Exact only if prices are identical (not just within tolerance)
+   *
+   * Fuzzy matches:
+   * - title: Always fuzzy (similarity threshold)
+   * - price: Fuzzy when prices differ but are within tolerance
+   */
+  exact: z.boolean(),
 });
 export type MatchedSignal = z.infer<typeof MatchedSignalSchema>;
 
@@ -259,6 +277,7 @@ export const EnrichmentSummarySchema = z.object({
     extracted_id: z.number().int().min(0),
     title_color: z.number().int().min(0),
     title: z.number().int().min(0),
+    price: z.number().int().min(0),
   }),
 });
 

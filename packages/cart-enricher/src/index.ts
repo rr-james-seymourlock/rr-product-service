@@ -8,8 +8,10 @@ export type {
   FieldSource,
   FieldSources,
   MatchConfidence,
+  MatchedSignal,
   MatchedVariant,
   MatchMethod,
+  MatchMethodNonNull,
 } from './types.js';
 
 export {
@@ -19,8 +21,10 @@ export {
   FieldSourceSchema,
   FieldSourcesSchema,
   MatchConfidenceSchema,
+  MatchedSignalSchema,
   MatchedVariantSchema,
   MatchMethodSchema,
+  MatchMethodNonNullSchema,
 } from './types.js';
 
 // Re-export input types for consumers

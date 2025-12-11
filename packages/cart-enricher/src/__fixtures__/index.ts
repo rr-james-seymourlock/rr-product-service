@@ -7,3 +7,4 @@
 
 export * from './types.js';
 export { fixture as gymsharkSession001 } from './gymshark-session-001.js';
+export { fixture as samsclubSession001 } from './samsclub-session-001.js';

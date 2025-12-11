@@ -26,6 +26,8 @@ interface StrategyMatch {
   variant: ProductVariant | null;
   confidence: MatchConfidence;
   method: MatchMethodNonNull;
+  /** Whether this was an exact match (true) or fuzzy/within tolerance (false) */
+  exact: boolean;
 }
 
 /**
@@ -203,6 +205,7 @@ function trySkuMatch(
         variant: null,
         confidence: 'high',
         method: 'sku',
+        exact: true, // SKU matching is always exact string equality
       };
     }
   }
@@ -228,6 +231,7 @@ function tryVariantSkuMatch(
           variant,
           confidence: 'high',
           method: 'variant_sku',
+          exact: true, // Variant SKU matching is always exact string equality
         };
       }
     }
@@ -255,6 +259,7 @@ function tryImageSkuMatch(
         variant: null,
         confidence: 'high',
         method: 'image_sku',
+        exact: true, // Image SKU matching is exact string equality
       };
     }
   }
@@ -280,6 +285,7 @@ function tryUrlMatch(
         variant: null,
         confidence: 'medium',
         method: 'url',
+        exact: true, // Normalized URL matching is exact string equality
       };
     }
 
@@ -291,6 +297,7 @@ function tryUrlMatch(
           variant,
           confidence: 'medium',
           method: 'url',
+          exact: true, // Normalized URL matching is exact string equality
         };
       }
     }
@@ -317,6 +324,7 @@ function tryExtractedIdMatch(
         variant: null,
         confidence: 'medium',
         method: 'extracted_id',
+        exact: true, // Extracted ID matching is exact string equality
       };
     }
 
@@ -329,6 +337,7 @@ function tryExtractedIdMatch(
           variant,
           confidence: 'medium',
           method: 'extracted_id',
+          exact: true, // Extracted ID matching is exact string equality
         };
       }
     }
@@ -371,6 +380,7 @@ function tryTitleColorMatch(
         variant: null,
         confidence: 'medium',
         method: 'title_color',
+        exact: true, // Normalized title+color matching is exact string equality
       };
     }
 
@@ -382,6 +392,7 @@ function tryTitleColorMatch(
           variant,
           confidence: 'medium',
           method: 'title_color',
+          exact: true, // Normalized title+color matching is exact string equality
         };
       }
     }
@@ -415,7 +426,80 @@ function tryTitleMatch(
       variant: null,
       confidence: 'low',
       method: 'title',
+      exact: false, // Title matching uses fuzzy similarity, never exact
     };
+  }
+
+  return null;
+}
+
+/**
+ * Default price tolerance - 10% to account for tax, discounts, rounding
+ */
+const DEFAULT_PRICE_TOLERANCE = 0.1;
+
+/**
+ * Check if two prices match within a tolerance
+ * Handles tax variations, rounding, and minor price differences
+ *
+ * @param price1 - First price in cents
+ * @param price2 - Second price in cents
+ * @param tolerance - Tolerance as decimal (0.1 = 10%)
+ * @returns true if prices match within tolerance
+ */
+function pricesMatch(
+  price1: number | undefined,
+  price2: number | undefined,
+  tolerance: number = DEFAULT_PRICE_TOLERANCE,
+): boolean {
+  if (price1 === undefined || price2 === undefined) return false;
+  if (price1 === price2) return true;
+  if (price1 === 0 || price2 === 0) return false;
+
+  // Calculate percentage difference relative to the higher price
+  const maxPrice = Math.max(price1, price2);
+  const diff = Math.abs(price1 - price2);
+  const percentDiff = diff / maxPrice;
+
+  return percentDiff <= tolerance;
+}
+
+/**
+ * Try to match a cart item to a specific product using price
+ * This is a SUPPORTING signal only - never used as primary match
+ * Returns low confidence since price alone is not definitive
+ *
+ * Checks:
+ * 1. Cart price vs product base price
+ * 2. Cart price vs variant prices
+ */
+function tryPriceMatch(cartItem: CartProduct, product: NormalizedProduct): StrategyMatch | null {
+  if (cartItem.price === undefined) return null;
+
+  // Check main product price
+  if (pricesMatch(cartItem.price, product.price)) {
+    const isExactPrice = cartItem.price === product.price;
+    return {
+      product,
+      variant: null,
+      confidence: 'low',
+      method: 'price',
+      exact: isExactPrice, // true if identical, false if within tolerance
+    };
+  }
+
+  // Check variant prices
+  for (const variant of product.variants) {
+    if (pricesMatch(cartItem.price, variant.price)) {
+      const isExactPrice = cartItem.price === variant.price;
+      return {
+        product,
+        variant,
+        confidence: 'low',
+        method: 'price',
+        exact: isExactPrice, // true if identical, false if within tolerance
+      };
+    }
   }
 
   return null;
@@ -430,6 +514,7 @@ function tryTitleMatch(
  * - SKU, variant_sku, image_sku: high confidence
  * - URL, extracted_id, title_color: medium confidence
  * - title: low confidence
+ * - price: low confidence (supporting signal only, added when product is already matched)
  */
 function matchCartItem(
   cartItem: CartProduct,
@@ -470,14 +555,32 @@ function matchCartItem(
   // Sort by confidence (high → medium → low) and use first as primary
   allMatches.sort((a, b) => CONFIDENCE_ORDER[b.confidence] - CONFIDENCE_ORDER[a.confidence]);
 
+  // Primary is guaranteed to exist since we checked allMatches.length > 0
+  const primary = allMatches[0]!;
+
   // Build matchedSignals array from all matches
   const matchedSignals: MatchedSignal[] = allMatches.map((m) => ({
     method: m.method,
     confidence: m.confidence,
+    exact: m.exact,
   }));
 
-  // Primary is guaranteed to exist since we checked allMatches.length > 0
-  const primary = allMatches[0]!;
+  // Add price as a supporting signal if we have a match and price matches
+  // Price is never a primary match method, only a confirming signal
+  if (primary.product) {
+    const priceMatch = tryPriceMatch(cartItem, primary.product);
+    if (priceMatch) {
+      // Only add if not already present (shouldn't happen, but defensive)
+      const hasPriceSignal = matchedSignals.some((s) => s.method === 'price');
+      if (!hasPriceSignal) {
+        matchedSignals.push({
+          method: 'price',
+          confidence: 'low',
+          exact: priceMatch.exact,
+        });
+      }
+    }
+  }
 
   return {
     product: primary.product,
@@ -633,6 +736,7 @@ function calculateSummary(items: readonly EnrichedCartItem[]): EnrichmentSummary
     extracted_id: 0,
     title_color: 0,
     title: 0,
+    price: 0,
   };
 
   for (const item of items) {

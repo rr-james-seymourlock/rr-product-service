@@ -1106,6 +1106,7 @@ describe('enrichCart', () => {
         createCartItem({
           title: 'Product',
           url: 'https://store.com/product/123',
+          price: 1999,
           ids: { productIds: [], extractedIds: ['123'] },
         }),
       ];
@@ -1113,6 +1114,10 @@ describe('enrichCart', () => {
         createProduct({
           title: 'Different Title',
           url: 'https://store.com/product/123',
+          price: 9999, // Different price to prevent price signal
+          variants: [], // No variants to prevent variant price matching
+          variantCount: 0,
+          hasVariants: false,
           ids: { productIds: [], extractedIds: ['different'] },
         }),
       ];
@@ -1123,6 +1128,7 @@ describe('enrichCart', () => {
       expect(getItem(result.items, 0).matchedSignals[0]).toEqual({
         method: 'url',
         confidence: 'medium',
+        exact: true,
       });
     });
 
@@ -1153,17 +1159,21 @@ describe('enrichCart', () => {
 
       // Should include sku signal
       const skuSignal = getItem(result.items, 0).matchedSignals.find((s) => s.method === 'sku');
-      expect(skuSignal).toEqual({ method: 'sku', confidence: 'high' });
+      expect(skuSignal).toEqual({ method: 'sku', confidence: 'high', exact: true });
 
       // Should include url signal
       const urlSignal = getItem(result.items, 0).matchedSignals.find((s) => s.method === 'url');
-      expect(urlSignal).toEqual({ method: 'url', confidence: 'medium' });
+      expect(urlSignal).toEqual({ method: 'url', confidence: 'medium', exact: true });
 
       // Should include extracted_id signal
       const extractedIdSignal = getItem(result.items, 0).matchedSignals.find(
         (s) => s.method === 'extracted_id',
       );
-      expect(extractedIdSignal).toEqual({ method: 'extracted_id', confidence: 'medium' });
+      expect(extractedIdSignal).toEqual({
+        method: 'extracted_id',
+        confidence: 'medium',
+        exact: true,
+      });
     });
 
     it('sorts matchedSignals by confidence (high → medium → low)', () => {
@@ -1225,10 +1235,14 @@ describe('enrichCart', () => {
       const signals = getItem(result.items, 0).matchedSignals;
 
       const imageSkuSignal = signals.find((s) => s.method === 'image_sku');
-      expect(imageSkuSignal).toEqual({ method: 'image_sku', confidence: 'high' });
+      expect(imageSkuSignal).toEqual({ method: 'image_sku', confidence: 'high', exact: true });
 
       const titleColorSignal = signals.find((s) => s.method === 'title_color');
-      expect(titleColorSignal).toEqual({ method: 'title_color', confidence: 'medium' });
+      expect(titleColorSignal).toEqual({
+        method: 'title_color',
+        confidence: 'medium',
+        exact: true,
+      });
 
       // Primary method should be image_sku (highest confidence)
       expect(getItem(result.items, 0).matchMethod).toBe('image_sku');

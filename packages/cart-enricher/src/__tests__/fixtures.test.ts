@@ -9,7 +9,7 @@ import { describe, expect, it } from 'vitest';
 import type { CartProduct } from '@rr/cart-event-normalizer/types';
 import type { NormalizedProduct } from '@rr/product-event-normalizer/types';
 
-import { gymsharkSession001 } from '../__fixtures__/index.js';
+import { gymsharkSession001, samsclubSession001 } from '../__fixtures__/index.js';
 import { enrichCart } from '../enricher.js';
 
 /**
@@ -60,6 +60,68 @@ function normalizeCartProduct(
     ids: {
       productIds: [],
       extractedIds: [], // Would be extracted from URL if available
+    },
+  };
+}
+
+/**
+ * Convert Sam's Club raw product view to normalized product format
+ * Sam's Club uses productid_list with prod{id} format and extracts IDs from URLs
+ */
+function normalizeSamsClubProductView(
+  raw: (typeof samsclubSession001.productViews)[0],
+): NormalizedProduct {
+  // Extract ID from URL - last path segment, strip prod prefix
+  const urlMatch = raw.url.match(/\/(\d+|prod\d+)(?:\?|$)/);
+  const extractedId = urlMatch?.[1]?.replace(/^prod/i, '') ?? '';
+
+  return {
+    title: raw.name,
+    url: raw.url,
+    imageUrl: raw.image_url_list?.[0],
+    storeId: raw.store_id,
+    brand: undefined,
+    description: raw.description,
+    category: undefined,
+    rating: raw.rating?.[0] ? parseFloat(raw.rating[0]) : undefined,
+    price: raw.amount ? Math.round(parseFloat(raw.amount) * 100) : undefined,
+    currency: raw.currency,
+    ids: {
+      productIds: raw.productid_list ?? [],
+      extractedIds: extractedId ? [extractedId] : [],
+      skus: [],
+      gtins: [],
+      mpns: [],
+    },
+    variants: [],
+    variantCount: 0,
+    hasVariants: false,
+  };
+}
+
+/**
+ * Convert Sam's Club raw cart product to normalized cart product format
+ * Sam's Club cart URLs use /ip/seort/{id} format
+ */
+function normalizeSamsClubCartProduct(
+  raw: (typeof samsclubSession001.cartEvents)[0]['product_list'][0],
+  storeId: string,
+): CartProduct {
+  // Extract ID from cart URL - last path segment
+  const urlMatch = raw.url?.match(/\/(\d+)(?:\?|$)/);
+  const extractedId = urlMatch?.[1] ?? '';
+
+  return {
+    title: raw.name,
+    url: raw.url,
+    imageUrl: raw.image_url,
+    storeId,
+    price: raw.item_price,
+    quantity: raw.quantity,
+    lineTotal: raw.line_total,
+    ids: {
+      productIds: [],
+      extractedIds: extractedId ? [extractedId] : [],
     },
   };
 }
@@ -148,6 +210,105 @@ describe('Fixture Tests', () => {
       // This assertion will fail until we improve matching
       // Uncomment when matching is improved:
       // expect(matchedItems).toHaveLength(fixture.expectedMatches.length);
+    });
+  });
+
+  describe('samsclub-session-001', () => {
+    const fixture = samsclubSession001;
+
+    // Normalize the fixture data
+    const normalizedProducts = fixture.productViews.map(normalizeSamsClubProductView);
+    const normalizedCart =
+      fixture.cartEvents[0]?.product_list.map((item) =>
+        normalizeSamsClubCartProduct(item, fixture.storeId),
+      ) ?? [];
+
+    it('should have 4 cart items and 6 product views', () => {
+      expect(normalizedCart).toHaveLength(4);
+      expect(normalizedProducts).toHaveLength(6);
+    });
+
+    it('should extract IDs from URLs correctly', () => {
+      // Verify product IDs are extracted from URLs
+      const championGrey = normalizedProducts.find((p) => p.url?.includes('16675013342'));
+      expect(championGrey?.ids.extractedIds).toContain('16675013342');
+
+      const gummyBears = normalizedProducts.find((p) => p.url?.includes('prod24921152'));
+      expect(gummyBears?.ids.extractedIds).toContain('24921152');
+
+      // Verify cart IDs are extracted from URLs
+      const cartChampion = normalizedCart.find((c) => c.url?.includes('16675013342'));
+      expect(cartChampion?.ids.extractedIds).toContain('16675013342');
+
+      const cartGummyBears = normalizedCart.find((c) => c.url?.includes('24921152'));
+      expect(cartGummyBears?.ids.extractedIds).toContain('24921152');
+    });
+
+    it('should report current matching results', () => {
+      // Run enricher with low confidence to see all potential matches
+      const result = enrichCart(normalizedCart, normalizedProducts, { minConfidence: 'low' });
+
+      console.log("\n=== Sam's Club Session 001 Matching Results ===\n");
+      console.log(`Total cart items: ${result.summary.totalItems}`);
+      console.log(`Matched items: ${result.summary.matchedItems}`);
+      console.log(`Match rate: ${result.summary.matchRate.toFixed(1)}%`);
+      console.log('\nBy confidence:', result.summary.byConfidence);
+      console.log('By method:', result.summary.byMethod);
+
+      console.log('\n--- Cart Item Details ---');
+      for (const item of result.items) {
+        console.log(`\n${item.title}`);
+        console.log(`  wasViewed: ${item.wasViewed}`);
+        console.log(`  matchConfidence: ${item.matchConfidence}`);
+        console.log(`  matchMethod: ${item.matchMethod}`);
+        console.log(`  matchedSignals: ${JSON.stringify(item.matchedSignals)}`);
+        console.log(`  extractedIds: ${item.ids.extractedIds?.join(', ') ?? 'none'}`);
+      }
+
+      // Validate the enricher runs without error
+      expect(result.items).toHaveLength(4);
+      expect(result.summary.totalItems).toBe(4);
+    });
+
+    it('should match cart items via extracted IDs', () => {
+      const result = enrichCart(normalizedCart, normalizedProducts, { minConfidence: 'low' });
+
+      const matchedItems = result.items.filter((item) => item.wasViewed);
+      const unmatchedItems = result.items.filter((item) => !item.wasViewed);
+
+      console.log("\n=== Sam's Club Matching Gap Analysis ===\n");
+
+      if (unmatchedItems.length > 0) {
+        console.log('UNMATCHED CART ITEMS (should have matches):');
+        for (const item of unmatchedItems) {
+          const expectedMatch = fixture.expectedMatches.find((m) => m.cartItemName === item.title);
+          console.log(`\n  - "${item.title}"`);
+          console.log(`    extractedIds: ${item.ids.extractedIds?.join(', ') ?? 'none'}`);
+          if (expectedMatch) {
+            console.log(`    Expected to match product with SKU: ${expectedMatch.productSku}`);
+            console.log(`    Reason: ${expectedMatch.reason}`);
+          }
+        }
+      }
+
+      if (matchedItems.length > 0) {
+        console.log('\nMATCHED CART ITEMS:');
+        for (const item of matchedItems) {
+          console.log(`\n  - "${item.title}"`);
+          console.log(`    Method: ${item.matchMethod}`);
+          console.log(`    Confidence: ${item.matchConfidence}`);
+        }
+      }
+
+      console.log(`\n\nExpected matches: ${fixture.expectedMatches.length}`);
+      console.log(`Actual matches: ${matchedItems.length}`);
+      console.log(
+        `Gap: ${fixture.expectedMatches.length - matchedItems.length} items not matching`,
+      );
+
+      // Sam's Club matching relies on extracted_id matching
+      // All 4 items should match via extracted IDs from URLs
+      expect(matchedItems.length).toBeGreaterThanOrEqual(4);
     });
   });
 });
