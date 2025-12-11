@@ -1,3 +1,5 @@
+import { distance as levenshteinDistance } from 'fastest-levenshtein';
+
 import type { CartProduct } from '@rr/cart-event-normalizer/types';
 import type { NormalizedProduct, ProductVariant } from '@rr/product-event-normalizer/types';
 import type { ProductIds } from '@rr/shared/types';
@@ -115,16 +117,25 @@ function extractSkusFromImageUrl(imageUrl: string | undefined): string[] {
 }
 
 /**
- * Parse a cart title to extract base name and color suffix
+ * Parse a cart title to extract base name and color/variant suffix
  * Common patterns:
  * - "Sport Cap - White" → { base: "Sport Cap", color: "White" }
  * - "Arrival T-Shirt - Black" → { base: "Arrival T-Shirt", color: "Black" }
+ * - "Champion Boys Logo Jogger Grey M:- Grey, M" → { base: "Champion Boys Logo Jogger", color: "Grey M" }
  * - "Sport Cap" → { base: "Sport Cap", color: undefined }
  */
 function parseCartTitle(title: string | undefined): { base: string; color: string | undefined } {
   if (!title) return { base: '', color: undefined };
 
-  // Common separators: " - ", " – " (en dash), " — " (em dash)
+  // Pattern 1: Sam's Club format "Title Color Size:- Color, Size"
+  // The ":- " separator with variant info after it
+  const samsClubPattern = /^(.+?)\s+([A-Za-z]+(?:\s+[A-Z0-9]+)?)\s*:-\s*.+$/;
+  const samsClubMatch = title.match(samsClubPattern);
+  if (samsClubMatch && samsClubMatch[1] && samsClubMatch[2]) {
+    return { base: samsClubMatch[1].trim(), color: samsClubMatch[2].trim() };
+  }
+
+  // Pattern 2: Common separators: " - ", " – " (en dash), " — " (em dash)
   const separatorPattern = /\s+[-–—]\s+/;
   const parts = title.split(separatorPattern);
 
@@ -147,44 +158,119 @@ function normalizeForComparison(s: string | undefined): string {
 }
 
 /**
- * Calculate simple title similarity (Dice coefficient)
- * Returns a value between 0 and 1
+ * Normalize title for similarity comparison
+ * - Lowercase
+ * - Remove punctuation except hyphens within words
+ * - Collapse whitespace
  */
-function calculateTitleSimilarity(title1: string | undefined, title2: string | undefined): number {
-  if (!title1 || !title2) return 0;
+function normalizeTitleForSimilarity(s: string): string {
+  return s
+    .toLowerCase()
+    .replace(/[^\w\s-]/g, '') // Remove punctuation except hyphens
+    .replace(/\s+/g, ' ')
+    .trim();
+}
 
-  const normalize = (s: string) =>
-    s
-      .toLowerCase()
-      .replace(/[^\w\s]/g, '')
-      .trim();
-  const t1 = normalize(title1);
-  const t2 = normalize(title2);
+/**
+ * Tokenize a normalized string into words
+ */
+function tokenize(s: string): string[] {
+  return s.split(/\s+/).filter((t) => t.length > 0);
+}
 
-  if (t1 === t2) return 1;
-  if (t1.length === 0 || t2.length === 0) return 0;
-
-  // Generate bigrams
-  const getBigrams = (s: string): Set<string> => {
-    const bigrams = new Set<string>();
-    for (let i = 0; i < s.length - 1; i++) {
-      bigrams.add(s.slice(i, i + 2));
-    }
-    return bigrams;
-  };
-
-  const bigrams1 = getBigrams(t1);
-  const bigrams2 = getBigrams(t2);
+/**
+ * Calculate Dice coefficient on sets
+ */
+function diceCoefficient<T>(set1: Set<T>, set2: Set<T>): number {
+  if (set1.size === 0 && set2.size === 0) return 1;
+  if (set1.size === 0 || set2.size === 0) return 0;
 
   let intersectionCount = 0;
-  for (const bigram of bigrams1) {
-    if (bigrams2.has(bigram)) {
+  for (const item of set1) {
+    if (set2.has(item)) {
       intersectionCount++;
     }
   }
 
-  // Dice coefficient: 2 * |intersection| / (|set1| + |set2|)
-  return (2 * intersectionCount) / (bigrams1.size + bigrams2.size);
+  return (2 * intersectionCount) / (set1.size + set2.size);
+}
+
+/**
+ * Generate bigrams from a string
+ */
+function getBigrams(s: string): Set<string> {
+  const bigrams = new Set<string>();
+  for (let i = 0; i < s.length - 1; i++) {
+    bigrams.add(s.slice(i, i + 2));
+  }
+  return bigrams;
+}
+
+/**
+ * Calculate Levenshtein similarity (normalized to 0-1)
+ * Uses fastest-levenshtein for edit distance calculation
+ */
+function calculateLevenshteinSimilarity(s1: string, s2: string): number {
+  if (s1 === s2) return 1;
+  if (s1.length === 0 || s2.length === 0) return 0;
+
+  const distance = levenshteinDistance(s1, s2);
+  const maxLen = Math.max(s1.length, s2.length);
+
+  // Normalize: 1 - (distance / maxLen) gives us 0-1 similarity
+  return 1 - distance / maxLen;
+}
+
+/**
+ * Calculate title similarity using multiple strategies:
+ * 1. Exact match (returns 1.0)
+ * 2. Containment check - if shorter title is fully contained in longer (returns 0.95)
+ * 3. Token-based Dice coefficient - word-level comparison
+ * 4. Bigram-based Dice coefficient - character n-gram comparison
+ * 5. Levenshtein similarity - edit distance (good for typo detection)
+ *
+ * Returns the maximum of the strategies (0-1)
+ */
+function calculateTitleSimilarity(title1: string | undefined, title2: string | undefined): number {
+  if (!title1 || !title2) return 0;
+
+  const t1 = normalizeTitleForSimilarity(title1);
+  const t2 = normalizeTitleForSimilarity(title2);
+
+  // Exact match
+  if (t1 === t2) return 1;
+  if (t1.length === 0 || t2.length === 0) return 0;
+
+  // Containment check: if one title fully contains the other
+  // This handles cases like "Sport Cap" vs "Sport Cap - White"
+  const shorter = t1.length <= t2.length ? t1 : t2;
+  const longer = t1.length > t2.length ? t1 : t2;
+
+  // Check if shorter is a prefix or standalone word sequence in longer
+  if (longer.startsWith(shorter + ' ') || longer === shorter) {
+    // The longer title starts with the shorter title followed by more content
+    // This is a strong signal of a match with variant info appended
+    return 0.95;
+  }
+
+  // Token-based Dice coefficient (word-level)
+  const tokens1 = new Set(tokenize(t1));
+  const tokens2 = new Set(tokenize(t2));
+  const tokenDice = diceCoefficient(tokens1, tokens2);
+
+  // Bigram-based Dice coefficient (character-level)
+  const bigrams1 = getBigrams(t1);
+  const bigrams2 = getBigrams(t2);
+  const bigramDice = diceCoefficient(bigrams1, bigrams2);
+
+  // Levenshtein similarity - good for detecting typos and near-exact matches
+  const levenSimilarity = calculateLevenshteinSimilarity(t1, t2);
+
+  // Return the highest score from all strategies
+  // - Token Dice: best for word-level variations (word order, extra words)
+  // - Bigram Dice: best for partial matches and some typos
+  // - Levenshtein: best for character-level typos and near-exact matches
+  return Math.max(tokenDice, bigramDice, levenSimilarity);
 }
 
 /**

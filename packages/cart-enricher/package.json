@@ -18,6 +18,7 @@
     "@rr/cart-event-normalizer": "workspace:*",
     "@rr/product-event-normalizer": "workspace:*",
     "@rr/shared": "workspace:*",
+    "fastest-levenshtein": "^1.0.16",
     "zod": "catalog:"
   },
   "devDependencies": {
