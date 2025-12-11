@@ -1,0 +1,14 @@
+{
+  "extends": "@rr/tsconfig/base.json",
+  "compilerOptions": {
+    "tsBuildInfoFile": "node_modules/.cache/tsbuildinfo.json",
+    "paths": {
+      "@rr/cart-event-normalizer": ["../cart-event-normalizer/src"],
+      "@rr/cart-event-normalizer/*": ["../cart-event-normalizer/src/*"],
+      "@rr/product-event-normalizer": ["../product-event-normalizer/src"],
+      "@rr/product-event-normalizer/*": ["../product-event-normalizer/src/*"]
+    }
+  },
+  "include": ["src"],
+  "exclude": ["node_modules", "dist"]
+}

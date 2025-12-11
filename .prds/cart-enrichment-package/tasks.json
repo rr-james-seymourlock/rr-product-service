@@ -1,0 +1,92 @@
+{
+  "prdFilename": "cart-enrichment-package",
+  "tasks": [
+    {
+      "id": "1",
+      "title": "Research: Levenshtein distance for title matching",
+      "description": "Explore using Levenshtein distance or other string similarity algorithms (Jaro-Winkler, cosine similarity) for fuzzy title matching. Evaluate libraries like 'fastest-levenshtein' or 'string-similarity'. Determine appropriate thresholds for match confidence.",
+      "status": "pending",
+      "priority": "low",
+      "dependencies": [],
+      "details": "Phase 2 exploration. Consider: normalization (lowercase, remove special chars), token-based vs character-based similarity, performance at scale, threshold tuning based on real data samples.",
+      "subtasks": [],
+      "userStoryId": "US008",
+      "createdAt": "2025-12-11T16:50:56.533Z",
+      "updatedAt": "2025-12-11T16:50:56.533Z"
+    },
+    {
+      "id": "2",
+      "title": "Research: Price proximity scoring",
+      "description": "Explore using price difference as a matching signal. Products with similar prices are more likely to be the same item. Define bounds (e.g., within 10% or $5) and scoring curves.",
+      "status": "pending",
+      "priority": "low",
+      "dependencies": [],
+      "details": "Phase 2 exploration. Consider: handling currency differences, price fluctuations over time, sale prices vs regular prices, percentage vs absolute thresholds, edge cases (free items, high-value items).",
+      "subtasks": [],
+      "userStoryId": "US008",
+      "createdAt": "2025-12-11T16:50:57.266Z",
+      "updatedAt": "2025-12-11T16:50:57.266Z"
+    },
+    {
+      "id": "3",
+      "title": "Research: URL similarity scoring",
+      "description": "Explore URL similarity beyond exact match. Consider path similarity, query param overlap, and normalized URL comparison for partial matches.",
+      "status": "pending",
+      "priority": "low",
+      "dependencies": [],
+      "details": "Phase 2 exploration. Consider: URL normalization (trailing slashes, www prefix, query param ordering), path segment matching, product ID extraction from URL patterns, handling redirects and canonical URLs.",
+      "subtasks": [],
+      "userStoryId": "US008",
+      "createdAt": "2025-12-11T16:50:58.007Z",
+      "updatedAt": "2025-12-11T16:50:58.007Z"
+    },
+    {
+      "id": "4",
+      "title": "Research: Weighted scoring system design",
+      "description": "Design a configurable weighted scoring system that combines ID overlap, title similarity, price proximity, and URL similarity into a single 0-100 confidence score.",
+      "status": "pending",
+      "priority": "low",
+      "dependencies": [],
+      "details": "Phase 2 exploration. Consider: default weight distribution, weight normalization, handling missing signals, score calibration against labeled data, A/B testing different weight configurations.",
+      "subtasks": [],
+      "userStoryId": "US008",
+      "createdAt": "2025-12-11T16:50:58.704Z",
+      "updatedAt": "2025-12-11T16:50:58.704Z"
+    },
+    {
+      "id": "5",
+      "title": "Research: Analyze real cart-product match rates",
+      "description": "Analyze sample Snowflake data to understand baseline match rates, common failure modes, and which signals are most predictive of correct matches.",
+      "status": "pending",
+      "priority": "low",
+      "dependencies": [],
+      "details": "Phase 2 exploration. Pull sample of cart events with corresponding product views. Manually label matches. Calculate precision/recall for each matching strategy. Identify patterns in false positives/negatives.",
+      "subtasks": [],
+      "userStoryId": "US008",
+      "createdAt": "2025-12-11T16:50:59.411Z",
+      "updatedAt": "2025-12-11T16:50:59.411Z"
+    },
+    {
+      "id": "6",
+      "title": "Implement advanced fuzzy title matching with word tokenization and color extraction",
+      "description": "Enhance title matching to handle various cart title formats by tokenizing words and extracting colors from anywhere in the string. Current title_color strategy only handles '{title} - {color}' format but Sam's Club uses '{title} {color} {size}:- {color}, {size}'",
+      "status": "pending",
+      "priority": "medium",
+      "dependencies": [],
+      "details": "1. Create a color vocabulary set (White, Black, Blue, Grey, Navy, Red, Green, Yellow, Pink, Brown, etc.)\n2. Implement tokenizeTitle(title) to split on whitespace and punctuation\n3. Implement extractColors(tokens, colorVocab) to find color words anywhere in title\n4. Implement wordSetSimilarity(set1, set2) using Jaccard or Dice coefficient on word sets\n5. Add tryTitleFuzzyMatch() strategy that:\n   - Tokenizes both cart and product titles\n   - Extracts colors from cart title tokens\n   - Matches if product title words are subset of cart title words AND colors match\n   - Falls back to pure word similarity if no color extraction\n6. Return 'title_fuzzy' method with medium confidence\n7. Insert in strategy chain after title_color but before title similarity",
+      "testStrategy": "Test with Sam's Club format 'Champion Boys Logo Jogger Grey M:- Grey, M' matching 'Champion Boys Logo Jogger' with color Grey. Test various formats: standard dash separator, colon separator, no separator. Test color extraction from beginning, middle, end of title. Test similarity threshold edge cases.",
+      "subtasks": [],
+      "userStoryId": "US009",
+      "createdAt": "2025-12-11T19:51:10.155Z",
+      "updatedAt": "2025-12-11T19:51:10.155Z"
+    }
+  ],
+  "metadata": {
+    "version": "1.0",
+    "created": "2025-12-11T16:50:56.533Z",
+    "lastUpdated": "2025-12-11T19:51:10.155Z",
+    "totalTasks": 6,
+    "completedTasks": 0,
+    "blockedTasks": 0
+  }
+}
