@@ -22,7 +22,7 @@ PRDs are stored in a `.prds/` directory in your project root.
 
 ### Store Onboarding
 
-Tools for onboarding new stores to the product ID extraction system:
+Tools for onboarding new stores and updating existing stores in the product ID extraction system:
 
 - `store_check_exists` - Check if a store already exists by ID or domain
 - `store_validate_metadata` - Validate store ID and domain format
@@ -31,6 +31,7 @@ Tools for onboarding new stores to the product ID extraction system:
 - `store_generate_patterns` - Generate ts-regex-builder code for patterns
 - `store_insert_config` - Auto-insert generated config into store-registry config.ts
 - `store_generate_fixture` - Generate test fixture JSON for product-id-extractor
+- `store_append_fixture` - Append new test cases to an existing fixture (for updating stores)
 - `store_run_tests` - Run tests for a specific store fixture
 - `store_run_regression_tests` - Run all tests to check for regressions
 - `store_commit_and_push` - Commit changes, push to remote, and optionally create PR
@@ -41,7 +42,7 @@ You don't need to specify which tools to use - Claude automatically sees all ava
 
 #### Example Prompts
 
-**Full request:**
+**Add a new store:**
 ```
 Add a new store: Ace Hardware (ID: 1234, domain: acehardware.com)
 
@@ -55,6 +56,13 @@ Product URLs:
 ```
 Onboard acehardware.com (store ID 1234) with these URLs:
 [paste URLs]
+```
+
+**Update an existing store with more test cases:**
+```
+Add these URLs to the existing acehardware.com fixture:
+- https://www.acehardware.com/departments/paint/1234567
+- https://www.acehardware.com/departments/tools/7654321
 ```
 
 **Just analyze patterns (no code generation):**
