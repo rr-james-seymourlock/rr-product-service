@@ -936,20 +936,43 @@ const mutableStoreConfigs: StoreConfigInterface[] = [
   //   /p/{slug}/V_1T673110
   //   /~/V_3T261510.html
   //   /{category}/V_2R474910.html
+  // Note: Pattern uses lowercase v_ since extractor lowercases URLs before matching
   {
     id: '10752',
     domain: 'carters.com',
     pathnamePatterns: [
-      // Matches V_{alphanumeric} pattern in path (with or without .html)
-      // Examples: /p/slug/V_1T673110, /~/V_3T261510.html, /category/V_2R474910.html
+      // Matches v_{alphanumeric} pattern in path (with or without .html)
+      // Examples: /p/slug/v_1t673110, /~/v_3t261510.html, /category/v_2r474910.html
       buildRegExp(
         [
           '/',
-          capture(['V_', repeat(choiceOf(digit, word), { min: 6, max: 12 })]),
+          capture(['v_', repeat(choiceOf(digit, word), { min: 6, max: 12 })]),
           choiceOf(endOfString, '.html', wordBoundary),
         ],
         { global: true },
       ),
+    ],
+  },
+  // Kohl's - Two extractable IDs:
+  //   1. Product ID in path: /product/prd-{number}/
+  //   2. SKU in query param: ?skuId={number}
+  // Examples:
+  //   /product/prd-7692699/product-name.jsp
+  //   /product/prd-7692699/product-name.jsp?skuId=76565656
+  {
+    id: '7206',
+    domain: 'kohls.com',
+    aliases: [{ id: '7206', domain: 'm.kohls.com' }],
+    pathnamePatterns: [
+      // Extract full prd-{number} from pathname
+      buildRegExp(['/product/', capture(['prd-', repeat(digit, { min: 6, max: 12 })]), '/'], {
+        global: true,
+      }),
+      // Also extract just the numeric ID without prd- prefix
+      // skuId is handled by generic extraction
+      buildRegExp(['/product/prd-', capture(repeat(digit, { min: 6, max: 12 })), '/'], {
+        global: true,
+      }),
     ],
   },
   {
