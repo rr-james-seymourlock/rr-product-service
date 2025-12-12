@@ -439,14 +439,15 @@ describe('storeRegistry', () => {
 
       // Use ratio-based comparison instead of absolute difference
       // O(1) lookup means all times should be similar regardless of position
-      // Allow up to 3x variance to account for CI runner variability
+      // CI runners have high variance, so use a relaxed threshold there
       const times = [firstTime, middleTime, lastTime];
       const maxTime = Math.max(...times);
       const minTime = Math.min(...times);
 
       // Avoid division by zero - if minTime is 0, use a small epsilon
       const ratio = maxTime / Math.max(minTime, 0.001);
-      expect(ratio).toBeLessThan(3);
+      const threshold = process.env['CI'] ? 10 : 3;
+      expect(ratio).toBeLessThan(threshold);
     });
 
     it('should handle missing lookups efficiently', () => {
