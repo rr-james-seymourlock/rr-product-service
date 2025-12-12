@@ -1,0 +1,47 @@
+{
+  "name": "Lands' End",
+  "id": 3866,
+  "domain": "landsend.com",
+  "testCases": [
+    {
+      "url": "https://www.landsend.com/products/womens-poplin-elbow-sleeve-pintuck-button-front-top/id_395103",
+      "expectedSkus": ["395103"]
+    },
+    {
+      "url": "https://www.landsend.com/products/canvas-pocket-tote/id_299717?attributes=32,4458,43321,43374,43552,43699,44234,51525",
+      "expectedSkus": ["299717"]
+    },
+    {
+      "url": "https://www.landsend.com/products/kids-cuffed-beanie/id_394169",
+      "expectedSkus": ["394169"]
+    },
+    {
+      "url": "https://www.landsend.com/products/girls-knit-skort/id_390110",
+      "expectedSkus": ["390110"]
+    },
+    {
+      "url": "https://www.landsend.com/products/canvas-crescent-crossbody-bag/id_390575",
+      "expectedSkus": ["390575"]
+    },
+    {
+      "url": "https://www.landsend.com/products/kids-insulated-water-resistant-activity-jacket/id_394159",
+      "expectedSkus": ["394159"]
+    },
+    {
+      "url": "https://www.landsend.com/products/womens-drifter-jacquard-rugby-with-woven-collar-sweater/id_394910",
+      "expectedSkus": ["394910"]
+    },
+    {
+      "url": "https://www.landsend.com/products/womens-cozy-brushed-rib-2-piece-pajama-set---long-sleeve-top-and-shorts/id_387842?attributes=15013,44967,54061",
+      "expectedSkus": ["387842"]
+    },
+    {
+      "url": "https://www.landsend.com/pp/StylePage-553141_A7.html",
+      "expectedSkus": ["553141"]
+    },
+    {
+      "url": "https://www.landsend.com/pp/StylePage-544852_8M.html",
+      "expectedSkus": ["544852"]
+    }
+  ]
+}
