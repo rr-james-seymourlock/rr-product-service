@@ -19,6 +19,9 @@ import { z } from 'zod';
 
 const execAsync = promisify(exec);
 
+// Test execution timeout (2 minutes)
+const TEST_TIMEOUT_MS = 120000;
+
 // ============================================================================
 // Types
 // ============================================================================
@@ -205,13 +208,20 @@ export class StoreOnboardingManager {
         }
       }
 
-      return {
+      const result: {
+        exists: boolean;
+        existingById: boolean;
+        existingByDomain: boolean;
+        existingStoreId?: string;
+        existingDomain?: string;
+      } = {
         exists: existingById || existingByDomain,
         existingById,
         existingByDomain,
-        existingStoreId: foundStoreId,
-        existingDomain: foundDomain,
       };
+      if (foundStoreId) result.existingStoreId = foundStoreId;
+      if (foundDomain) result.existingDomain = foundDomain;
+      return result;
     } catch {
       return {
         exists: false,
@@ -592,7 +602,7 @@ export class StoreOnboardingManager {
       patternDescription = 'Failed to parse URL';
     }
 
-    return {
+    const result: UrlAnalysisResult = {
       originalUrl: url,
       normalizedUrl,
       extractedIds,
@@ -600,9 +610,10 @@ export class StoreOnboardingManager {
       idFormat,
       confidence,
       patternDescription,
-      pathSegmentIndex,
-      searchParamName,
     };
+    if (pathSegmentIndex !== undefined) result.pathSegmentIndex = pathSegmentIndex;
+    if (searchParamName !== undefined) result.searchParamName = searchParamName;
+    return result;
   }
 
   /**
@@ -639,13 +650,22 @@ export class StoreOnboardingManager {
           : `search:${result.searchParamName}:${result.idFormat}`;
 
       if (!patternGroups.has(key)) {
-        patternGroups.set(key, {
+        const groupEntry: {
+          results: UrlAnalysisResult[];
+          type: IdLocation;
+          format: IdFormat;
+          pathSegmentFromEnd?: number;
+          searchParamName?: string;
+        } = {
           results: [],
           type: result.idLocation,
           format: result.idFormat,
-          pathSegmentFromEnd: result.pathSegmentIndex,
-          searchParamName: result.searchParamName,
-        });
+        };
+        if (result.pathSegmentIndex !== undefined)
+          groupEntry.pathSegmentFromEnd = result.pathSegmentIndex;
+        if (result.searchParamName !== undefined)
+          groupEntry.searchParamName = result.searchParamName;
+        patternGroups.set(key, groupEntry);
       }
 
       patternGroups.get(key)!.results.push(result);
@@ -674,16 +694,18 @@ export class StoreOnboardingManager {
         description = `Product ID in search param "${group.searchParamName}", format: ${group.format}`;
       }
 
-      patterns.push({
+      const pattern: IdentifiedPattern = {
         type: group.type,
         description,
         confidence,
         format: group.format,
-        pathSegmentFromEnd: group.pathSegmentFromEnd,
-        searchParamName: group.searchParamName,
         exampleUrls: group.results.slice(0, 3).map((r) => r.normalizedUrl),
         exampleIds: group.results.slice(0, 3).flatMap((r) => r.extractedIds),
-      });
+      };
+      if (group.pathSegmentFromEnd !== undefined)
+        pattern.pathSegmentFromEnd = group.pathSegmentFromEnd;
+      if (group.searchParamName !== undefined) pattern.searchParamName = group.searchParamName;
+      patterns.push(pattern);
     }
 
     // Check for URLs with no identified pattern
@@ -880,6 +902,88 @@ export class StoreOnboardingManager {
     return filePath;
   }
 
+  /**
+   * Read existing fixture
+   */
+  static async readFixture(domain: string): Promise<{
+    name: string;
+    id: number;
+    domain: string;
+    testCases: FixtureTestCase[];
+  } | null> {
+    try {
+      const content = await readFile(this.getFixturePath(domain), 'utf8');
+      return JSON.parse(content);
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Append test cases to existing fixture (deduplicating by URL)
+   */
+  static async appendToFixture(
+    domain: string,
+    newTestCases: FixtureTestCase[],
+  ): Promise<{
+    success: boolean;
+    added: number;
+    duplicates: number;
+    filePath: string;
+    error?: string;
+  }> {
+    const filePath = this.getFixturePath(domain);
+
+    try {
+      const existing = await this.readFixture(domain);
+
+      if (!existing) {
+        return {
+          success: false,
+          added: 0,
+          duplicates: 0,
+          filePath,
+          error: 'Fixture does not exist. Use store_generate_fixture for new stores.',
+        };
+      }
+
+      // Deduplicate by URL
+      const existingUrls = new Set(existing.testCases.map((tc) => tc.url.toLowerCase()));
+      const uniqueNewCases = newTestCases.filter((tc) => !existingUrls.has(tc.url.toLowerCase()));
+      const duplicateCount = newTestCases.length - uniqueNewCases.length;
+
+      if (uniqueNewCases.length === 0) {
+        return {
+          success: true,
+          added: 0,
+          duplicates: duplicateCount,
+          filePath,
+        };
+      }
+
+      // Append new cases
+      existing.testCases.push(...uniqueNewCases);
+
+      // Write updated fixture
+      await writeFile(filePath, JSON.stringify(existing, null, 2), 'utf8');
+
+      return {
+        success: true,
+        added: uniqueNewCases.length,
+        duplicates: duplicateCount,
+        filePath,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        added: 0,
+        duplicates: 0,
+        filePath,
+        error: error instanceof Error ? error.message : String(error),
+      };
+    }
+  }
+
   // --------------------------------------------------------------------------
   // Test Validation
   // --------------------------------------------------------------------------
@@ -908,12 +1012,13 @@ export class StoreOnboardingManager {
     output: string;
     passCount: number;
     failCount: number;
+    timedOut?: boolean;
   }> {
     try {
       // Set LOG_LEVEL=error to suppress debug logs during tests
       const { stdout, stderr } = await execAsync(
         `LOG_LEVEL=error pnpm --filter @rr/product-id-extractor test -- --grep "${domain}"`,
-        { cwd: this.ROOT_PATH },
+        { cwd: this.ROOT_PATH, timeout: TEST_TIMEOUT_MS },
       );
 
       const rawOutput = stdout + stderr;
@@ -931,11 +1036,15 @@ export class StoreOnboardingManager {
       };
     } catch (error) {
       const rawOutput = error instanceof Error ? error.message : String(error);
+      const timedOut = rawOutput.includes('ETIMEDOUT') || rawOutput.includes('killed');
       return {
         success: false,
-        output: this.filterTestOutput(rawOutput),
+        output: timedOut
+          ? `Test execution timed out after ${TEST_TIMEOUT_MS / 1000}s. This may indicate a hanging test or slow system.`
+          : this.filterTestOutput(rawOutput),
         passCount: 0,
         failCount: 1,
+        timedOut,
       };
     }
   }
@@ -948,12 +1057,13 @@ export class StoreOnboardingManager {
     output: string;
     passCount: number;
     failCount: number;
+    timedOut?: boolean;
   }> {
     try {
       // Set LOG_LEVEL=error to suppress debug logs during tests
       const { stdout, stderr } = await execAsync(
         `LOG_LEVEL=error pnpm --filter @rr/product-id-extractor test`,
-        { cwd: this.ROOT_PATH },
+        { cwd: this.ROOT_PATH, timeout: TEST_TIMEOUT_MS },
       );
 
       const rawOutput = stdout + stderr;
@@ -971,11 +1081,15 @@ export class StoreOnboardingManager {
       };
     } catch (error) {
       const rawOutput = error instanceof Error ? error.message : String(error);
+      const timedOut = rawOutput.includes('ETIMEDOUT') || rawOutput.includes('killed');
       return {
         success: false,
-        output: this.filterTestOutput(rawOutput),
+        output: timedOut
+          ? `Test execution timed out after ${TEST_TIMEOUT_MS / 1000}s. This may indicate a hanging test or slow system.`
+          : this.filterTestOutput(rawOutput),
         passCount: 0,
         failCount: 1,
+        timedOut,
       };
     }
   }
@@ -983,6 +1097,98 @@ export class StoreOnboardingManager {
   // --------------------------------------------------------------------------
   // Git Workflow
   // --------------------------------------------------------------------------
+
+  /**
+   * Check git working directory status
+   */
+  static async checkGitStatus(): Promise<{
+    clean: boolean;
+    hasUncommitted: boolean;
+    hasConflicts: boolean;
+    conflictFiles: string[];
+    stagedFiles: string[];
+    modifiedFiles: string[];
+  }> {
+    try {
+      const { stdout } = await execAsync('git status --porcelain', { cwd: this.ROOT_PATH });
+      const lines = stdout.split('\n').filter(Boolean);
+
+      const conflictFiles: string[] = [];
+      const stagedFiles: string[] = [];
+      const modifiedFiles: string[] = [];
+
+      for (const line of lines) {
+        const status = line.substring(0, 2);
+        const file = line.substring(3);
+
+        // Check for merge conflicts (UU, AA, DD, etc.)
+        if (status.includes('U') || status === 'AA' || status === 'DD') {
+          conflictFiles.push(file);
+        } else if (status[0] !== ' ' && status[0] !== '?') {
+          stagedFiles.push(file);
+        }
+        if (status[1] !== ' ' && status[1] !== '?') {
+          modifiedFiles.push(file);
+        }
+      }
+
+      return {
+        clean: lines.length === 0,
+        hasUncommitted: stagedFiles.length > 0 || modifiedFiles.length > 0,
+        hasConflicts: conflictFiles.length > 0,
+        conflictFiles,
+        stagedFiles,
+        modifiedFiles,
+      };
+    } catch {
+      return {
+        clean: false,
+        hasUncommitted: false,
+        hasConflicts: false,
+        conflictFiles: [],
+        stagedFiles: [],
+        modifiedFiles: [],
+      };
+    }
+  }
+
+  /**
+   * Rollback uncommitted changes to specific files
+   */
+  static async rollbackFiles(files: string[]): Promise<{ success: boolean; error?: string }> {
+    try {
+      for (const file of files) {
+        await execAsync(`git checkout -- "${file}"`, { cwd: this.ROOT_PATH });
+      }
+      return { success: true };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
+      };
+    }
+  }
+
+  /**
+   * Delete a file if it exists (for cleanup)
+   */
+  static async deleteFile(filePath: string): Promise<{ success: boolean; error?: string }> {
+    try {
+      const { unlink } = await import('node:fs/promises');
+      await unlink(filePath);
+      return { success: true };
+    } catch (error) {
+      // File might not exist, that's okay
+      const err = error as NodeJS.ErrnoException;
+      if (err.code === 'ENOENT') {
+        return { success: true };
+      }
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
+      };
+    }
+  }
 
   /**
    * Create a feature branch for the store
@@ -1082,13 +1288,128 @@ Generated by Store Onboarding MCP Tool`;
 
       const prUrlMatch = stdout.match(/https:\/\/github\.com\/[^\s]+/);
 
+      const result: { success: boolean; prUrl?: string; error?: string } = {
+        success: true,
+      };
+      if (prUrlMatch) result.prUrl = prUrlMatch[0];
+      return result;
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
+      };
+    }
+  }
+
+  // --------------------------------------------------------------------------
+  // Config Insertion
+  // --------------------------------------------------------------------------
+
+  /**
+   * Get path to store-registry config.ts
+   */
+  static getConfigPath(): string {
+    return join(this.STORE_REGISTRY_DIR, 'src', 'config.ts');
+  }
+
+  /**
+   * Insert a store config into config.ts
+   */
+  static async insertStoreConfig(
+    storeId: string,
+    storeName: string,
+    domain: string,
+    patterns: GeneratedPattern[],
+  ): Promise<{ success: boolean; filePath: string; error?: string }> {
+    const configPath = this.getConfigPath();
+
+    try {
+      // Read current config
+      const content = await readFile(configPath, 'utf8');
+
+      // Find the closing of mutableStoreConfigs array
+      // Look for the pattern: },\n]; at the end of the array
+      const arrayEndPattern = /(\s*},)\s*\n(\];)\s*\n\nexport const storeConfigs/;
+      const match = content.match(arrayEndPattern);
+
+      if (!match) {
+        return {
+          success: false,
+          filePath: configPath,
+          error:
+            'Could not find insertion point in config.ts. Expected pattern: "},\\n];" before "export const storeConfigs"',
+        };
+      }
+
+      // Generate the new store config
+      const newConfig = this.generateStoreConfig(storeId, storeName, domain, patterns);
+
+      // Insert the new config before the closing ];
+      const insertionPoint = match.index! + match[1]!.length;
+      const newContent =
+        content.slice(0, insertionPoint) + '\n' + newConfig + content.slice(insertionPoint);
+
+      // Write updated config
+      await writeFile(configPath, newContent, 'utf8');
+
       return {
         success: true,
-        prUrl: prUrlMatch ? prUrlMatch[0] : undefined,
+        filePath: configPath,
       };
     } catch (error) {
       return {
         success: false,
+        filePath: configPath,
+        error: error instanceof Error ? error.message : String(error),
+      };
+    }
+  }
+
+  /**
+   * Check required imports exist in config.ts and add if missing
+   */
+  static async ensureConfigImports(
+    requiredImports: string[],
+  ): Promise<{ success: boolean; added: string[]; error?: string }> {
+    const configPath = this.getConfigPath();
+    const added: string[] = [];
+
+    try {
+      let content = await readFile(configPath, 'utf8');
+
+      // Find the existing import statement
+      const importMatch = content.match(/import \{([^}]+)\} from 'ts-regex-builder';/);
+      if (!importMatch) {
+        return {
+          success: false,
+          added: [],
+          error: 'Could not find ts-regex-builder import statement',
+        };
+      }
+
+      const existingImports = importMatch[1]!.split(',').map((s) => s.trim());
+
+      // Check which imports are missing
+      const missingImports = requiredImports.filter((imp) => !existingImports.includes(imp));
+
+      if (missingImports.length > 0) {
+        // Add missing imports
+        const allImports = [...existingImports, ...missingImports].sort();
+        const newImportStatement = `import {\n  ${allImports.join(',\n  ')},\n} from 'ts-regex-builder';`;
+
+        content = content.replace(/import \{[^}]+\} from 'ts-regex-builder';/, newImportStatement);
+        await writeFile(configPath, content, 'utf8');
+        added.push(...missingImports);
+      }
+
+      return {
+        success: true,
+        added,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        added: [],
         error: error instanceof Error ? error.message : String(error),
       };
     }
@@ -1105,9 +1426,12 @@ export function registerStoreOnboardingTools(server: McpServer) {
   createFilterUrlsTool(server);
   createAnalyzeUrlsTool(server);
   createGeneratePatternsTool(server);
+  createInsertConfigTool(server);
   createGenerateFixtureTool(server);
+  createAppendFixtureTool(server);
   createRunTestsTool(server);
   createRunRegressionTestsTool(server);
+  createCommitAndPushTool(server);
 }
 
 function createCheckStoreExistsTool(server: McpServer) {
@@ -1385,6 +1709,72 @@ function createGeneratePatternsTool(server: McpServer) {
   );
 }
 
+function createInsertConfigTool(server: McpServer) {
+  return server.tool(
+    'store_insert_config',
+    'Insert generated store config into packages/store-registry/src/config.ts',
+    {
+      state: z.object({
+        urls: z.array(z.string()).describe('Product URLs to analyze for patterns'),
+        storeId: z.string().describe('Store ID'),
+        storeName: z.string().describe('Store name'),
+        domain: z.string().describe('Store domain'),
+      }),
+    },
+    async ({ state }) => {
+      // First analyze URLs to get patterns
+      const { patterns, warnings } = StoreOnboardingManager.analyzeUrls(state.urls);
+
+      if (patterns.length === 0) {
+        return {
+          content: [
+            {
+              type: 'text',
+              text: `Error: No patterns identified from URLs.\n\nWarnings:\n${warnings.join('\n')}`,
+            },
+          ],
+        };
+      }
+
+      // Generate pattern code
+      const generatedPatterns = patterns.map((p) => StoreOnboardingManager.generatePatternCode(p));
+
+      // Insert into config.ts
+      const result = await StoreOnboardingManager.insertStoreConfig(
+        state.storeId,
+        state.storeName,
+        state.domain,
+        generatedPatterns,
+      );
+
+      if (!result.success) {
+        return {
+          content: [{ type: 'text', text: `Error inserting config: ${result.error}` }],
+        };
+      }
+
+      let response = `## Config Inserted Successfully\n\n`;
+      response += `**File:** ${result.filePath}\n`;
+      response += `**Store:** ${state.storeName} (${state.storeId})\n`;
+      response += `**Domain:** ${state.domain}\n`;
+      response += `**Patterns:** ${generatedPatterns.length}\n\n`;
+
+      response += `### Next Steps\n`;
+      response += `1. Run \`store_generate_fixture\` to create test cases\n`;
+      response += `2. Run \`store_run_tests\` to verify extraction works\n`;
+      response += `3. Run \`store_run_regression_tests\` to check for regressions\n`;
+
+      if (warnings.length > 0) {
+        response += `\n### Warnings\n${warnings.map((w) => `- ${w}`).join('\n')}`;
+      }
+
+      return {
+        content: [{ type: 'text', text: response }],
+      };
+    },
+  );
+}
+
 function createGenerateFixtureTool(server: McpServer) {
   return server.tool(
     'store_generate_fixture',
@@ -1452,6 +1842,90 @@ function createGenerateFixtureTool(server: McpServer) {
   );
 }
 
+function createAppendFixtureTool(server: McpServer) {
+  return server.tool(
+    'store_append_fixture',
+    'Append new test cases to an existing fixture (for updating stores with additional URLs)',
+    {
+      state: z.object({
+        urls: z.array(z.string()).describe('New product URLs to add to the fixture'),
+        domain: z.string().describe('Store domain (must have existing fixture)'),
+      }),
+    },
+    async ({ state }) => {
+      // Check if fixture exists
+      const exists = await StoreOnboardingManager.fixtureExists(state.domain);
+      if (!exists) {
+        return {
+          content: [
+            {
+              type: 'text',
+              text: `Error: No fixture exists for ${state.domain}. Use store_generate_fixture for new stores.`,
+            },
+          ],
+        };
+      }
+
+      // Analyze URLs to get test cases
+      const { results } = StoreOnboardingManager.analyzeUrls(state.urls);
+
+      // Create test cases from analysis results
+      const newTestCases: FixtureTestCase[] = [];
+      for (const result of results) {
+        if (result.extractedIds.length > 0) {
+          newTestCases.push({
+            url: result.originalUrl,
+            expectedSkus: result.extractedIds.map((id) => id.toLowerCase()),
+          });
+        }
+      }
+
+      if (newTestCases.length === 0) {
+        return {
+          content: [
+            {
+              type: 'text',
+              text: 'Error: No test cases could be generated (no IDs extracted from URLs)',
+            },
+          ],
+        };
+      }
+
+      // Append to fixture
+      const appendResult = await StoreOnboardingManager.appendToFixture(state.domain, newTestCases);
+
+      if (!appendResult.success) {
+        return {
+          content: [{ type: 'text', text: `Error appending to fixture: ${appendResult.error}` }],
+        };
+      }
+
+      let response = `## Fixture Updated\n\n`;
+      response += `**Domain:** ${state.domain}\n`;
+      response += `**File:** ${appendResult.filePath}\n`;
+      response += `**New test cases added:** ${appendResult.added}\n`;
+      response += `**Duplicates skipped:** ${appendResult.duplicates}\n\n`;
+
+      if (appendResult.added > 0) {
+        response += `### Added Test Cases\n`;
+        for (const tc of newTestCases.slice(0, appendResult.added)) {
+          response += `- ${tc.url}\n`;
+          response += `  → IDs: [${tc.expectedSkus.join(', ')}]\n`;
+        }
+        response += `\n### Next Steps\n`;
+        response += `1. Run \`store_run_tests\` to verify extraction works\n`;
+        response += `2. Run \`store_run_regression_tests\` to check for regressions\n`;
+      } else {
+        response += `All URLs were already in the fixture.`;
+      }
+
+      return {
+        content: [{ type: 'text', text: response }],
+      };
+    },
+  );
+}
+
 function createRunTestsTool(server: McpServer) {
   return server.tool(
     'store_run_tests',
@@ -1496,6 +1970,153 @@ function createRunRegressionTestsTool(server: McpServer) {
       }
 
       response += `### Output\n\`\`\`\n${result.output.slice(0, 2000)}${result.output.length > 2000 ? '\n...(truncated)' : ''}\n\`\`\``;
+
+      return {
+        content: [{ type: 'text', text: response }],
+      };
+    },
+  );
+}
+
+function createCommitAndPushTool(server: McpServer) {
+  return server.tool(
+    'store_commit_and_push',
+    'Commit store config changes, push to remote, and create a PR',
+    {
+      state: z.object({
+        storeId: z.string().describe('Store ID'),
+        storeName: z.string().describe('Store name'),
+        domain: z.string().describe('Store domain'),
+        createBranch: z.boolean().optional().default(false).describe('Create a new feature branch'),
+        createPr: z
+          .boolean()
+          .optional()
+          .default(false)
+          .describe('Create a pull request after pushing'),
+      }),
+    },
+    async ({ state }) => {
+      const configPath = StoreOnboardingManager.getConfigPath();
+      const fixturePath = StoreOnboardingManager.getFixturePath(state.domain);
+
+      let response = `## Git Workflow\n\n`;
+
+      // Step 0: Check git status for conflicts
+      response += `### Step 0: Checking Git Status\n`;
+      const gitStatus = await StoreOnboardingManager.checkGitStatus();
+
+      if (gitStatus.hasConflicts) {
+        response += `**Status:** ✗ CONFLICTS DETECTED\n\n`;
+        response += `⚠️ **Git conflicts must be resolved before proceeding.**\n\n`;
+        response += `**Conflicting files:**\n`;
+        response += gitStatus.conflictFiles.map((f) => `- ${f}`).join('\n');
+        response += `\n\n**Resolution steps:**\n`;
+        response += `1. Open conflicting files and resolve markers (<<<<<<<, =======, >>>>>>>)\n`;
+        response += `2. Stage resolved files: \`git add <file>\`\n`;
+        response += `3. Run this tool again\n`;
+        return {
+          content: [{ type: 'text', text: response }],
+        };
+      }
+
+      response += `**Status:** ✓ No conflicts\n\n`;
+
+      // Step 1: Run regression tests first
+      response += `### Step 1: Running Regression Tests\n`;
+      const testResult = await StoreOnboardingManager.runAllTests();
+
+      if (!testResult.success) {
+        response += `**Status:** ✗ FAILED\n\n`;
+        if (testResult.timedOut) {
+          response += `⚠️ **Test execution timed out!** Cannot proceed with commit.\n`;
+          response += `Tests may be hanging. Try running manually: \`pnpm --filter @rr/product-id-extractor test\`\n\n`;
+        } else {
+          response += `⚠️ **Regression detected!** Cannot proceed with commit.\n`;
+          response += `Fix failing tests before committing.\n\n`;
+          response += `Failing tests: ${testResult.failCount}\n`;
+        }
+        return {
+          content: [{ type: 'text', text: response }],
+        };
+      }
+
+      response += `**Status:** ✓ All ${testResult.passCount} tests passed\n\n`;
+
+      // Step 2: Create branch if requested
+      if (state.createBranch) {
+        response += `### Step 2: Creating Branch\n`;
+        const branchResult = await StoreOnboardingManager.createBranch(state.storeName);
+
+        if (!branchResult.success) {
+          response += `**Status:** ✗ Failed to create branch\n`;
+          response += `Error: ${branchResult.error}\n\n`;
+          response += `Branch may already exist. Continuing on current branch...\n\n`;
+        } else {
+          response += `**Branch:** ${branchResult.branchName}\n\n`;
+        }
+      }
+
+      // Step 3: Stage files
+      response += `### Step 3: Staging Files\n`;
+      const stageResult = await StoreOnboardingManager.stageFiles([configPath, fixturePath]);
+
+      if (!stageResult.success) {
+        response += `**Status:** ✗ Failed to stage files\n`;
+        response += `Error: ${stageResult.error}\n`;
+        return {
+          content: [{ type: 'text', text: response }],
+        };
+      }
+
+      response += `**Files staged:**\n`;
+      response += `- ${configPath}\n`;
+      response += `- ${fixturePath}\n\n`;
+
+      // Step 4: Create commit
+      response += `### Step 4: Creating Commit\n`;
+      const commitResult = await StoreOnboardingManager.createCommit(
+        state.storeName,
+        state.storeId,
+        false,
+      );
+
+      if (!commitResult.success) {
+        response += `**Status:** ✗ Failed to commit\n`;
+        response += `Error: ${commitResult.error}\n`;
+        return {
+          content: [{ type: 'text', text: response }],
+        };
+      }
+
+      response += `**Commit created:** feat(store-registry): add ${state.storeName} (${state.storeId}) store configuration\n\n`;
+
+      // Step 5: Push and create PR if requested
+      if (state.createPr) {
+        response += `### Step 5: Push & Create PR\n`;
+
+        // Get patterns for PR description
+        const { patterns } = StoreOnboardingManager.analyzeUrls([]);
+        const branchName = `feat/store-${state.storeName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-config`;
+
+        const prResult = await StoreOnboardingManager.pushAndCreatePR(
+          branchName,
+          state.storeName,
+          state.storeId,
+          patterns,
+          false,
+        );
+
+        if (!prResult.success) {
+          response += `**Status:** ✗ Failed to push/create PR\n`;
+          response += `Error: ${prResult.error}\n`;
+          response += `\nYou can manually push with: \`git push -u origin HEAD\`\n`;
+        } else {
+          response += `**PR Created:** ${prResult.prUrl || 'Check GitHub for PR link'}\n`;
+        }
+      } else {
+        response += `### Next Steps\n`;
+        response += `Run \`git push\` to push changes to remote.\n`;
+      }
 
       return {
         content: [{ type: 'text', text: response }],

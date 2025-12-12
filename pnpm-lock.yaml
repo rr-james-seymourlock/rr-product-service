@@ -246,6 +246,9 @@ importers:
       '@types/node':
         specifier: 'catalog:'
         version: 24.10.1
+      vitest:
+        specifier: 'catalog:'
+        version: 4.0.10(@types/node@24.10.1)(jiti@2.6.1)(tsx@4.20.6)(yaml@2.8.1)
       zod:
         specifier: 'catalog:'
         version: 4.1.12

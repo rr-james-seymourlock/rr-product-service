@@ -29,9 +29,11 @@ Tools for onboarding new stores to the product ID extraction system:
 - `store_filter_urls` - Filter URLs to remove non-product pages (cart, account, etc.)
 - `store_analyze_urls` - Analyze product URLs to identify ID patterns
 - `store_generate_patterns` - Generate ts-regex-builder code for patterns
+- `store_insert_config` - Auto-insert generated config into store-registry config.ts
 - `store_generate_fixture` - Generate test fixture JSON for product-id-extractor
 - `store_run_tests` - Run tests for a specific store fixture
 - `store_run_regression_tests` - Run all tests to check for regressions
+- `store_commit_and_push` - Commit changes, push to remote, and optionally create PR
 
 #### How It Works
 
