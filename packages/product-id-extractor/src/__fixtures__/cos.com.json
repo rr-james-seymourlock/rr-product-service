@@ -10,6 +10,38 @@
     {
       "url": "https://www.cos.com/en_usd/women/womenswear/trousers/product.pleated-barrel-leg-cotton-pants-brown.1232460001.html",
       "expectedSkus": ["1232460001"]
+    },
+    {
+      "url": "https://www.cos.com/en-us/women/womenswear/skirts/midlength/product/twist-detail-midi-skirt-black-1282759001",
+      "expectedSkus": ["1282759001"]
+    },
+    {
+      "url": "https://www.cos.com/en-us/men/menswear/knitwear/cashmere/product/brushed-cashmere-polo-jumper-stone-1302341001",
+      "expectedSkus": ["1302341001"]
+    },
+    {
+      "url": "https://www.cos.com/en-us/men/menswear/knitwear/jumpers/product/ribbed-knit-jumper-navy-1084860022",
+      "expectedSkus": ["1084860022"]
+    },
+    {
+      "url": "https://www.cos.com/en_usd/women/womenswear/t-shirts/product.clean-cut-regular-t-shirt-white.0960679001.html",
+      "expectedSkus": ["0960679001"]
+    },
+    {
+      "url": "https://www.cos.com/en_usd/women/accessories/bags/product.quilted-oversized-shoulder-bag-beige.0916460002.html",
+      "expectedSkus": ["0916460002"]
+    },
+    {
+      "url": "https://www.cos.com/de_de/women/womenswear/knitwear/product.half-zip-funnel-neck-wool-jumper-grey.1221245001.html",
+      "expectedSkus": ["1221245001"]
+    },
+    {
+      "url": "https://www.cos.com/en_de/women/womenswear/trousers/product.pleated-barrel-leg-denim-trousers-white.1209789001.html",
+      "expectedSkus": ["1209789001"]
+    },
+    {
+      "url": "https://www.cos.com/en_usd/women/womenswear/underwear/socks/product.wool-socks-yellow.1094899007.html",
+      "expectedSkus": ["1094899007"]
     }
   ]
 }
