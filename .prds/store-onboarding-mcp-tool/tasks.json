@@ -209,14 +209,74 @@
       "createdAt": "2025-12-12T17:07:29.080Z",
       "updatedAt": "2025-12-12T17:18:54.409Z",
       "completedAt": "2025-12-12T17:18:54.409Z"
+    },
+    {
+      "id": "15",
+      "title": "Update store_check_exists to detect existing fixtures",
+      "description": "Enhance the store_check_exists MCP tool to also check for existing fixture files in product-id-extractor, not just store configs in store-registry",
+      "status": "done",
+      "priority": "high",
+      "dependencies": ["2"],
+      "details": "Add fixtureExists check using StoreOnboardingManager.fixtureExists(domain). Return additional fields: fixtureExists (boolean), fixturePath (string if exists). Update response messaging to indicate when fixture exists even without store config. This enables the workflow to know if generic rules might already work.",
+      "testStrategy": "Unit test that store_check_exists returns fixtureExists=true for domains with fixtures but no config",
+      "subtasks": [],
+      "userStoryId": "US012",
+      "createdAt": "2025-12-12T22:49:13.772Z",
+      "updatedAt": "2025-12-12T22:50:49.240Z",
+      "completedAt": "2025-12-12T22:50:49.240Z"
+    },
+    {
+      "id": "16",
+      "title": "Add early generic rules test in onboarding workflow",
+      "description": "Before generating store-specific config, run tests to check if generic extraction rules already work for the provided URLs",
+      "status": "done",
+      "priority": "high",
+      "dependencies": ["15", "9"],
+      "details": "After filtering URLs, if fixture exists or can be created with test cases, run product-id-extractor tests WITHOUT creating a store config first. If generic rules extract the expected IDs correctly, inform user that no store config is needed. Only proceed to pattern analysis and config generation if generic rules fail. This prevents unnecessary store configs.",
+      "testStrategy": "Test workflow with URLs that work with generic rules (like Bloomingdale's ID= param) - should not generate store config",
+      "subtasks": [],
+      "userStoryId": "US012",
+      "createdAt": "2025-12-12T22:49:24.068Z",
+      "updatedAt": "2025-12-12T22:51:50.282Z",
+      "completedAt": "2025-12-12T22:51:50.282Z"
+    },
+    {
+      "id": "17",
+      "title": "Update workflow messaging and decision logic",
+      "description": "Update MCP tool responses to clearly communicate the fixture-first workflow and when store configs are/aren't needed",
+      "status": "done",
+      "priority": "medium",
+      "dependencies": ["16"],
+      "details": "Update store_check_exists response to show fixture status. Add new response states: 'Fixture exists, testing generic rules...', 'Generic rules work! No store config needed.', 'Generic rules failed, generating store config...'. Update store_generate_patterns to skip if not needed. Ensure clear user guidance throughout.",
+      "testStrategy": "Manual testing of full workflow with stores that do/don't need configs",
+      "subtasks": [],
+      "userStoryId": "US012",
+      "createdAt": "2025-12-12T22:49:31.550Z",
+      "updatedAt": "2025-12-12T22:51:50.313Z",
+      "completedAt": "2025-12-12T22:51:50.313Z"
+    },
+    {
+      "id": "18",
+      "title": "Update README documentation for fixture-first workflow",
+      "description": "Update packages/mcp-server/README.md to document the improved fixture-first workflow",
+      "status": "done",
+      "priority": "medium",
+      "dependencies": ["17"],
+      "details": "Update 'What Happens Behind the Scenes' section to reflect new workflow: 1. Check if fixture exists, 2. If exists, test generic rules first, 3. Only generate config if needed. Add new example prompt for 'Test if generic rules work for this store'. Update tips section to mention that not all stores need custom configs.",
+      "testStrategy": "README accurately reflects actual tool behavior",
+      "subtasks": [],
+      "userStoryId": "US012",
+      "createdAt": "2025-12-12T22:49:43.094Z",
+      "updatedAt": "2025-12-12T22:52:29.408Z",
+      "completedAt": "2025-12-12T22:52:29.408Z"
     }
   ],
   "metadata": {
     "version": "1.0",
     "created": "2025-12-12T17:04:20.816Z",
-    "lastUpdated": "2025-12-12T22:16:22.011Z",
-    "totalTasks": 14,
-    "completedTasks": 14,
+    "lastUpdated": "2025-12-12T22:52:29.408Z",
+    "totalTasks": 18,
+    "completedTasks": 18,
     "blockedTasks": 0
   }
 }

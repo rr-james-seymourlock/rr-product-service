@@ -24,7 +24,7 @@ PRDs are stored in a `.prds/` directory in your project root.
 
 Tools for onboarding new stores and updating existing stores in the product ID extraction system:
 
-- `store_check_exists` - Check if a store already exists by ID or domain
+- `store_check_exists` - Check if a store config and/or test fixture already exists
 - `store_validate_metadata` - Validate store ID and domain format
 - `store_filter_urls` - Filter URLs to remove non-product pages (cart, account, etc.)
 - `store_analyze_urls` - Analyze product URLs to identify ID patterns
@@ -32,7 +32,7 @@ Tools for onboarding new stores and updating existing stores in the product ID e
 - `store_insert_config` - Auto-insert generated config into store-registry config.ts
 - `store_generate_fixture` - Generate test fixture JSON for product-id-extractor
 - `store_append_fixture` - Append new test cases to an existing fixture (for updating stores)
-- `store_run_tests` - Run tests for a specific store fixture
+- `store_run_tests` - Run tests for a specific store fixture (checks if generic rules work)
 - `store_run_regression_tests` - Run all tests to check for regressions
 - `store_commit_and_push` - Commit changes, push to remote, and optionally create PR
 
@@ -71,23 +71,33 @@ Analyze these URLs and tell me what product ID pattern you see:
 [paste URLs]
 ```
 
+**Check if generic rules work (no store config needed):**
+```
+Check if existing rules work for bloomingdales.com - run the tests
+```
+
 #### What Happens Behind the Scenes
 
-When you mention store onboarding + URLs, Claude will automatically:
+When you mention store onboarding + URLs, Claude follows a **fixture-first workflow**:
 
-1. Check if store exists (`store_check_exists`)
-2. Validate metadata (`store_validate_metadata`)
-3. Filter non-product URLs (`store_filter_urls`)
-4. Analyze patterns (`store_analyze_urls`)
-5. Generate config code (`store_generate_patterns`)
-6. Create test fixture (`store_generate_fixture`)
-7. Run tests (`store_run_tests`)
+1. **Check if store/fixture exists** (`store_check_exists`) - checks both config AND fixture
+2. **Validate metadata** (`store_validate_metadata`)
+3. **Filter non-product URLs** (`store_filter_urls`)
+4. **Create test fixture** (`store_generate_fixture`) - creates fixture BEFORE config
+5. **Run tests to check generic rules** (`store_run_tests`) - tests if built-in patterns work
+6. **Only if generic rules fail:**
+   - Analyze patterns (`store_analyze_urls`)
+   - Generate config code (`store_generate_patterns`)
+   - Run tests again (`store_run_tests`)
+
+**Key insight:** Many stores work with generic extraction rules (e.g., common query params like `?id=`, `?sku=`). The tool tests these first to avoid creating unnecessary store-specific configs.
 
 #### Tips
 
 - **More URLs = better** - 5-10 product URLs helps identify patterns confidently
 - **Include edge cases** - URLs with query params, different product types, variants
 - **You can ask for specific steps** - e.g., "just analyze these URLs" if you only want pattern detection
+- **Not all stores need configs** - Generic rules may work! The tool will tell you if a store-specific config is needed
 
 ## Build MCP Server
 
