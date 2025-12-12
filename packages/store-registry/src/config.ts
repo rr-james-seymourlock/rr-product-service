@@ -1060,6 +1060,24 @@ const mutableStoreConfigs: StoreConfigInterface[] = [
       ),
     ],
   },
+  // Lands' End (ID: 3866)
+  // URL patterns:
+  // - /products/{slug}/id_{digits} (e.g., /products/womens-poplin.../id_395103)
+  // - /pp/StylePage-{digits}_{variant}.html (e.g., /pp/StylePage-553141_A7.html)
+  {
+    id: '3866',
+    domain: 'landsend.com',
+    pathnamePatterns: [
+      // Matches /id_{digits} pattern
+      buildRegExp(['/id_', capture(repeat(digit, { min: 5, max: 8 }))], {
+        global: true,
+      }),
+      // Matches /pp/stylepage-{digits}_ pattern (URLs normalized to lowercase)
+      buildRegExp(['/pp/stylepage-', capture(repeat(digit, { min: 5, max: 8 })), '_'], {
+        global: true,
+      }),
+    ],
+  },
 ];
 
 export const storeConfigs: ReadonlyArray<StoreConfigInterface> = Object.freeze(
