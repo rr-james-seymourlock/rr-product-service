@@ -1,0 +1,39 @@
+{
+  "name": "Columbia Sportswear",
+  "id": 10437,
+  "domain": "columbia.com",
+  "testCases": [
+    {
+      "url": "https://www.columbia.com/p/endor-issue-ball-cap-2165511.html",
+      "expectedSkus": ["2165511"]
+    },
+    {
+      "url": "https://www.columbia.com/p/mens-pitchstone-outdoor-pants-2135671.html",
+      "expectedSkus": ["2135671"]
+    },
+    {
+      "url": "https://www.columbia.com/p/mens-collegiate-pfg-terminal-tackle-long-sleeve-shirt---kentucky-1892211_UK.html",
+      "expectedSkus": ["1892211"]
+    },
+    {
+      "url": "https://www.columbia.com/p/womens-pfg-coral-point-iii-shorts-1884521_S.html",
+      "expectedSkus": ["1884521"]
+    },
+    {
+      "url": "https://www.columbia.com/p/norwester-polarized-sunglasses-MEI0037.html",
+      "expectedSkus": ["mei0037"]
+    },
+    {
+      "url": "https://www.columbia.com/p/womens-minky-fleece-plaid-pj-pants-DGU0544.html",
+      "expectedSkus": ["dgu0544"]
+    },
+    {
+      "url": "https://www.columbia.com/p/kids-pike-lake-ii-hooded-jacket-2050351.html",
+      "expectedSkus": ["2050351"]
+    },
+    {
+      "url": "https://www.columbia.com/p/mens-collegiate-tech-trail-polo---florida-1929591_FLA.html",
+      "expectedSkus": ["1929591"]
+    }
+  ]
+}

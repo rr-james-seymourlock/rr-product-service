@@ -1,6 +1,8 @@
 import {
   buildRegExp,
   capture,
+  charClass,
+  charRange,
   choiceOf,
   digit,
   endOfString,
@@ -1038,6 +1040,24 @@ const mutableStoreConfigs: StoreConfigInterface[] = [
       buildRegExp(['/', 's', '/', capture(repeat(digit, { min: 4 })), choiceOf('/', endOfString)], {
         global: true,
       }),
+    ],
+  },
+  // Columbia Sportswear (ID: 10437)
+  {
+    id: '10437',
+    domain: 'columbia.com',
+    pathnamePatterns: [
+      // Matches /p/{slug}-{id}.html or /p/{slug}-{id}_{suffix}.html
+      // Examples: /p/endor-issue-ball-cap-2165511.html, /p/polo-1929591_fla.html
+      // URLs are normalized to lowercase before matching
+      buildRegExp(
+        [
+          '-',
+          capture(repeat(charClass(charRange('a', 'z'), digit), { min: 6, max: 15 })),
+          choiceOf('.html', '_'),
+        ],
+        { global: true },
+      ),
     ],
   },
 ];
