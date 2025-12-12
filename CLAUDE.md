@@ -150,6 +150,15 @@ Tests are co-located in `__tests__/` directories alongside source files. Vitest 
 - Provide global test APIs (`describe`, `it`, `expect`)
 - Support `@/` path alias via resolve config
 
+**CI-Aware Tests**: For performance or timing-sensitive tests, use `process.env['CI']` to detect GitHub Actions and apply relaxed thresholds. GitHub Actions automatically sets `CI=true`. Example:
+
+```typescript
+const threshold = process.env['CI'] ? 10 : 3; // Relaxed threshold on CI
+expect(ratio).toBeLessThan(threshold);
+```
+
+This prevents flaky tests on shared CI runners while maintaining stricter validation locally.
+
 ## Important Implementation Notes
 
 ### Regex Safety
