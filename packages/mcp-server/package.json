@@ -15,7 +15,9 @@
     "format": "prettier --check \"**/*.{mjs,ts,md,json}\"",
     "lint": "eslint .",
     "build": "tsc",
-    "build:watch": "tsc --watch"
+    "build:watch": "tsc --watch",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "devDependencies": {
     "@modelcontextprotocol/sdk": "1.24.3",
@@ -23,6 +25,7 @@
     "@rr/prettier-config": "workspace:*",
     "@rr/tsconfig": "workspace:*",
     "@types/node": "catalog:",
+    "vitest": "catalog:",
     "zod": "catalog:"
   },
   "prettier": "@rr/prettier-config",

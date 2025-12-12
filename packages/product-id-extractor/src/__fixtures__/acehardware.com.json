@@ -1,0 +1,95 @@
+{
+  "name": "Ace Hardware",
+  "id": 8302,
+  "domain": "acehardware.com",
+  "testCases": [
+    {
+      "url": "https://www.acehardware.com/product/8061802",
+      "expectedSkus": ["8061802"]
+    },
+    {
+      "url": "https://www.acehardware.com/product/2862886",
+      "expectedSkus": ["2862886"]
+    },
+    {
+      "url": "https://www.acehardware.com/product/8116743",
+      "expectedSkus": ["8116743"]
+    },
+    {
+      "url": "https://www.acehardware.com/product/F001289?variationProductCode=7008474",
+      "expectedSkus": ["f001289", "7008474"]
+    },
+    {
+      "url": "https://www.acehardware.com/product/6007548",
+      "expectedSkus": ["6007548"]
+    },
+    {
+      "url": "https://www.acehardware.com/product/1396134",
+      "expectedSkus": ["1396134"]
+    },
+    {
+      "url": "https://www.acehardware.com/product/F012090?variationProductCode=72042",
+      "expectedSkus": ["f012090", "72042"]
+    },
+    {
+      "url": "https://www.acehardware.com/product/7094246",
+      "expectedSkus": ["7094246"]
+    },
+    {
+      "url": "https://www.acehardware.com/product/10892",
+      "expectedSkus": ["10892"]
+    },
+    {
+      "url": "https://www.acehardware.com/product/1020294",
+      "expectedSkus": ["1020294"]
+    },
+    {
+      "url": "https://www.acehardware.com/product/F001154?variationProductCode=4766085",
+      "expectedSkus": ["f001154", "4766085"]
+    },
+    {
+      "url": "https://www.acehardware.com/product/8039376",
+      "expectedSkus": ["8039376"]
+    },
+    {
+      "url": "https://www.acehardware.com/product/7287162",
+      "expectedSkus": ["7287162"]
+    },
+    {
+      "url": "https://www.acehardware.com/product/8076969",
+      "expectedSkus": ["8076969"]
+    },
+    {
+      "url": "https://www.acehardware.com/product/8079886",
+      "expectedSkus": ["8079886"]
+    },
+    {
+      "url": "https://www.acehardware.com/product/7006686",
+      "expectedSkus": ["7006686"]
+    },
+    {
+      "url": "https://www.acehardware.com/product/2800506",
+      "expectedSkus": ["2800506"]
+    },
+    {
+      "url": "https://www.acehardware.com/product/1531359",
+      "expectedSkus": ["1531359"]
+    },
+    {
+      "url": "https://www.acehardware.com/product/13373",
+      "expectedSkus": ["13373"]
+    },
+    {
+      "url": "https://www.acehardware.com/product/1395532",
+      "expectedSkus": ["1395532"]
+    },
+    {
+      "url": "https://www.acehardware.com/product/8046473",
+      "expectedSkus": ["8046473"]
+    },
+    {
+      "url": "https://www.acehardware.com/product/7026291",
+      "expectedSkus": ["7026291"]
+    }
+  ]
+}

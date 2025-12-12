@@ -1,6 +1,8 @@
 import {
   buildRegExp,
   capture,
+  charClass,
+  charRange,
   choiceOf,
   digit,
   endOfString,
@@ -975,6 +977,33 @@ const mutableStoreConfigs: StoreConfigInterface[] = [
       }),
     ],
   },
+  // Ace Hardware - Product IDs in /product/{id} path
+  // Formats: numeric (8061802) or alphanumeric with F prefix (F001289)
+  // Also extracts variationProductCode from query params
+  {
+    id: '8302',
+    domain: 'acehardware.com',
+    pathnamePatterns: [
+      // Matches /product/{id} where id is alphanumeric (includes F-prefixed and numeric)
+      // Examples: /product/8061802, /product/F001289
+      buildRegExp(
+        [
+          '/product/',
+          capture(repeat(choiceOf(digit, word), { min: 4, max: 12 })),
+          choiceOf(endOfString, wordBoundary),
+        ],
+        { global: true },
+      ),
+    ],
+    searchPatterns: [
+      // Matches variationProductCode query parameter
+      // Example: ?variationProductCode=7008474
+      buildRegExp(
+        ['variationproductcode=', capture(repeat(digit, { min: 4, max: 12 })), wordBoundary],
+        { global: true },
+      ),
+    ],
+  },
   {
     id: 'test-search-patterns',
     domain: 'test-search.example.com',
@@ -997,6 +1026,35 @@ const mutableStoreConfigs: StoreConfigInterface[] = [
           '[?&]sku=',
           capture(repeat(choiceOf(word, digit, '-', '_'), { min: 4, max: 24 })),
           wordBoundary,
+        ],
+        { global: true },
+      ),
+    ],
+  },
+  // Nordstrom Rack (ID: 13349)
+  {
+    id: '13349',
+    domain: 'nordstromrack.com',
+    pathnamePatterns: [
+      // Matches /s/{numeric_id} pattern
+      buildRegExp(['/', 's', '/', capture(repeat(digit, { min: 4 })), choiceOf('/', endOfString)], {
+        global: true,
+      }),
+    ],
+  },
+  // Columbia Sportswear (ID: 10437)
+  {
+    id: '10437',
+    domain: 'columbia.com',
+    pathnamePatterns: [
+      // Matches /p/{slug}-{id}.html or /p/{slug}-{id}_{suffix}.html
+      // Examples: /p/endor-issue-ball-cap-2165511.html, /p/polo-1929591_fla.html
+      // URLs are normalized to lowercase before matching
+      buildRegExp(
+        [
+          '-',
+          capture(repeat(charClass(charRange('a', 'z'), digit), { min: 6, max: 15 })),
+          choiceOf('.html', '_'),
         ],
         { global: true },
       ),
