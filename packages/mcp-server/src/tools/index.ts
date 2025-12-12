@@ -18,12 +18,10 @@ export type {
   ConfidenceLevel,
   IdLocation,
   IdFormat,
-  WorkflowMode,
   FilterReason,
   UrlAnalysisResult,
   FilteredUrl,
   IdentifiedPattern,
   GeneratedPattern,
   FixtureTestCase,
-  StoreOnboardingState,
 } from './store-onboarding';

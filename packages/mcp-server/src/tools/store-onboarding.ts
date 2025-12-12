@@ -12,15 +12,47 @@
  */
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { exec } from 'node:child_process';
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, unlink, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { promisify } from 'node:util';
 import { z } from 'zod';
 
 const execAsync = promisify(exec);
 
-// Test execution timeout (2 minutes)
+// ============================================================================
+// Constants
+// ============================================================================
+
+/** Test execution timeout (2 minutes) */
 const TEST_TIMEOUT_MS = 120000;
+
+/** Minimum recommended product URLs for pattern confidence */
+const MIN_RECOMMENDED_URLS = 5;
+
+/** Maximum URLs allowed per request */
+const MAX_URLS_PER_REQUEST = 50;
+
+/** Maximum output length for test results display */
+const MAX_OUTPUT_LENGTH = 2000;
+
+// ============================================================================
+// Utility Functions
+// ============================================================================
+
+/**
+ * Escape special regex characters in a string for safe use in RegExp constructor
+ */
+function escapeRegex(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
+ * Escape shell argument for safe use in exec commands
+ * Wraps in single quotes and escapes any existing single quotes
+ */
+function escapeShellArg(arg: string): string {
+  return `'${arg.replace(/'/g, "'\\''")}'`;
+}
 
 // ============================================================================
 // Types
@@ -34,9 +66,6 @@ export type IdLocation = 'pathname' | 'search_param';
 
 /** Format of the product ID */
 export type IdFormat = 'numeric' | 'alphanumeric' | 'prefixed' | 'uuid' | 'unknown';
-
-/** Workflow mode - new store or updating existing */
-export type WorkflowMode = 'new' | 'update';
 
 /** URL filtering reason */
 export type FilterReason =
@@ -102,41 +131,6 @@ export interface FixtureTestCase {
   expectedSkus: string[];
 }
 
-/** Store onboarding workflow state */
-export interface StoreOnboardingState {
-  // Store metadata
-  storeId: string;
-  storeName: string;
-  domain: string;
-
-  // Workflow mode
-  mode: WorkflowMode;
-
-  // URL analysis
-  rawUrls: string[];
-  productUrls: string[];
-  filteredUrls: FilteredUrl[];
-  analysisResults: UrlAnalysisResult[];
-  identifiedPatterns: IdentifiedPattern[];
-
-  // Generated artifacts
-  generatedPatterns: GeneratedPattern[];
-  fixtureTestCases: FixtureTestCase[];
-
-  // Workflow state
-  currentStep:
-    | 'init'
-    | 'urls_collected'
-    | 'urls_filtered'
-    | 'analyzed'
-    | 'confirmed'
-    | 'generated'
-    | 'tested'
-    | 'committed';
-  errors: string[];
-  warnings: string[];
-}
-
 // ============================================================================
 // StoreOnboardingManager
 // ============================================================================
@@ -190,18 +184,18 @@ export class StoreOnboardingManager {
       let foundStoreId: string | undefined;
       let foundDomain: string | undefined;
 
-      // Check by store ID
+      // Check by store ID (escape to prevent regex injection)
       if (storeId) {
-        const idPattern = new RegExp(`id:\\s*['"]${storeId}['"]`, 'i');
+        const idPattern = new RegExp(`id:\\s*['"]${escapeRegex(storeId)}['"]`, 'i');
         existingById = idPattern.test(configContent);
         if (existingById) {
           foundStoreId = storeId;
         }
       }
 
-      // Check by domain
+      // Check by domain (escape to prevent regex injection)
       if (domain) {
-        const domainPattern = new RegExp(`domain:\\s*['"]${domain}['"]`, 'i');
+        const domainPattern = new RegExp(`domain:\\s*['"]${escapeRegex(domain)}['"]`, 'i');
         existingByDomain = domainPattern.test(configContent);
         if (existingByDomain) {
           foundDomain = domain;
@@ -423,10 +417,10 @@ export class StoreOnboardingManager {
     }
 
     // Check if we have enough URLs
-    if (productUrls.length < 5) {
+    if (productUrls.length < MIN_RECOMMENDED_URLS) {
       warnings.push(
         `Only ${productUrls.length} product URLs remaining after filtering. ` +
-          `Minimum 5 recommended for pattern confidence.`,
+          `Minimum ${MIN_RECOMMENDED_URLS} recommended for pattern confidence.`,
       );
     }
 
@@ -677,7 +671,8 @@ export class StoreOnboardingManager {
     for (const [, group] of patternGroups) {
       const urlCount = group.results.length;
       const totalUrls = urls.length;
-      const coverage = urlCount / totalUrls;
+      // Protect against division by zero
+      const coverage = totalUrls > 0 ? urlCount / totalUrls : 0;
 
       // Determine confidence based on coverage
       let confidence: ConfidenceLevel = 'low';
@@ -902,8 +897,21 @@ export class StoreOnboardingManager {
     return filePath;
   }
 
+  /** Zod schema for validating fixture files */
+  private static readonly fixtureSchema = z.object({
+    name: z.string(),
+    id: z.number(),
+    domain: z.string(),
+    testCases: z.array(
+      z.object({
+        url: z.string(),
+        expectedSkus: z.array(z.string()),
+      }),
+    ),
+  });
+
   /**
-   * Read existing fixture
+   * Read existing fixture with validation
    */
   static async readFixture(domain: string): Promise<{
     name: string;
@@ -913,7 +921,14 @@ export class StoreOnboardingManager {
   } | null> {
     try {
       const content = await readFile(this.getFixturePath(domain), 'utf8');
-      return JSON.parse(content);
+      const parsed: unknown = JSON.parse(content);
+      // Validate fixture structure
+      const result = this.fixtureSchema.safeParse(parsed);
+      if (!result.success) {
+        console.error(`Invalid fixture format for ${domain}:`, result.error.message);
+        return null;
+      }
+      return result.data;
     } catch {
       return null;
     }
@@ -1158,7 +1173,8 @@ export class StoreOnboardingManager {
   static async rollbackFiles(files: string[]): Promise<{ success: boolean; error?: string }> {
     try {
       for (const file of files) {
-        await execAsync(`git checkout -- "${file}"`, { cwd: this.ROOT_PATH });
+        // Use escaped shell argument to prevent command injection
+        await execAsync(`git checkout -- ${escapeShellArg(file)}`, { cwd: this.ROOT_PATH });
       }
       return { success: true };
     } catch (error) {
@@ -1174,7 +1190,6 @@ export class StoreOnboardingManager {
    */
   static async deleteFile(filePath: string): Promise<{ success: boolean; error?: string }> {
     try {
-      const { unlink } = await import('node:fs/promises');
       await unlink(filePath);
       return { success: true };
     } catch (error) {
@@ -1196,10 +1211,12 @@ export class StoreOnboardingManager {
   static async createBranch(
     storeName: string,
   ): Promise<{ success: boolean; branchName: string; error?: string }> {
+    // Sanitize branch name: only allow alphanumeric, hyphens (already done by replace)
     const branchName = `feat/store-${storeName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-config`;
 
     try {
-      await execAsync(`git checkout -b ${branchName}`, { cwd: this.ROOT_PATH });
+      // Branch name is already sanitized, but escape for safety
+      await execAsync(`git checkout -b ${escapeShellArg(branchName)}`, { cwd: this.ROOT_PATH });
       return { success: true, branchName };
     } catch (error) {
       return {
@@ -1215,7 +1232,9 @@ export class StoreOnboardingManager {
    */
   static async stageFiles(files: string[]): Promise<{ success: boolean; error?: string }> {
     try {
-      await execAsync(`git add ${files.join(' ')}`, { cwd: this.ROOT_PATH });
+      // Escape each file path to prevent command injection
+      const escapedFiles = files.map(escapeShellArg).join(' ');
+      await execAsync(`git add ${escapedFiles}`, { cwd: this.ROOT_PATH });
       return { success: true };
     } catch (error) {
       return {
@@ -1237,7 +1256,8 @@ export class StoreOnboardingManager {
     const message = `feat(store-registry): ${action} ${storeName} (${storeId}) store configuration`;
 
     try {
-      await execAsync(`git commit -m "${message}"`, { cwd: this.ROOT_PATH });
+      // Use escaped shell argument for commit message
+      await execAsync(`git commit -m ${escapeShellArg(message)}`, { cwd: this.ROOT_PATH });
       return { success: true };
     } catch (error) {
       return {
@@ -1258,8 +1278,8 @@ export class StoreOnboardingManager {
     isUpdate: boolean,
   ): Promise<{ success: boolean; prUrl?: string; error?: string }> {
     try {
-      // Push branch
-      await execAsync(`git push -u origin ${branchName}`, { cwd: this.ROOT_PATH });
+      // Push branch (branch name is sanitized in createBranch, but escape for safety)
+      await execAsync(`git push -u origin ${escapeShellArg(branchName)}`, { cwd: this.ROOT_PATH });
 
       // Create PR
       const action = isUpdate ? 'Update' : 'Add';
@@ -1279,8 +1299,9 @@ All product-id-extractor tests pass.
 ---
 Generated by Store Onboarding MCP Tool`;
 
+      // Use escaped shell arguments for title and body
       const { stdout } = await execAsync(
-        `gh pr create --title "${title}" --body "${body}" --base main`,
+        `gh pr create --title ${escapeShellArg(title)} --body ${escapeShellArg(body)} --base main`,
         {
           cwd: this.ROOT_PATH,
         },
@@ -1550,9 +1571,9 @@ function createFilterUrlsTool(server: McpServer) {
         };
       }
 
-      if (state.urls.length > 50) {
+      if (state.urls.length > MAX_URLS_PER_REQUEST) {
         return {
-          content: [{ type: 'text', text: 'Error: Maximum 50 URLs allowed' }],
+          content: [{ type: 'text', text: `Error: Maximum ${MAX_URLS_PER_REQUEST} URLs allowed` }],
         };
       }
 
@@ -1969,7 +1990,7 @@ function createRunRegressionTestsTool(server: McpServer) {
         response += `Some existing store tests are failing. Do not commit until all tests pass.\n\n`;
       }
 
-      response += `### Output\n\`\`\`\n${result.output.slice(0, 2000)}${result.output.length > 2000 ? '\n...(truncated)' : ''}\n\`\`\``;
+      response += `### Output\n\`\`\`\n${result.output.slice(0, MAX_OUTPUT_LENGTH)}${result.output.length > MAX_OUTPUT_LENGTH ? '\n...(truncated)' : ''}\n\`\`\``;
 
       return {
         content: [{ type: 'text', text: response }],
@@ -2094,15 +2115,14 @@ function createCommitAndPushTool(server: McpServer) {
       if (state.createPr) {
         response += `### Step 5: Push & Create PR\n`;
 
-        // Get patterns for PR description
-        const { patterns } = StoreOnboardingManager.analyzeUrls([]);
+        // Note: Patterns not available in commit/push tool - PR body will be generic
         const branchName = `feat/store-${state.storeName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-config`;
 
         const prResult = await StoreOnboardingManager.pushAndCreatePR(
           branchName,
           state.storeName,
           state.storeId,
-          patterns,
+          [], // No patterns available - use store_generate_patterns before committing for better PR description
           false,
         );
 
