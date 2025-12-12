@@ -1,0 +1,245 @@
+{
+  "introduction": {
+    "title": "Cart Enrichment Package",
+    "overview": "A TypeScript package (@rr/cart-enricher) that enriches sparse cart data with rich product view data by matching cart items to previously viewed products. Takes a normalized cart and array of normalized product views (from the same store), matches items using SKU, URL, and extracted IDs, and outputs a unified dataset with combined product metadata for cart abandonment and member re-engagement campaigns.",
+    "lastUpdated": "2025-12-11"
+  },
+  "problemStatement": {
+    "problem": "Cart abandonment data is critical for re-engaging members, but cart events contain minimal product information (title, URL, price, quantity). Meanwhile, product view events captured from PDPs contain rich metadata (brand, category, description, rating, images, multiple identifiers). Since users typically view a product before adding to cart, we can correlate these events to enrich cart data. Currently there's no automated way to join cart items to their corresponding product views, leaving cart abandonment campaigns with sparse data that limits personalization and relevance.",
+    "marketOpportunity": "Cart abandonment emails are one of the highest-converting remarketing channels. Enriching cart data with product details enables: (1) Better product imagery and descriptions in abandonment emails, (2) Brand-level segmentation for targeted campaigns, (3) Category-based recommendations, (4) Price drop alerts using tracked pricing, (5) More accurate product matching for affiliate attribution. With millions of cart events daily and corresponding product views, joining this data unlocks significant value for member engagement.",
+    "targetUsers": [
+      "Marketing automation teams building cart abandonment campaigns",
+      "Data engineers creating unified product-cart datasets for Snowflake",
+      "ML engineers training models on shopping behavior (view → cart → purchase funnel)",
+      "Analytics teams measuring view-to-cart conversion rates",
+      "Backend services enriching real-time cart events for personalization"
+    ]
+  },
+  "solutionOverview": {
+    "description": "A package that accepts a normalized cart (from @rr/cart-event-normalizer) and array of normalized products (from @rr/product-event-normalizer) for the same store, then matches and merges the data. Matching uses a confidence-based approach: exact SKU match (highest), URL match, extracted ID overlap, or title similarity (lowest). Output is an array of EnrichedCartItem objects containing combined fields from both sources, plus metadata indicating data provenance (inCart, wasViewed, matchConfidence, matchMethod).",
+    "keyFeatures": [
+      "enrichCart(cart: NormalizedCart, products: NormalizedProduct[]): EnrichedCart - Main entry point",
+      "Multi-strategy matching: SKU exact match → variant SKU match → URL match → extractedIds overlap → fuzzy title match",
+      "Confidence scoring: high (SKU), medium (URL/extractedIds), low (title similarity)",
+      "Field merging with precedence: cart data (price, quantity) + product data (brand, category, description, rating, images)",
+      "Variant-aware matching: uses product.variants[].sku and variants[].extractedIds for precise matching",
+      "Provenance tracking: each item tagged with inCart, wasViewed, matchConfidence, matchMethod",
+      "Unmatched handling: cart items without product matches still included with inCart=true, wasViewed=false",
+      "Store validation: ensures cart and products are from same store before processing",
+      "REST endpoint: POST /cart/enrich for HTTP integration"
+    ],
+    "successMetrics": [
+      "80%+ cart items successfully matched to product views (for users with view history)",
+      "95%+ precision on high-confidence matches (SKU-based)",
+      "Sub-5ms enrichment time per cart item",
+      "Zero data loss - all cart items preserved in output regardless of match",
+      "100% test coverage for matching logic",
+      "Output schema compatible with existing cart abandonment systems"
+    ]
+  },
+  "userStories": [
+    {
+      "id": "US001",
+      "title": "Enrich A Normalized Cart",
+      "userStory": "As a data pipeline engineer, I want to enrich a normalized cart with product view data so that I can create rich cart abandonment datasets with full product metadata for marketing campaigns",
+      "businessValue": "I can create rich cart abandonment datasets with full product metadata for marketing campaigns",
+      "acceptanceCriteria": [
+        "enrichCart() accepts NormalizedCart and NormalizedProduct[] as inputs",
+        "Returns EnrichedCart with array of EnrichedCartItem objects",
+        "Cart items without matches are preserved with wasViewed=false",
+        "Product views without cart matches are excluded from output",
+        "All output arrays and objects are frozen (immutable)",
+        "Validates that cart and products have matching storeId"
+      ],
+      "status": "completed",
+      "priority": "P0",
+      "estimatedComplexity": "L",
+      "dependencies": [],
+      "notes": "Core enrichCart function implemented with full type safety and immutable output",
+      "completedAt": "2025-12-11"
+    },
+    {
+      "id": "US002",
+      "title": "Match Cart Items To",
+      "userStory": "As a data pipeline engineer, I want to match cart items to product views using multiple ID strategies so that I get the highest possible match rate across different data quality scenarios",
+      "businessValue": "I get the highest possible match rate across different data quality scenarios",
+      "acceptanceCriteria": [
+        "Match by exact SKU: cart.ids.skus intersects with product.ids.skus",
+        "Match by variant SKU: cart.ids.skus intersects with product.variants[].sku",
+        "Match by URL: normalized cart item URL matches product URL or variant URL",
+        "Match by extractedIds: cart.ids.extractedIds intersects with product.ids.extractedIds or variant.extractedIds",
+        "Match by title similarity: fuzzy match when other methods fail (configurable threshold)",
+        "Matching stops at first successful strategy (highest confidence first)"
+      ],
+      "status": "completed",
+      "priority": "P0",
+      "estimatedComplexity": "L",
+      "dependencies": [],
+      "notes": "Multi-strategy matching implemented: SKU, variant_sku, image_sku, URL, extractedIds, title_color, title",
+      "completedAt": "2025-12-11"
+    },
+    {
+      "id": "US003",
+      "title": "See Confidence Scores And",
+      "userStory": "As a data pipeline engineer, I want to see confidence scores and match methods for each enriched item so that I can filter or weight results based on match quality for downstream processing",
+      "businessValue": "I can filter or weight results based on match quality for downstream processing",
+      "acceptanceCriteria": [
+        "Each EnrichedCartItem has matchConfidence: 'high' | 'medium' | 'low' | 'none'",
+        "Each EnrichedCartItem has matchMethod: 'sku' | 'variant_sku' | 'url' | 'extracted_id' | 'title' | null",
+        "SKU matches get 'high' confidence",
+        "URL and extractedId matches get 'medium' confidence",
+        "Title similarity matches get 'low' confidence",
+        "Unmatched items get confidence 'none' and method null"
+      ],
+      "status": "completed",
+      "priority": "P0",
+      "estimatedComplexity": "L",
+      "dependencies": [],
+      "notes": "Confidence scoring and matchedSignals array with exact flag implemented",
+      "completedAt": "2025-12-11"
+    },
+    {
+      "id": "US004",
+      "title": "Get Merged Product Data",
+      "userStory": "As a data pipeline engineer, I want to get merged product data with clear field precedence so that I have a single enriched object with the best available data from both sources",
+      "businessValue": "I have a single enriched object with the best available data from both sources",
+      "acceptanceCriteria": [
+        "Cart-specific fields always from cart: quantity, cartPrice (original cart price)",
+        "Product-specific fields from product when matched: brand, category, description, rating, variants",
+        "Shared fields use cart value with product fallback: title, url, imageUrl",
+        "Price field shows cart price (what user saw at cart time)",
+        "All product identifiers merged: ids object combines both sources",
+        "Matched variant data included when variant-level match occurs"
+      ],
+      "status": "completed",
+      "priority": "P1",
+      "estimatedComplexity": "L",
+      "dependencies": [],
+      "notes": "Field merging with precedence and variant data support implemented",
+      "completedAt": "2025-12-11"
+    },
+    {
+      "id": "US005",
+      "title": "Track Data Provenance For",
+      "userStory": "As a data pipeline engineer, I want to track data provenance for each enriched item so that I know which data came from cart vs product view for auditing and debugging",
+      "businessValue": "I know which data came from cart vs product view for auditing and debugging",
+      "acceptanceCriteria": [
+        "Each EnrichedCartItem has inCart: boolean (always true for cart enrichment)",
+        "Each EnrichedCartItem has wasViewed: boolean (true if matched to product view)",
+        "Each EnrichedCartItem has enrichedAt: ISO timestamp of enrichment",
+        "Each EnrichedCartItem has sources object tracking which fields came from which source",
+        "EnrichedCart has summary stats: totalItems, matchedItems, unmatchedItems, matchRate"
+      ],
+      "status": "completed",
+      "priority": "P1",
+      "estimatedComplexity": "M",
+      "dependencies": [],
+      "notes": "Provenance tracking via sources object and summary stats implemented",
+      "completedAt": "2025-12-11"
+    },
+    {
+      "id": "US006",
+      "title": "Enrich Cart Data Via",
+      "userStory": "As a API consumer, I want to enrich cart data via REST endpoint so that I can integrate cart enrichment into my application via HTTP without package dependency",
+      "businessValue": "I can integrate cart enrichment into my application via HTTP without package dependency",
+      "acceptanceCriteria": [
+        "POST /cart/enrich endpoint accepts { cart: NormalizedCart, products: NormalizedProduct[] }",
+        "Response returns EnrichedCart with all enriched items and summary stats",
+        "400 response for validation errors (mismatched storeIds, invalid input)",
+        "Response includes processing time in milliseconds",
+        "Supports batch processing up to 50 products per request"
+      ],
+      "status": "not_started",
+      "priority": "P2",
+      "estimatedComplexity": "M",
+      "dependencies": []
+    },
+    {
+      "id": "US007",
+      "title": "Configure A Minimum Confidence",
+      "userStory": "As a data pipeline engineer, I want to configure a minimum confidence threshold for matches so that I can control the quality vs quantity tradeoff and only accept matches above a certain confidence level",
+      "businessValue": "I can control the quality vs quantity tradeoff and only accept matches above a certain confidence level",
+      "acceptanceCriteria": [
+        "enrichCart() accepts optional minConfidence: 'high' | 'medium' | 'low' parameter",
+        "Items below threshold are marked as unmatched (wasViewed=false) even if a lower-confidence match exists",
+        "Default threshold is 'low' (accept all matches)",
+        "Threshold of 'high' only accepts SKU-based matches",
+        "Threshold of 'medium' accepts SKU, URL, and extractedId matches",
+        "Summary stats reflect matches above threshold only"
+      ],
+      "status": "completed",
+      "priority": "P1",
+      "estimatedComplexity": "L",
+      "dependencies": [],
+      "notes": "minConfidence option implemented with 'high' default",
+      "completedAt": "2025-12-11"
+    },
+    {
+      "id": "US008",
+      "title": "Get A Numeric Confidence",
+      "userStory": "As a data pipeline engineer, I want to get a numeric confidence score (0-100) based on multiple weighted signals so that I can make fine-grained decisions about match quality and tune thresholds based on observed precision/recall",
+      "businessValue": "I can make fine-grained decisions about match quality and tune thresholds based on observed precision/recall",
+      "acceptanceCriteria": [
+        "Each EnrichedCartItem has matchScore: number (0-100) in addition to categorical confidence",
+        "Score is computed from weighted combination of signals: ID overlap, title similarity, price proximity, URL similarity",
+        "Individual signal scores exposed: idScore, titleScore, priceScore, urlScore",
+        "Weights are configurable via options parameter",
+        "Default weights tuned for typical cart-product correlation patterns",
+        "Score of 0 means no match signals, 100 means perfect match on all signals"
+      ],
+      "status": "not_started",
+      "priority": "P3",
+      "estimatedComplexity": "L",
+      "dependencies": []
+    },
+    {
+      "id": "US009",
+      "title": "Match Cart Items Using",
+      "userStory": "As a data pipeline engineer, I want to match cart items using advanced fuzzy title matching with word tokenization and color extraction so that I get higher match rates even when cart titles have different formats like 'Product Name Color Size:- Color, Size' vs product titles like 'Product Name'",
+      "businessValue": "I get higher match rates even when cart titles have different formats like 'Product Name Color Size:- Color, Size' vs product titles like 'Product Name'",
+      "acceptanceCriteria": [
+        "Tokenize cart and product titles into individual words for comparison",
+        "Extract color words from anywhere in the cart title (not just after ' - ' separator)",
+        "Match when product title words are a subset of cart title words (allowing extra variant info in cart)",
+        "Match when extracted color from cart title matches product.color or any variant.color",
+        "Use string similarity (Dice/Jaccard coefficient) on tokenized words for fuzzy matching",
+        "Handle various cart title formats: '{title} - {color}', '{title} {color} {size}:- {color}, {size}', '{title}'",
+        "Maintain known color vocabulary list for extraction (White, Black, Blue, Grey, Navy, Red, etc.)",
+        "Return 'title_fuzzy' as matchMethod with medium confidence when matched via fuzzy logic",
+        "Falls back gracefully when no color is present - uses pure title similarity"
+      ],
+      "status": "completed",
+      "priority": "P2",
+      "estimatedComplexity": "XL",
+      "dependencies": [],
+      "notes": "Implemented multi-strategy title matching with Levenshtein, Dice coefficient, token-based, containment check, and Sam's Club format parsing",
+      "completedAt": "2025-12-11"
+    }
+  ],
+  "technicalRequirements": {
+    "constraints": [],
+    "integrationNeeds": [],
+    "complianceRequirements": []
+  },
+  "acceptanceCriteria": {
+    "global": [],
+    "qualityStandards": []
+  },
+  "constraints": {
+    "timeline": "",
+    "resources": [],
+    "nonNegotiables": []
+  },
+  "metadata": {
+    "version": "1.0",
+    "created": "2025-12-11",
+    "lastUpdated": "2025-12-11",
+    "approver": ""
+  },
+  "progress": {
+    "overall": 78,
+    "completed": 7,
+    "total": 9,
+    "blocked": 0
+  }
+}

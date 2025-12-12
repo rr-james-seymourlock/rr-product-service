@@ -8,6 +8,7 @@
 import { createServer } from 'node:http';
 import { URL } from 'node:url';
 import { convertAsinHandler } from './src/functions/convert-asin/handler.ts';
+import { enrichCartHandler } from './src/functions/enrich-cart/handler.ts';
 import { fetchImagesHandler } from './src/functions/fetch-images/handler.ts';
 import { healthCheckHandler } from './src/functions/health/handler.ts';
 import { createUrlAnalysisHandler } from './src/functions/create-url-analysis/handler.ts';
@@ -73,6 +74,15 @@ const ROUTES = [
     example: `curl -X POST "http://localhost:${PORT}/images/fetch" \\
      -H "Content-Type: application/json" \\
      -d '{"requests":[{"storeId":"8333","productUrl":"https://www.macys.com/shop/product/12345","imageUrl":"https://slimages.macysassets.com/is/image/MCY/products/2/optimized/31898232_fpx.tif"}]}'`,
+  },
+  {
+    method: 'POST',
+    path: '/cart/enrich',
+    handler: enrichCartHandler,
+    description: 'Enrich cart items with product view data (1-50 items)',
+    example: `curl -X POST "http://localhost:${PORT}/cart/enrich" \\
+     -H "Content-Type: application/json" \\
+     -d '{"cart":[{"title":"Product","storeId":"8333","price":4900,"ids":{"productIds":[],"extractedIds":["12345"]}}],"products":[{"title":"Product","storeId":"8333","ids":{"productIds":[],"extractedIds":["12345"],"skus":["SKU123"]},"variants":[],"variantCount":0,"hasVariants":false}]}'`,
   },
 ];
 

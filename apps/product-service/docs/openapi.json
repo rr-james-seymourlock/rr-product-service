@@ -38,6 +38,10 @@
     {
       "name": "Image Processing",
       "description": "Fetch and store product images from merchant URLs using @rr/product-image-fetcher package"
+    },
+    {
+      "name": "Cart Enrichment",
+      "description": "Enrich cart items by matching with product view data using @rr/cart-enricher package"
     }
   ],
   "components": {
@@ -1917,6 +1921,558 @@
           }
         },
         "required": ["requests"]
+      },
+      "EnrichedCartItem": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "imageUrl": {
+            "type": "string"
+          },
+          "storeId": {
+            "type": "string"
+          },
+          "price": {
+            "type": "number"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "brand": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          },
+          "rating": {
+            "type": "number"
+          },
+          "quantity": {
+            "type": "number"
+          },
+          "lineTotal": {
+            "type": "number"
+          },
+          "ids": {
+            "type": "object",
+            "properties": {
+              "productIds": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "extractedIds": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "skus": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "gtins": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "mpns": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": ["productIds", "extractedIds"]
+          },
+          "inCart": {
+            "type": "boolean"
+          },
+          "wasViewed": {
+            "type": "boolean"
+          },
+          "matchConfidence": {
+            "type": "string",
+            "enum": ["high", "medium", "low", "none"]
+          },
+          "matchMethod": {
+            "type": ["string", "null"],
+            "enum": ["sku", "variant_sku", "url", "extracted_id", "title"]
+          },
+          "enrichedAt": {
+            "type": "string"
+          },
+          "sources": {
+            "type": "object",
+            "properties": {
+              "title": {
+                "type": "string",
+                "enum": ["cart", "product", "merged"]
+              },
+              "url": {
+                "type": "string",
+                "enum": ["cart", "product", "merged"]
+              },
+              "imageUrl": {
+                "type": "string",
+                "enum": ["cart", "product", "merged"]
+              },
+              "price": {
+                "type": "string",
+                "enum": ["cart", "product", "merged"]
+              },
+              "brand": {
+                "type": "string",
+                "enum": ["cart", "product", "merged"]
+              },
+              "description": {
+                "type": "string",
+                "enum": ["cart", "product", "merged"]
+              },
+              "category": {
+                "type": "string",
+                "enum": ["cart", "product", "merged"]
+              },
+              "rating": {
+                "type": "string",
+                "enum": ["cart", "product", "merged"]
+              },
+              "ids": {
+                "type": "string",
+                "enum": ["cart", "product", "merged"]
+              }
+            }
+          },
+          "matchedVariant": {
+            "type": "object",
+            "properties": {
+              "sku": {
+                "type": "string"
+              },
+              "url": {
+                "type": "string"
+              },
+              "imageUrl": {
+                "type": "string"
+              },
+              "price": {
+                "type": "number"
+              },
+              "currency": {
+                "type": "string"
+              },
+              "color": {
+                "type": "string"
+              }
+            },
+            "required": ["sku"]
+          }
+        },
+        "required": [
+          "ids",
+          "inCart",
+          "wasViewed",
+          "matchConfidence",
+          "matchMethod",
+          "enrichedAt",
+          "sources"
+        ]
+      },
+      "EnrichmentSummary": {
+        "type": "object",
+        "properties": {
+          "totalItems": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "matchedItems": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "unmatchedItems": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "matchRate": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "byConfidence": {
+            "type": "object",
+            "properties": {
+              "high": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "medium": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "low": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "none": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "required": ["high", "medium", "low", "none"]
+          },
+          "byMethod": {
+            "type": "object",
+            "properties": {
+              "sku": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "variant_sku": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "url": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "extracted_id": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "title": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "required": ["sku", "variant_sku", "url", "extracted_id", "title"]
+          }
+        },
+        "required": [
+          "totalItems",
+          "matchedItems",
+          "unmatchedItems",
+          "matchRate",
+          "byConfidence",
+          "byMethod"
+        ],
+        "description": "Enrichment summary statistics"
+      },
+      "EnrichCartResponse": {
+        "type": "object",
+        "properties": {
+          "storeId": {
+            "type": "string",
+            "description": "Store ID for the enriched cart",
+            "example": "8333"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EnrichedCartItem"
+            },
+            "description": "Array of enriched cart items with combined data"
+          },
+          "summary": {
+            "$ref": "#/components/schemas/EnrichmentSummary"
+          },
+          "enrichedAt": {
+            "type": "string",
+            "description": "ISO timestamp of enrichment",
+            "example": "2024-12-11T12:00:00.000Z"
+          },
+          "durationMs": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Processing time in milliseconds",
+            "example": 15
+          }
+        },
+        "required": ["items", "summary", "enrichedAt", "durationMs"]
+      },
+      "CartProduct": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "imageUrl": {
+            "type": "string"
+          },
+          "storeId": {
+            "type": "string"
+          },
+          "price": {
+            "type": "number"
+          },
+          "brand": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "ids": {
+            "type": "object",
+            "properties": {
+              "productIds": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "extractedIds": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "skus": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "gtins": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "mpns": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": ["productIds", "extractedIds"]
+          },
+          "quantity": {
+            "type": "number"
+          },
+          "lineTotal": {
+            "type": "number"
+          }
+        },
+        "required": ["ids"]
+      },
+      "EnrichCartRequest": {
+        "type": "object",
+        "properties": {
+          "cart": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CartProduct"
+            },
+            "minItems": 1,
+            "maxItems": 50,
+            "description": "Array of normalized cart products to enrich (1-50 per request)",
+            "example": [
+              {
+                "title": "Women's Cotton Sweater",
+                "url": "https://macys.com/shop/product?ID=12345",
+                "storeId": "8333",
+                "price": 4900,
+                "quantity": 1,
+                "ids": {
+                  "productIds": [],
+                  "extractedIds": ["12345"]
+                }
+              }
+            ]
+          },
+          "products": {
+            "type": "array",
+            "items": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/NormalizedProduct"
+                },
+                {
+                  "properties": {
+                    "title": {
+                      "type": "string"
+                    },
+                    "url": {
+                      "type": "string"
+                    },
+                    "imageUrl": {
+                      "type": "string"
+                    },
+                    "storeId": {
+                      "type": "string"
+                    },
+                    "storeName": {
+                      "type": "string"
+                    },
+                    "brand": {
+                      "type": "string"
+                    },
+                    "description": {
+                      "type": "string"
+                    },
+                    "category": {
+                      "type": "string"
+                    },
+                    "rating": {
+                      "type": "number"
+                    },
+                    "canonicalUrl": {
+                      "type": "string"
+                    },
+                    "ids": {
+                      "type": "object",
+                      "properties": {
+                        "productIds": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "extractedIds": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "skus": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "gtins": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "mpns": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "required": ["productIds", "extractedIds"]
+                    },
+                    "variants": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "sku": {
+                            "type": "string"
+                          },
+                          "url": {
+                            "type": "string"
+                          },
+                          "imageUrl": {
+                            "type": "string"
+                          },
+                          "price": {
+                            "type": "number"
+                          },
+                          "currency": {
+                            "type": "string"
+                          },
+                          "color": {
+                            "type": "string"
+                          },
+                          "extractedIds": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "required": ["sku"]
+                      }
+                    },
+                    "variantCount": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "hasVariants": {
+                      "type": "boolean"
+                    },
+                    "price": {
+                      "type": "number"
+                    },
+                    "currency": {
+                      "type": "string"
+                    },
+                    "color": {
+                      "type": "string"
+                    }
+                  },
+                  "required": ["ids", "variants", "variantCount", "hasVariants"]
+                }
+              ]
+            },
+            "maxItems": 50,
+            "description": "Array of normalized products from product view events for matching",
+            "example": [
+              {
+                "title": "Women's Cotton Sweater - Charter Club",
+                "url": "https://macys.com/shop/product?ID=12345",
+                "storeId": "8333",
+                "brand": "Charter Club",
+                "category": "Sweaters",
+                "rating": 4.5,
+                "price": 4900,
+                "currency": "USD",
+                "ids": {
+                  "productIds": [],
+                  "extractedIds": ["12345"],
+                  "skus": ["12345678"]
+                },
+                "variants": [
+                  {
+                    "sku": "12345678",
+                    "price": 4900
+                  }
+                ],
+                "variantCount": 1,
+                "hasVariants": false
+              }
+            ]
+          },
+          "options": {
+            "type": "object",
+            "properties": {
+              "minConfidence": {
+                "type": "string",
+                "enum": ["high", "medium", "low", "none"],
+                "description": "Minimum confidence level for matches (default: high)",
+                "example": "high"
+              },
+              "titleSimilarityThreshold": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1,
+                "description": "Title similarity threshold for fuzzy matching (0-1, default: 0.8)",
+                "example": 0.8
+              }
+            },
+            "description": "Optional enrichment configuration"
+          }
+        },
+        "required": ["cart", "products"]
       }
     },
     "parameters": {}
@@ -2375,6 +2931,119 @@
                           "minLength": 1,
                           "description": "Human-readable error message",
                           "example": "requests: At least one request is required"
+                        },
+                        "statusCode": {
+                          "type": "integer",
+                          "minimum": 400,
+                          "maximum": 599,
+                          "description": "HTTP status code",
+                          "example": 400
+                        }
+                      }
+                    }
+                  ]
+                },
+                "example": {
+                  "error": "InternalServerError",
+                  "message": "An unexpected error occurred",
+                  "statusCode": 500
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/cart/enrich": {
+      "post": {
+        "summary": "Enrich Cart Items with Product Data",
+        "description": "Enriches normalized cart items by matching them with normalized product view data using multiple strategies (SKU, variant SKU, URL, extracted IDs, title similarity). Returns enriched cart items with combined data, confidence scores, and provenance tracking. Accepts 1-50 cart items and up to 50 products per request. Supports configurable minimum confidence thresholds.",
+        "tags": ["Cart Enrichment"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EnrichCartRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully enriched cart items",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EnrichCartResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request parameters or store ID mismatch",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorResponse"
+                    },
+                    {
+                      "properties": {
+                        "error": {
+                          "type": "string",
+                          "minLength": 1,
+                          "description": "Error type/code",
+                          "example": "ValidationError"
+                        },
+                        "message": {
+                          "type": "string",
+                          "minLength": 1,
+                          "description": "Human-readable error message",
+                          "example": "Store ID mismatch: cart storeId \"8333\" does not match product storeId \"5246\""
+                        },
+                        "statusCode": {
+                          "type": "integer",
+                          "minimum": 400,
+                          "maximum": 599,
+                          "description": "HTTP status code",
+                          "example": 400
+                        }
+                      }
+                    }
+                  ]
+                },
+                "example": {
+                  "error": "ValidationError",
+                  "message": "cart: At least one cart item is required",
+                  "statusCode": 400
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorResponse"
+                    },
+                    {
+                      "properties": {
+                        "error": {
+                          "type": "string",
+                          "minLength": 1,
+                          "description": "Error type/code",
+                          "example": "ValidationError"
+                        },
+                        "message": {
+                          "type": "string",
+                          "minLength": 1,
+                          "description": "Human-readable error message",
+                          "example": "Store ID mismatch: cart storeId \"8333\" does not match product storeId \"5246\""
                         },
                         "statusCode": {
                           "type": "integer",

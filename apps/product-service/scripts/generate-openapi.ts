@@ -19,6 +19,11 @@ import {
   errorResponseSchema,
 } from '../src/functions/create-url-analysis/contracts';
 import {
+  errorResponseSchema as enrichCartErrorResponseSchema,
+  enrichCartRequestSchema,
+  enrichCartResponseSchema,
+} from '../src/functions/enrich-cart/contracts';
+import {
   errorResponseSchema as fetchImagesErrorResponseSchema,
   fetchImagesRequestSchema,
   fetchImagesResponseSchema,
@@ -340,6 +345,62 @@ registry.registerPath({
   },
 });
 
+// Register cart enrichment endpoint
+registry.registerPath({
+  method: 'post',
+  path: '/cart/enrich',
+  summary: 'Enrich Cart Items with Product Data',
+  description:
+    'Enriches normalized cart items by matching them with normalized product view data using multiple strategies (SKU, variant SKU, URL, extracted IDs, title similarity). Returns enriched cart items with combined data, confidence scores, and provenance tracking. Accepts 1-50 cart items and up to 50 products per request. Supports configurable minimum confidence thresholds.',
+  tags: ['Cart Enrichment'],
+  request: {
+    body: {
+      required: true,
+      content: {
+        'application/json': {
+          schema: enrichCartRequestSchema,
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: 'Successfully enriched cart items',
+      content: {
+        'application/json': {
+          schema: enrichCartResponseSchema,
+        },
+      },
+    },
+    400: {
+      description: 'Invalid request parameters or store ID mismatch',
+      content: {
+        'application/json': {
+          schema: enrichCartErrorResponseSchema,
+          example: {
+            error: 'ValidationError',
+            message: 'cart: At least one cart item is required',
+            statusCode: 400,
+          },
+        },
+      },
+    },
+    500: {
+      description: 'Internal server error',
+      content: {
+        'application/json': {
+          schema: enrichCartErrorResponseSchema,
+          example: {
+            error: 'InternalServerError',
+            message: 'An unexpected error occurred',
+            statusCode: 500,
+          },
+        },
+      },
+    },
+  },
+});
+
 // Generate OpenAPI document
 const generator = new OpenApiGeneratorV31(registry.definitions);
 const document = generator.generateDocument({
@@ -385,6 +446,11 @@ const document = generator.generateDocument({
       name: 'Image Processing',
       description:
         'Fetch and store product images from merchant URLs using @rr/product-image-fetcher package',
+    },
+    {
+      name: 'Cart Enrichment',
+      description:
+        'Enrich cart items by matching with product view data using @rr/cart-enricher package',
     },
   ],
 });

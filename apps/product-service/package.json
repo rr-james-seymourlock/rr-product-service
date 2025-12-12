@@ -28,6 +28,7 @@
     "@middy/http-error-handler": "^6.3.0",
     "@middy/http-json-body-parser": "^6.3.0",
     "@rr/asin-converter": "workspace:*",
+    "@rr/cart-enricher": "workspace:*",
     "@rr/cart-event-normalizer": "workspace:*",
     "@rr/product-event-normalizer": "workspace:*",
     "@rr/product-id-extractor": "workspace:*",

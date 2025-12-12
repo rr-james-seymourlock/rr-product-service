@@ -134,6 +134,28 @@ const mutableStoreConfigs: StoreConfigInterface[] = [
     ],
   },
   {
+    id: '10086',
+    domain: 'samsclub.com',
+    pathnamePatterns: [
+      // Both /ip/ and /p/ URLs: captures last path segment (product ID)
+      // Examples: /ip/seort/16675013342, /ip/slug/prod24921152, /p/slug/P03002770
+      buildRegExp(
+        [
+          '/',
+          choiceOf('ip', 'p'),
+          '/',
+          repeat(choiceOf(word, digit, '-'), { min: 1 }),
+          '/',
+          capture(repeat(choiceOf(word, digit), { min: 6, max: 24 })),
+          choiceOf(endOfString, wordBoundary),
+        ],
+        { global: true },
+      ),
+    ],
+    // Strip prefixes (P, prod) to get just the numeric ID
+    transformId: (id: string) => id.replace(/^(prod|p)/i, ''),
+  },
+  {
     id: '3864',
     domain: 'gap.com',
     aliases: [
@@ -891,6 +913,66 @@ const mutableStoreConfigs: StoreConfigInterface[] = [
         ],
         { global: true },
       ),
+    ],
+  },
+  // Gymshark - URLs contain only human-readable slugs, no extractable product IDs
+  // SKUs appear in image URLs and descriptions, not in product URLs
+  // Example: /products/gymshark-arrival-t-shirt-black-ss22
+  {
+    id: '15861',
+    domain: 'gymshark.com',
+    aliases: [
+      { id: '15861', domain: 'us.shop.gymshark.com' },
+      { id: '15861', domain: 'ca.gymshark.com' },
+      { id: '15861', domain: 'uk.gymshark.com' },
+      { id: '15861', domain: 'au.gymshark.com' },
+      { id: '15861', domain: 'de.gymshark.com' },
+      { id: '15861', domain: 'fr.gymshark.com' },
+    ],
+    // No pathnamePatterns - URLs don't contain extractable IDs
+  },
+  // Carter's - Product IDs use V_{alphanumeric} format
+  // URL patterns:
+  //   /p/{slug}/V_1T673110
+  //   /~/V_3T261510.html
+  //   /{category}/V_2R474910.html
+  // Note: Pattern uses lowercase v_ since extractor lowercases URLs before matching
+  {
+    id: '10752',
+    domain: 'carters.com',
+    pathnamePatterns: [
+      // Matches v_{alphanumeric} pattern in path (with or without .html)
+      // Examples: /p/slug/v_1t673110, /~/v_3t261510.html, /category/v_2r474910.html
+      buildRegExp(
+        [
+          '/',
+          capture(['v_', repeat(choiceOf(digit, word), { min: 6, max: 12 })]),
+          choiceOf(endOfString, '.html', wordBoundary),
+        ],
+        { global: true },
+      ),
+    ],
+  },
+  // Kohl's - Two extractable IDs:
+  //   1. Product ID in path: /product/prd-{number}/
+  //   2. SKU in query param: ?skuId={number}
+  // Examples:
+  //   /product/prd-7692699/product-name.jsp
+  //   /product/prd-7692699/product-name.jsp?skuId=76565656
+  {
+    id: '7206',
+    domain: 'kohls.com',
+    aliases: [{ id: '7206', domain: 'm.kohls.com' }],
+    pathnamePatterns: [
+      // Extract full prd-{number} from pathname
+      buildRegExp(['/product/', capture(['prd-', repeat(digit, { min: 6, max: 12 })]), '/'], {
+        global: true,
+      }),
+      // Also extract just the numeric ID without prd- prefix
+      // skuId is handled by generic extraction
+      buildRegExp(['/product/prd-', capture(repeat(digit, { min: 6, max: 12 })), '/'], {
+        global: true,
+      }),
     ],
   },
   {

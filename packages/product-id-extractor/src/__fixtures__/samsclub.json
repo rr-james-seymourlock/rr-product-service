@@ -5,31 +5,82 @@
   "testCases": [
     {
       "url": "https://www.samsclub.com/p/dove-bar-soap-shea-butter-vanilla-16-count/P03002770",
-      "expectedSkus": ["P03002770", "03002770"]
+      "expectedSkus": ["03002770"]
     },
     {
       "url": "https://www.samsclub.com/p/members-mark-organic-extra-virgin-olive-oil-2-l/prod21330023",
-      "expectedSkus": ["prod21330023", "21330023"]
+      "expectedSkus": ["21330023"]
     },
     {
       "url": "https://www.samsclub.com/p/members-mark-liquid-laundry-detergent-ultimate-clean-fresh-scent/P03004008",
-      "expectedSkus": ["P03004008", "03004008"]
+      "expectedSkus": ["03004008"]
     },
     {
       "url": "https://www.samsclub.com/p/members-mark-alkaline-d-batteries-12pk/prod22885593",
-      "expectedSkus": ["prod22885593", "22885593"]
+      "expectedSkus": ["22885593"]
     },
     {
       "url": "https://www.samsclub.com/p/members-mark-alkaline-aaa-batteries-48pk/prod23033851",
-      "expectedSkus": ["prod23033851", "23033851"]
+      "expectedSkus": ["23033851"]
     },
     {
       "url": "https://www.samsclub.com/p/members-mark-alkaline-aa-batteries-48-pack/prod23033850?query=params",
-      "expectedSkus": ["prod23033850", "23033850"]
+      "expectedSkus": ["23033850"]
     },
     {
       "url": "https://www.samsclub.com/p/oreo-dairy-dessert-sandwiches-frozen-12-ct/P990347371/",
-      "expectedSkus": ["P990347371", "990347371"]
+      "expectedSkus": ["990347371"]
+    },
+    {
+      "url": "https://www.samsclub.com/p/nabisco-classic-mix-mini-cookie-variety-pack-40-ct/prod17240127",
+      "expectedSkus": ["17240127"]
+    },
+    {
+      "url": "https://www.samsclub.com/p/starbucks-whole-bean-coffee-espresso-roast-dark-40-oz/prod22821422",
+      "expectedSkus": ["22821422"]
+    },
+    {
+      "url": "https://www.samsclub.com/p/tm-corner-dsk-hutch-tm-l-comp-dsk/prod25330266",
+      "expectedSkus": ["25330266"]
+    },
+    {
+      "url": "https://www.samsclub.com/p/grnbabyblueuc10-grn-babyblueuc-10/prod12030646",
+      "expectedSkus": ["12030646"]
+    },
+    {
+      "url": "https://www.samsclub.com/ip/champion-boys-logo-jogger/16675013342",
+      "expectedSkus": ["16675013342"],
+      "description": "Mobile app product URL pattern"
+    },
+    {
+      "url": "https://www.samsclub.com/ip/seort/16675013342",
+      "expectedSkus": ["16675013342"],
+      "description": "Mobile app cart URL pattern (seort)"
+    },
+    {
+      "url": "https://www.samsclub.com/ip/members-mark-gummy-bears-56oz/prod24921152",
+      "expectedSkus": ["24921152"],
+      "description": "Mobile app URL with prod prefix - transforms to numeric ID"
+    },
+    {
+      "url": "https://www.samsclub.com/ip/seort/16679295472",
+      "expectedSkus": ["16679295472"],
+      "description": "Mobile app cart URL for snack item"
+    },
+    {
+      "url": "https://www.samsclub.com/ip/Strawberries-2-lbs/13612870276?athcpid=13612870276",
+      "expectedSkus": ["13612870276"],
+      "description": "Product URL with query params"
+    },
+    {
+      "url": "https://www.samsclub.com/ip/Free-Country-Men-s-Softshell-Jacket/15941656209?classType=VARIANT",
+      "expectedSkus": ["15941656209"],
+      "description": "Variant product URL"
+    },
+    {
+      "url": "https://www.samsclub.com/ip/Oval-Cut-Amethyst-0-58-CT-T-W-Diamond-3-Stone-Ring-in-14K-Gold/13603804163?classType=VARIANT",
+      "expectedSkus": ["13603804163"],
+      "description": "Variant product URL with special characters in slug"
     }
   ]
 }
