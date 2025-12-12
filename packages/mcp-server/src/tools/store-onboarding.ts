@@ -1458,7 +1458,7 @@ export function registerStoreOnboardingTools(server: McpServer) {
 function createCheckStoreExistsTool(server: McpServer) {
   return server.tool(
     'store_check_exists',
-    'Check if a store already exists in the store-registry by ID or domain',
+    'Check if a store already exists in the store-registry by ID or domain, and if a test fixture exists',
     {
       state: z.object({
         storeId: z.string().optional().describe('Store ID to check'),
@@ -1474,18 +1474,56 @@ function createCheckStoreExistsTool(server: McpServer) {
 
       const result = await StoreOnboardingManager.checkStoreExists(state.storeId, state.domain);
 
-      let response = '';
+      // Also check for existing fixture if domain is provided
+      let fixtureExists = false;
+      let fixturePath: string | undefined;
+      if (state.domain) {
+        fixtureExists = await StoreOnboardingManager.fixtureExists(state.domain);
+        if (fixtureExists) {
+          fixturePath = StoreOnboardingManager.getFixturePath(state.domain);
+        }
+      }
+
+      let response = '## Store Check Results\n\n';
+
+      // Config status
+      response += '### Store Registry Config\n';
       if (result.exists) {
-        response = `Store already exists:\n`;
+        response += `**Status:** ✓ Store config exists\n`;
         if (result.existingById) {
           response += `- Found by ID: ${result.existingStoreId}\n`;
         }
         if (result.existingByDomain) {
           response += `- Found by domain: ${result.existingDomain}\n`;
         }
-        response += `\nUse update mode to add new patterns to this store.`;
       } else {
-        response = `Store does not exist. You can proceed with new store onboarding.`;
+        response += `**Status:** ✗ No store config found\n`;
+      }
+
+      // Fixture status
+      response += '\n### Test Fixture\n';
+      if (fixtureExists) {
+        response += `**Status:** ✓ Fixture exists\n`;
+        response += `- Path: ${fixturePath}\n`;
+        response += `\n**Important:** Since a fixture exists, generic rules may already work!\n`;
+        response += `Run \`store_run_tests\` first to check if a store-specific config is needed.\n`;
+      } else {
+        response += `**Status:** ✗ No fixture found\n`;
+      }
+
+      // Recommendation
+      response += '\n### Recommendation\n';
+      if (result.exists && fixtureExists) {
+        response += `Store is fully configured. Use \`store_append_fixture\` to add more test cases.\n`;
+      } else if (!result.exists && fixtureExists) {
+        response += `⚠️ Fixture exists without store config - generic rules may work!\n`;
+        response += `1. First run \`store_run_tests\` to verify generic rules work\n`;
+        response += `2. If tests pass, no store config needed - just append new test cases\n`;
+        response += `3. If tests fail, then generate a store-specific config\n`;
+      } else if (result.exists && !fixtureExists) {
+        response += `Store config exists but no fixture. Create a fixture with \`store_generate_fixture\`.\n`;
+      } else {
+        response += `New store. Proceed with full onboarding workflow.\n`;
       }
 
       return {
@@ -1534,10 +1572,13 @@ function createValidateStoreMetadataTool(server: McpServer) {
         state.domain,
       );
 
+      // Check for existing fixture
+      const fixtureExists = await StoreOnboardingManager.fixtureExists(state.domain);
+
       let response = `Validation passed!\n- Store ID: ${state.storeId}\n- Domain: ${state.domain}`;
 
       if (existsCheck.exists) {
-        response += `\n\nNote: Store already exists in registry.`;
+        response += `\n\n**Note:** Store config already exists in registry.`;
         if (existsCheck.existingById) {
           response += `\n- Found by ID: ${existsCheck.existingStoreId}`;
         }
@@ -1545,6 +1586,16 @@ function createValidateStoreMetadataTool(server: McpServer) {
           response += `\n- Found by domain: ${existsCheck.existingDomain}`;
         }
         response += `\nYou can use update mode to add new patterns.`;
+      }
+
+      if (fixtureExists) {
+        response += `\n\n**Fixture Status:** ✓ Test fixture exists for ${state.domain}`;
+        if (!existsCheck.exists) {
+          response += `\n⚠️ Fixture exists but no store config - generic rules may already work!`;
+          response += `\nRun \`store_run_tests\` first to check if a store-specific config is needed.`;
+        }
+      } else {
+        response += `\n\n**Fixture Status:** ✗ No test fixture found`;
       }
 
       return {
@@ -1842,14 +1893,35 @@ function createGenerateFixtureTool(server: McpServer) {
         testCases,
       );
 
+      // Check if store config exists
+      const configExists = await StoreOnboardingManager.checkStoreExists(
+        state.storeId,
+        state.domain,
+      );
+      const hasStoreConfig = configExists.exists;
+
       let response = `## Generated Fixture\n\n`;
       response += `**Store:** ${state.storeName} (${state.storeId})\n`;
       response += `**Domain:** ${state.domain}\n`;
-      response += `**Test Cases:** ${testCases.length}\n\n`;
+      response += `**Test Cases:** ${testCases.length}\n`;
+      response += `**Store Config:** ${hasStoreConfig ? '✓ Exists' : '✗ Not configured'}\n\n`;
 
       if (state.writeFile) {
         const filePath = await StoreOnboardingManager.writeFixture(state.domain, fixtureContent);
         response += `**File written:** ${filePath}\n\n`;
+
+        // Add next steps based on whether store config exists
+        response += `### Next Steps\n`;
+        if (!hasStoreConfig) {
+          response += `⚠️ **Important:** No store config exists yet.\n`;
+          response += `1. **First run \`store_run_tests\`** to check if generic rules work\n`;
+          response += `2. If tests pass → No store config needed! Generic rules work.\n`;
+          response += `3. If tests fail → Run \`store_generate_patterns\` to create store config\n`;
+        } else {
+          response += `1. Run \`store_run_tests\` to verify extraction works\n`;
+          response += `2. Run \`store_run_regression_tests\` to check for regressions\n`;
+        }
+        response += '\n';
       }
 
       response += '```json\n';
@@ -1950,20 +2022,52 @@ function createAppendFixtureTool(server: McpServer) {
 function createRunTestsTool(server: McpServer) {
   return server.tool(
     'store_run_tests',
-    'Run product-id-extractor tests for a specific store fixture',
+    'Run product-id-extractor tests for a specific store fixture to check if generic rules work',
     {
       state: z.object({
         domain: z.string().describe('Store domain to test'),
       }),
     },
     async ({ state }) => {
+      // Check if store config exists
+      const configExists = await StoreOnboardingManager.checkStoreExists(undefined, state.domain);
+      const hasStoreConfig = configExists.exists;
+
       const result = await StoreOnboardingManager.runFixtureTests(state.domain);
 
       let response = `## Test Results for ${state.domain}\n\n`;
       response += `**Status:** ${result.success ? '✓ PASSED' : '✗ FAILED'}\n`;
+      response += `**Store Config:** ${hasStoreConfig ? '✓ Exists' : '✗ Not configured'}\n`;
       response += `**Passing:** ${result.passCount}\n`;
       response += `**Failing:** ${result.failCount}\n\n`;
-      response += `### Output\n\`\`\`\n${result.output}\n\`\`\``;
+
+      // Provide guidance based on results
+      response += `### Analysis\n`;
+      if (result.success && !hasStoreConfig) {
+        response += `✅ **Generic rules work!** No store-specific config needed.\n`;
+        response += `The built-in extraction patterns successfully extract IDs from this store's URLs.\n\n`;
+        response += `**Next Steps:**\n`;
+        response += `- You can append more test cases with \`store_append_fixture\`\n`;
+        response += `- No need to run \`store_generate_patterns\` or modify config.ts\n`;
+      } else if (result.success && hasStoreConfig) {
+        response += `✅ Tests pass with store-specific config.\n\n`;
+        response += `**Next Steps:**\n`;
+        response += `- Run \`store_run_regression_tests\` before committing\n`;
+      } else if (!result.success && !hasStoreConfig) {
+        response += `❌ **Generic rules don't work** for this store.\n`;
+        response += `A store-specific config is needed to extract IDs correctly.\n\n`;
+        response += `**Next Steps:**\n`;
+        response += `1. Run \`store_analyze_urls\` to identify patterns\n`;
+        response += `2. Run \`store_generate_patterns\` to create config code\n`;
+        response += `3. Run tests again to verify the config works\n`;
+      } else {
+        response += `❌ Tests fail even with store config. Config may need adjustment.\n\n`;
+        response += `**Next Steps:**\n`;
+        response += `- Review the failing test cases\n`;
+        response += `- Update the store config patterns\n`;
+      }
+
+      response += `\n### Output\n\`\`\`\n${result.output}\n\`\`\``;
 
       return {
         content: [{ type: 'text', text: response }],

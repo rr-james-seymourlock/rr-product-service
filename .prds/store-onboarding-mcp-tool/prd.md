@@ -146,6 +146,33 @@ Build MCP tools within packages/mcp-server that provide a guided, conversational
 - Blocks commit if tests fail
 - Shows test execution time
 
+#### US011: Have All Existing Store ⏳ [M]
+
+**User Story:** As a developer, I want to have all existing store extraction tests run before committing new store config so that I can be confident that adding a new store doesn't break ID extraction for any existing stores
+
+**Business Value:** I can be confident that adding a new store doesn't break ID extraction for any existing stores
+
+**Acceptance Criteria:**
+- Runs full product-id-extractor test suite (all fixtures) before allowing commit
+- Reports any regressions in existing stores with clear diff of expected vs actual
+- Blocks commit if any existing store tests fail
+- Shows summary of all stores tested with pass/fail count
+- Clearly distinguishes between new store test failures (fixable) vs regression failures (blocker)
+
+#### US012: Have Existing Fixtures Detected ⏳ [L]
+
+**User Story:** As a developer, I want to have existing fixtures detected and generic rules tested before generating store configs so that avoid creating unnecessary store-specific configurations when generic extraction rules already work, reducing code complexity and maintenance burden
+
+**Business Value:** avoid creating unnecessary store-specific configurations when generic extraction rules already work, reducing code complexity and maintenance burden
+
+**Acceptance Criteria:**
+- Tool checks for existing fixture file by domain before analyzing URLs
+- If fixture exists, runs tests to see if generic rules extract IDs correctly
+- Reports whether generic rules pass or fail with clear explanation
+- Only proceeds to generate store-specific config if generic rules fail
+- Allows appending new test cases to existing fixtures without requiring store config
+- Clear messaging distinguishes between 'fixture exists, tests pass' vs 'fixture exists, tests fail' vs 'no fixture exists'
+
 ### Priority P1
 
 #### US008: Have A Feature Branch ⏳ [L]
@@ -195,7 +222,7 @@ Build MCP tools within packages/mcp-server that provide a guided, conversational
 
 ## Progress
 
-**Overall:** 0% (0/10 stories)
+**Overall:** 0% (0/12 stories)
 
 ---
 

@@ -236,6 +236,24 @@
       "priority": "P0",
       "estimatedComplexity": "M",
       "dependencies": []
+    },
+    {
+      "id": "US012",
+      "title": "Have Existing Fixtures Detected",
+      "userStory": "As a developer, I want to have existing fixtures detected and generic rules tested before generating store configs so that avoid creating unnecessary store-specific configurations when generic extraction rules already work, reducing code complexity and maintenance burden",
+      "businessValue": "avoid creating unnecessary store-specific configurations when generic extraction rules already work, reducing code complexity and maintenance burden",
+      "acceptanceCriteria": [
+        "Tool checks for existing fixture file by domain before analyzing URLs",
+        "If fixture exists, runs tests to see if generic rules extract IDs correctly",
+        "Reports whether generic rules pass or fail with clear explanation",
+        "Only proceeds to generate store-specific config if generic rules fail",
+        "Allows appending new test cases to existing fixtures without requiring store config",
+        "Clear messaging distinguishes between 'fixture exists, tests pass' vs 'fixture exists, tests fail' vs 'no fixture exists'"
+      ],
+      "status": "not_started",
+      "priority": "P0",
+      "estimatedComplexity": "L",
+      "dependencies": []
     }
   ],
   "technicalRequirements": {
@@ -261,7 +279,7 @@
   "progress": {
     "overall": 0,
     "completed": 0,
-    "total": 11,
+    "total": 12,
     "blocked": 0
   }
 }
