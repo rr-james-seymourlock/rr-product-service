@@ -10,6 +10,46 @@
     {
       "url": "https://www.bloomingdales.com/shop/product/ugg-classic-ii-mini-boots?ID=1753360&tdp=cm_app~zBCOM-NAVAPP~xcm_zone~zHP_ZONE_A~xcm_choiceId~zcidB38RUX-7a97dff9-a542-452b-a758-a58d091e89b1%40H23%40RECOMMENDED%2BFOR%2BYOU%243979%243954464~xcm_pos~zPos3~xcm_srcCatID~z16961",
       "expectedSkus": ["1753360"]
+    },
+    {
+      "url": "https://www.bloomingdales.com/shop/product/michael-aram-reflective-gold-frame-4-x-6?ID=3755634&upc_ID=5334726&Quantity=1&seqNo=72&EXTRA_PARAMETER=BAG&pickInStore=false",
+      "expectedSkus": ["3755634", "5334726"]
+    },
+    {
+      "url": "https://www.bloomingdales.com/shop/product/c-by-bloomingdales-cashmere-pointelle-oversized-blanket-scarf-exclusive?ID=5758492&upc_ID=8864211&Quantity=1&seqNo=39&EXTRA_PARAMETER=BAG&pickInStore=false",
+      "expectedSkus": ["5758492", "8864211"]
+    },
+    {
+      "url": "https://www.bloomingdales.com/shop/product/gift?ID=5784117&PROMO=38938&seqNo=6&SOURCEID=0",
+      "expectedSkus": ["5784117"]
+    },
+    {
+      "url": "https://www.bloomingdales.com/shop/product/~?ID=3184094",
+      "expectedSkus": ["3184094"]
+    },
+    {
+      "url": "https://www.bloomingdales.com/shop/product/chanel-demaquillant-yeux-intense-gentle-bi-phase-eye-makeup-remover?ID=89419",
+      "expectedSkus": ["89419"]
+    },
+    {
+      "url": "https://www.bloomingdales.com/shop/product/longchamp-le-pliage-medium-backpack?ID=641313&upc_ID=778409&Quantity=1&seqNo=9&EXTRA_PARAMETER=BAG&pickInStore=false",
+      "expectedSkus": ["641313", "778409"]
+    },
+    {
+      "url": "https://www.bloomingdales.com/shop/product/gucci-mens-ace-low-top-sneakers?ID=1751703&upc_ID=3011797&Quantity=1&seqNo=6&EXTRA_PARAMETER=BAG&pickInStore=false",
+      "expectedSkus": ["1751703", "3011797"]
+    },
+    {
+      "url": "https://www.bloomingdales.com/shop/product/Ribbed-Duster-Cardigan?ID=3864542",
+      "expectedSkus": ["3864542"]
+    },
+    {
+      "url": "https://www.bloomingdales.com/shop/product/lobjet-platinum-braid-frame-5-x-7?ID=102325&upc_ID=314474&Quantity=1&seqNo=48&EXTRA_PARAMETER=BAG&pickInStore=false",
+      "expectedSkus": ["102325", "314474"]
+    },
+    {
+      "url": "https://www.bloomingdales.com/shop/product/on-gossamer-bump-it-up-push-up-bra?ID=2687046&upc_ID=309496&Quantity=3&seqNo=3&EXTRA_PARAMETER=BAG&pickInStore=false",
+      "expectedSkus": ["2687046", "309496"]
     }
   ]
 }
