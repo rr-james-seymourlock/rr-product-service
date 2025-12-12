@@ -408,6 +408,14 @@ describe('storeRegistry', () => {
 
       const iterations = 1000;
 
+      // Warmup phase to trigger JIT compilation and cache warming
+      // This reduces variance from cold starts on CI runners
+      for (let i = 0; i < 100; i++) {
+        getStoreConfig({ id: firstStore.id });
+        getStoreConfig({ id: middleStore.id });
+        getStoreConfig({ id: lastStore.id });
+      }
+
       // Test first store
       const startFirst = performance.now();
       for (let i = 0; i < iterations; i++) {
@@ -429,11 +437,16 @@ describe('storeRegistry', () => {
       }
       const lastTime = performance.now() - startLast;
 
-      // All should be within 10ms of each other (O(1) lookup, not O(n))
-      // Increased threshold from 2ms to 10ms to account for CI environment variance
-      expect(Math.abs(firstTime - middleTime)).toBeLessThan(10);
-      expect(Math.abs(middleTime - lastTime)).toBeLessThan(10);
-      expect(Math.abs(firstTime - lastTime)).toBeLessThan(10);
+      // Use ratio-based comparison instead of absolute difference
+      // O(1) lookup means all times should be similar regardless of position
+      // Allow up to 3x variance to account for CI runner variability
+      const times = [firstTime, middleTime, lastTime];
+      const maxTime = Math.max(...times);
+      const minTime = Math.min(...times);
+
+      // Avoid division by zero - if minTime is 0, use a small epsilon
+      const ratio = maxTime / Math.max(minTime, 0.001);
+      expect(ratio).toBeLessThan(3);
     });
 
     it('should handle missing lookups efficiently', () => {
