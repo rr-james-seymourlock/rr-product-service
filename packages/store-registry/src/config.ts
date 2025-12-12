@@ -915,6 +915,22 @@ const mutableStoreConfigs: StoreConfigInterface[] = [
       ),
     ],
   },
+  // Gymshark - URLs contain only human-readable slugs, no extractable product IDs
+  // SKUs appear in image URLs and descriptions, not in product URLs
+  // Example: /products/gymshark-arrival-t-shirt-black-ss22
+  {
+    id: '15861',
+    domain: 'gymshark.com',
+    aliases: [
+      { id: '15861', domain: 'us.shop.gymshark.com' },
+      { id: '15861', domain: 'ca.gymshark.com' },
+      { id: '15861', domain: 'uk.gymshark.com' },
+      { id: '15861', domain: 'au.gymshark.com' },
+      { id: '15861', domain: 'de.gymshark.com' },
+      { id: '15861', domain: 'fr.gymshark.com' },
+    ],
+    // No pathnamePatterns - URLs don't contain extractable IDs
+  },
   {
     id: 'test-search-patterns',
     domain: 'test-search.example.com',

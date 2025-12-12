@@ -336,6 +336,49 @@ describe('storeRegistry', () => {
       expect(config?.pathnamePatterns).toBeDefined();
       expect(config?.pathnamePatterns?.length).toBeGreaterThan(0);
     });
+
+    describe('Gymshark configuration', () => {
+      it('should have Gymshark configuration with no URL patterns', () => {
+        const config = getStoreConfig({ id: '15861' });
+        expect(config).toBeDefined();
+        expect(config?.domain).toBe('gymshark.com');
+        // Gymshark URLs don't contain extractable product IDs
+        expect(config?.pathnamePatterns).toBeUndefined();
+      });
+
+      it('should resolve primary domain', () => {
+        const config = getStoreConfig({ domain: 'gymshark.com' });
+        expect(config).toBeDefined();
+        expect(config?.id).toBe('15861');
+      });
+
+      it('should resolve US shop subdomain alias', () => {
+        const config = getStoreConfig({ domain: 'us.shop.gymshark.com' });
+        expect(config).toBeDefined();
+        expect(config?.id).toBe('15861');
+      });
+
+      it('should resolve CA subdomain alias', () => {
+        const config = getStoreConfig({ domain: 'ca.gymshark.com' });
+        expect(config).toBeDefined();
+        expect(config?.id).toBe('15861');
+      });
+
+      it('should resolve UK subdomain alias', () => {
+        const config = getStoreConfig({ domain: 'uk.gymshark.com' });
+        expect(config).toBeDefined();
+        expect(config?.id).toBe('15861');
+      });
+
+      it('should not extract IDs from Gymshark product URLs', () => {
+        const config = getStoreConfig({ id: '15861' });
+        expect(config).toBeDefined();
+        // No patterns means no ID extraction - URLs like:
+        // /products/gymshark-arrival-t-shirt-black-ss22
+        // contain only human-readable slugs, no SKUs
+        expect(COMPILED_PATTERNS.has('15861')).toBe(false);
+      });
+    });
   });
 
   describe('performance characteristics', () => {
