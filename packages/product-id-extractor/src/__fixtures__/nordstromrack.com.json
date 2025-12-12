@@ -1,0 +1,27 @@
+{
+  "name": "Nordstrom Rack",
+  "id": 13349,
+  "domain": "nordstromrack.com",
+  "testCases": [
+    {
+      "url": "https://www.nordstromrack.com/s/6054347?origin=bag",
+      "expectedSkus": ["6054347"]
+    },
+    {
+      "url": "https://www.nordstromrack.com/s/8635392?origin=bag",
+      "expectedSkus": ["8635392"]
+    },
+    {
+      "url": "https://www.nordstromrack.com/s/7997495",
+      "expectedSkus": ["7997495"]
+    },
+    {
+      "url": "https://www.nordstromrack.com/s/8258240",
+      "expectedSkus": ["8258240"]
+    },
+    {
+      "url": "https://www.nordstromrack.com/s/4402501",
+      "expectedSkus": ["4402501"]
+    }
+  ]
+}

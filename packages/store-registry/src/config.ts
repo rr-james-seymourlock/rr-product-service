@@ -975,6 +975,33 @@ const mutableStoreConfigs: StoreConfigInterface[] = [
       }),
     ],
   },
+  // Ace Hardware - Product IDs in /product/{id} path
+  // Formats: numeric (8061802) or alphanumeric with F prefix (F001289)
+  // Also extracts variationProductCode from query params
+  {
+    id: '8302',
+    domain: 'acehardware.com',
+    pathnamePatterns: [
+      // Matches /product/{id} where id is alphanumeric (includes F-prefixed and numeric)
+      // Examples: /product/8061802, /product/F001289
+      buildRegExp(
+        [
+          '/product/',
+          capture(repeat(choiceOf(digit, word), { min: 4, max: 12 })),
+          choiceOf(endOfString, wordBoundary),
+        ],
+        { global: true },
+      ),
+    ],
+    searchPatterns: [
+      // Matches variationProductCode query parameter
+      // Example: ?variationProductCode=7008474
+      buildRegExp(
+        ['variationproductcode=', capture(repeat(digit, { min: 4, max: 12 })), wordBoundary],
+        { global: true },
+      ),
+    ],
+  },
   {
     id: 'test-search-patterns',
     domain: 'test-search.example.com',
@@ -1000,6 +1027,17 @@ const mutableStoreConfigs: StoreConfigInterface[] = [
         ],
         { global: true },
       ),
+    ],
+  },
+  // Nordstrom Rack (ID: 13349)
+  {
+    id: '13349',
+    domain: 'nordstromrack.com',
+    pathnamePatterns: [
+      // Matches /s/{numeric_id} pattern
+      buildRegExp(['/', 's', '/', capture(repeat(digit, { min: 4 })), choiceOf('/', endOfString)], {
+        global: true,
+      }),
     ],
   },
 ];

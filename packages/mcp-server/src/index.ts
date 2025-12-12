@@ -3,6 +3,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 
 import { registerPRDTools } from './tools/prd-manager';
+import { registerStoreOnboardingTools } from './tools/store-onboarding';
 import { registerTaskTools } from './tools/task-manager';
 
 async function main() {
@@ -17,8 +18,7 @@ async function main() {
   // Register all tools
   registerPRDTools(server);
   registerTaskTools(server);
-  // Add new tool registrations here:
-  // registerMyTools(server);
+  registerStoreOnboardingTools(server);
 
   await server.connect(transport);
 

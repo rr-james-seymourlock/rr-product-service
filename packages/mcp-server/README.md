@@ -20,6 +20,65 @@ Tools for managing Product Requirements Documents (PRDs):
 
 PRDs are stored in a `.prds/` directory in your project root.
 
+### Store Onboarding
+
+Tools for onboarding new stores to the product ID extraction system:
+
+- `store_check_exists` - Check if a store already exists by ID or domain
+- `store_validate_metadata` - Validate store ID and domain format
+- `store_filter_urls` - Filter URLs to remove non-product pages (cart, account, etc.)
+- `store_analyze_urls` - Analyze product URLs to identify ID patterns
+- `store_generate_patterns` - Generate ts-regex-builder code for patterns
+- `store_generate_fixture` - Generate test fixture JSON for product-id-extractor
+- `store_run_tests` - Run tests for a specific store fixture
+- `store_run_regression_tests` - Run all tests to check for regressions
+
+#### How It Works
+
+You don't need to specify which tools to use - Claude automatically sees all available MCP tools and uses them when relevant. Just describe what you want naturally.
+
+#### Example Prompts
+
+**Full request:**
+```
+Add a new store: Ace Hardware (ID: 1234, domain: acehardware.com)
+
+Product URLs:
+- https://www.acehardware.com/departments/chainsaws/7011953
+- https://www.acehardware.com/departments/faucets/4293065
+- https://www.acehardware.com/departments/drills/8765432
+```
+
+**Shorter version:**
+```
+Onboard acehardware.com (store ID 1234) with these URLs:
+[paste URLs]
+```
+
+**Just analyze patterns (no code generation):**
+```
+Analyze these URLs and tell me what product ID pattern you see:
+[paste URLs]
+```
+
+#### What Happens Behind the Scenes
+
+When you mention store onboarding + URLs, Claude will automatically:
+
+1. Check if store exists (`store_check_exists`)
+2. Validate metadata (`store_validate_metadata`)
+3. Filter non-product URLs (`store_filter_urls`)
+4. Analyze patterns (`store_analyze_urls`)
+5. Generate config code (`store_generate_patterns`)
+6. Create test fixture (`store_generate_fixture`)
+7. Run tests (`store_run_tests`)
+
+#### Tips
+
+- **More URLs = better** - 5-10 product URLs helps identify patterns confidently
+- **Include edge cases** - URLs with query params, different product types, variants
+- **You can ask for specific steps** - e.g., "just analyze these URLs" if you only want pattern detection
+
 ## Build MCP Server
 
 Run the command:
