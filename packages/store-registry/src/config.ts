@@ -931,6 +931,27 @@ const mutableStoreConfigs: StoreConfigInterface[] = [
     ],
     // No pathnamePatterns - URLs don't contain extractable IDs
   },
+  // Carter's - Product IDs use V_{alphanumeric} format
+  // URL patterns:
+  //   /p/{slug}/V_1T673110
+  //   /~/V_3T261510.html
+  //   /{category}/V_2R474910.html
+  {
+    id: '10752',
+    domain: 'carters.com',
+    pathnamePatterns: [
+      // Matches V_{alphanumeric} pattern in path (with or without .html)
+      // Examples: /p/slug/V_1T673110, /~/V_3T261510.html, /category/V_2R474910.html
+      buildRegExp(
+        [
+          '/',
+          capture(['V_', repeat(choiceOf(digit, word), { min: 6, max: 12 })]),
+          choiceOf(endOfString, '.html', wordBoundary),
+        ],
+        { global: true },
+      ),
+    ],
+  },
   {
     id: 'test-search-patterns',
     domain: 'test-search.example.com',
