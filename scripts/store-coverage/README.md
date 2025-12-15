@@ -5,7 +5,7 @@ Analyzes store-registry coverage against CBSP's catalog-enabled stores.
 ## Directory Structure
 
 ```
-cbsp-coverage/
+store-coverage/
 ├── store-coverage.ts     # Main script
 ├── data/                 # Store data (stores.json is committed)
 │   └── stores.json       # All CBSP stores with productSearchEnabled status
@@ -21,7 +21,7 @@ cbsp-coverage/
 Uses cached `data/stores.json`:
 
 ```bash
-pnpm tsx scripts/cbsp-coverage/store-coverage.ts
+pnpm tsx scripts/store-coverage/store-coverage.ts
 ```
 
 ### Refresh Data and Generate Report
@@ -29,7 +29,7 @@ pnpm tsx scripts/cbsp-coverage/store-coverage.ts
 Fetches fresh data from CBSP API, updates `stores.json`, then generates report:
 
 ```bash
-pnpm tsx scripts/cbsp-coverage/store-coverage.ts --refresh
+pnpm tsx scripts/store-coverage/store-coverage.ts --refresh
 ```
 
 ## Output
