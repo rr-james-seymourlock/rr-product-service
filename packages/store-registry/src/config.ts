@@ -473,7 +473,7 @@ const mutableStoreConfigs: StoreConfigInterface[] = [
     ],
   },
   {
-    id: '2428',
+    id: '4767',
     domain: 'bestbuy.com',
     pathnamePatterns: [
       buildRegExp(
