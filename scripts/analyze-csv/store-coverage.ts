@@ -15,7 +15,7 @@ import { resolve, basename, dirname } from 'node:path';
 import { parse } from 'csv-parse';
 import { STORE_ID_CONFIG } from '@rr/store-registry';
 
-const REPORTS_DIR = resolve(import.meta.dirname, '../reports');
+const REPORTS_DIR = resolve(import.meta.dirname, 'reports');
 
 type StoreInfo = {
   id: string;
@@ -104,11 +104,7 @@ async function parseCSV(filePath: string): Promise<Map<string, StoreInfo>> {
             'ids',
             'extracted_ids',
           ]);
-          productIdsIndex = findColumnIndex(headers, [
-            'product_ids',
-            'productids',
-            'product_id',
-          ]);
+          productIdsIndex = findColumnIndex(headers, ['product_ids', 'productids', 'product_id']);
 
           if (storeIdIndex === -1) {
             reject(new Error(`Could not find storeId column. Headers: ${headers.join(', ')}`));
@@ -122,7 +118,8 @@ async function parseCSV(filePath: string): Promise<Map<string, StoreInfo>> {
         const storeId = row[storeIdIndex]?.trim();
         if (!storeId) return;
 
-        const storeName = storeNameIndex !== -1 ? row[storeNameIndex]?.trim() || 'Unknown' : 'Unknown';
+        const storeName =
+          storeNameIndex !== -1 ? row[storeNameIndex]?.trim() || 'Unknown' : 'Unknown';
         const urlIdsCsv = urlIdsCsvIndex !== -1 ? row[urlIdsCsvIndex]?.trim() || '' : '';
         const productIdsJson = productIdsIndex !== -1 ? row[productIdsIndex]?.trim() || '' : '';
         const hasIds = urlIdsCsv.length > 0;
@@ -198,7 +195,9 @@ function generateReport(result: CoverageResult, totalRows: number, csvPath: stri
   lines.push('');
   lines.push(`Total unique stores in CSV: ${totalStores}`);
   lines.push(`Stores in registry: ${result.covered.size} (${coveragePercent}%)`);
-  lines.push(`Stores missing: ${result.missing.size} (${(100 - parseFloat(coveragePercent)).toFixed(1)}%)`);
+  lines.push(
+    `Stores missing: ${result.missing.size} (${(100 - parseFloat(coveragePercent)).toFixed(1)}%)`,
+  );
 
   // Calculate row coverage
   let coveredRows = 0;
@@ -219,20 +218,30 @@ function generateReport(result: CoverageResult, totalRows: number, csvPath: stri
   const rowsWithProductIdsPercent = ((totalRowsWithProductIds / totalRows) * 100).toFixed(1);
 
   lines.push('');
-  lines.push(`Row coverage: ${coveredRows.toLocaleString()} of ${totalRows.toLocaleString()} rows (${rowCoveragePercent}%)`);
+  lines.push(
+    `Row coverage: ${coveredRows.toLocaleString()} of ${totalRows.toLocaleString()} rows (${rowCoveragePercent}%)`,
+  );
 
   lines.push('');
   lines.push('-'.repeat(100));
   lines.push('ID EXTRACTION STATS:');
   lines.push('-'.repeat(100));
-  lines.push(`Rows with extracted IDs: ${totalRowsWithIds.toLocaleString()} of ${totalRows.toLocaleString()} (${rowsWithIdsPercent}%)`);
-  lines.push(`Rows missing IDs: ${(totalRows - totalRowsWithIds).toLocaleString()} of ${totalRows.toLocaleString()} (${rowsMissingIdsPercent}%)`);
+  lines.push(
+    `Rows with extracted IDs: ${totalRowsWithIds.toLocaleString()} of ${totalRows.toLocaleString()} (${rowsWithIdsPercent}%)`,
+  );
+  lines.push(
+    `Rows missing IDs: ${(totalRows - totalRowsWithIds).toLocaleString()} of ${totalRows.toLocaleString()} (${rowsMissingIdsPercent}%)`,
+  );
   lines.push('');
   lines.push('-'.repeat(100));
   lines.push('PRODUCT MATCH STATS:');
   lines.push('-'.repeat(100));
-  lines.push(`Rows with matched products: ${totalRowsWithProductIds.toLocaleString()} of ${totalRows.toLocaleString()} (${rowsWithProductIdsPercent}%)`);
-  lines.push(`Rows without matched products: ${(totalRows - totalRowsWithProductIds).toLocaleString()} of ${totalRows.toLocaleString()} (${(100 - parseFloat(rowsWithProductIdsPercent)).toFixed(1)}%)`);
+  lines.push(
+    `Rows with matched products: ${totalRowsWithProductIds.toLocaleString()} of ${totalRows.toLocaleString()} (${rowsWithProductIdsPercent}%)`,
+  );
+  lines.push(
+    `Rows without matched products: ${(totalRows - totalRowsWithProductIds).toLocaleString()} of ${totalRows.toLocaleString()} (${(100 - parseFloat(rowsWithProductIdsPercent)).toFixed(1)}%)`,
+  );
 
   if (result.covered.size > 0) {
     lines.push('');
@@ -241,7 +250,9 @@ function generateReport(result: CoverageResult, totalRows: number, csvPath: stri
     lines.push('-'.repeat(100));
 
     const sortedCovered = [...result.covered.values()].sort((a, b) => b.count - a.count);
-    lines.push(`${'ID'.padEnd(10)} ${'Name'.padEnd(30)} ${'Rows'.padStart(10)} ${'W/IDs'.padStart(10)} ${'ID %'.padStart(8)} ${'W/Prod'.padStart(10)} ${'Prod %'.padStart(8)}`);
+    lines.push(
+      `${'ID'.padEnd(10)} ${'Name'.padEnd(30)} ${'Rows'.padStart(10)} ${'W/IDs'.padStart(10)} ${'ID %'.padStart(8)} ${'W/Prod'.padStart(10)} ${'Prod %'.padStart(8)}`,
+    );
     lines.push('-'.repeat(88));
     for (const store of sortedCovered) {
       const idPercent = getIdExtractionPercent(store);
@@ -259,7 +270,9 @@ function generateReport(result: CoverageResult, totalRows: number, csvPath: stri
     lines.push('-'.repeat(100));
 
     const sortedMissing = [...result.missing.values()].sort((a, b) => b.count - a.count);
-    lines.push(`${'ID'.padEnd(10)} ${'Name'.padEnd(30)} ${'Rows'.padStart(10)} ${'W/IDs'.padStart(10)} ${'ID %'.padStart(8)} ${'W/Prod'.padStart(10)} ${'Prod %'.padStart(8)}`);
+    lines.push(
+      `${'ID'.padEnd(10)} ${'Name'.padEnd(30)} ${'Rows'.padStart(10)} ${'W/IDs'.padStart(10)} ${'ID %'.padStart(8)} ${'W/Prod'.padStart(10)} ${'Prod %'.padStart(8)}`,
+    );
     lines.push('-'.repeat(88));
     for (const store of sortedMissing) {
       const idPercent = getIdExtractionPercent(store);
@@ -287,7 +300,9 @@ function writeReport(report: string, csvPath: string): string {
 
   // Use fixed filename for example.csv, timestamped for others
   const reportFilename =
-    csvName === 'example' ? 'example-report.txt' : `store-coverage_${csvName}_${new Date().toISOString().slice(0, 10)}.txt`;
+    csvName === 'example'
+      ? 'example-report.txt'
+      : `store-coverage_${csvName}_${new Date().toISOString().slice(0, 10)}.txt`;
 
   const reportPath = resolve(REPORTS_DIR, reportFilename);
 
@@ -302,7 +317,9 @@ async function main(): Promise<void> {
 
   if (!csvArg) {
     console.error('Usage: pnpm tsx scripts/analyze-csv/store-coverage.ts <path-to-csv>');
-    console.error('\nExample: pnpm tsx scripts/analyze-csv/store-coverage.ts scripts/data/urls.csv');
+    console.error(
+      '\nExample: pnpm tsx scripts/analyze-csv/store-coverage.ts scripts/data/urls.csv',
+    );
     process.exit(1);
   }
 
