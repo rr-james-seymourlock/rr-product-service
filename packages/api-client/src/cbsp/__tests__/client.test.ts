@@ -7,6 +7,7 @@ import {
   getAllCatalogStores,
   getAllStoreIds,
   getAllStores,
+  getAllStoresWithStatus,
   getCacheStatus,
   getCatalogStoreName,
   getStoreName,
@@ -117,6 +118,42 @@ describe('CBSP Client', () => {
     it('should return undefined for invalid store ID', async () => {
       const name = await getStoreName('invalid');
       expect(name).toBeUndefined();
+    });
+  });
+
+  describe('getAllStoresWithStatus', () => {
+    beforeEach(() => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve(mockApiResponse),
+      });
+    });
+
+    it('should return all stores with productSearchEnabled status', async () => {
+      const stores = await getAllStoresWithStatus();
+
+      expect(stores).toEqual([
+        { id: 1001, name: 'Store A', productSearchEnabled: false },
+        { id: 1002, name: 'Store B', productSearchEnabled: false },
+        { id: 2946, name: "Macy's", productSearchEnabled: true },
+        { id: 3866, name: "Lands' End", productSearchEnabled: true },
+        { id: 5246, name: 'Target', productSearchEnabled: true },
+        { id: 9376, name: 'Walmart', productSearchEnabled: true },
+        { id: 16829, name: 'Best Buy', productSearchEnabled: true },
+      ]);
+    });
+
+    it('should be usable for JSON fixture generation', async () => {
+      const stores = await getAllStoresWithStatus();
+
+      // Verify structure is JSON-serializable
+      const json = JSON.stringify(stores, null, 2);
+      const parsed = JSON.parse(json);
+
+      expect(parsed).toHaveLength(7);
+      expect(parsed[0]).toHaveProperty('id');
+      expect(parsed[0]).toHaveProperty('name');
+      expect(parsed[0]).toHaveProperty('productSearchEnabled');
     });
   });
 

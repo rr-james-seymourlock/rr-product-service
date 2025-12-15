@@ -25,7 +25,9 @@ export {
   // All stores
   getAllStoreIds,
   getAllStores,
+  getAllStoresWithStatus,
   getStoreName,
+  type StoreWithStatus,
   // Catalog stores (productSearchEnabled=true)
   getAllCatalogStoreIds,
   getAllCatalogStores,

@@ -212,6 +212,47 @@ export async function getAllStores(options?: {
 }
 
 /**
+ * Store data with catalog status
+ */
+export interface StoreWithStatus {
+  id: number;
+  name: string;
+  productSearchEnabled: boolean;
+}
+
+/**
+ * Get all stores with their IDs, names, and productSearchEnabled status
+ *
+ * Returns a flattened array of ALL store objects sorted by ID.
+ * Useful for generating local JSON fixtures for testing.
+ * Results are cached to minimize API calls.
+ *
+ * @param options.forceRefresh - Force a fresh fetch, bypassing cache
+ * @returns Array of store objects with id, name, and productSearchEnabled
+ *
+ * @example
+ * ```ts
+ * // Generate stores.json fixture
+ * const stores = await getAllStoresWithStatus();
+ * writeFileSync('stores.json', JSON.stringify(stores, null, 2));
+ * ```
+ */
+export async function getAllStoresWithStatus(options?: {
+  forceRefresh?: boolean;
+}): Promise<StoreWithStatus[]> {
+  if (options?.forceRefresh) {
+    clearCache();
+  }
+
+  const entry = await ensureCache();
+  return entry.allSortedIds.map((id) => ({
+    id,
+    name: entry.storeNames.get(id) ?? '',
+    productSearchEnabled: entry.catalogStoreIds.has(id),
+  }));
+}
+
+/**
  * Get the name of any store by ID
  *
  * Performs O(1) lookup after initial fetch. Results are cached.
