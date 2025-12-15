@@ -110,10 +110,20 @@ function generateCoverageReport(data: StoresData): string {
     }
   }
 
-  const coveragePercent = ((coveredStores.length / catalogStores.length) * 100).toFixed(1);
+  const catalogCoveragePercent = ((coveredStores.length / catalogStores.length) * 100).toFixed(1);
+
+  // Calculate total coverage (registry stores that exist in CBSP, regardless of catalog status)
+  const registryStoresInCbsp = [...registryStoreIds].filter((id) => allStoresById.has(id)).length;
+  const totalCoveragePercent = ((registryStoresInCbsp / data.totalStores) * 100).toFixed(2);
+
+  // Find problematic entries in our registry
+  const storesWithNanId = nonCatalogInRegistry.filter((s) => isNaN(s.id));
+  const storesWithUnknownName = nonCatalogInRegistry.filter(
+    (s) => s.name === 'Unknown' && !isNaN(s.id),
+  );
 
   lines.push('='.repeat(100));
-  lines.push('CBSP STORE COVERAGE REPORT');
+  lines.push('STORE COVERAGE REPORT');
   lines.push('='.repeat(100));
   lines.push('');
   lines.push(`Data source: ${STORES_FILE}`);
@@ -131,8 +141,28 @@ function generateCoverageReport(data: StoresData): string {
   lines.push(`Store registry configs: ${registryStoreIds.size.toLocaleString()}`);
   lines.push('');
   lines.push(
-    `COVERAGE: ${coveredStores.length} / ${catalogStores.length} catalog stores (${coveragePercent}%)`,
+    `TOTAL COVERAGE: ${registryStoresInCbsp} / ${data.totalStores.toLocaleString()} stores (${totalCoveragePercent}%)`,
   );
+  lines.push(
+    `CATALOG COVERAGE: ${coveredStores.length} / ${catalogStores.length} catalog stores (${catalogCoveragePercent}%)`,
+  );
+
+  // Show registry issues if any
+  if (storesWithNanId.length > 0 || storesWithUnknownName.length > 0) {
+    lines.push('');
+    lines.push('-'.repeat(100));
+    lines.push('REGISTRY ISSUES:');
+    lines.push('-'.repeat(100));
+    if (storesWithNanId.length > 0) {
+      lines.push(`  - ${storesWithNanId.length} store(s) with invalid (NaN) ID in registry`);
+    }
+    if (storesWithUnknownName.length > 0) {
+      lines.push(
+        `  - ${storesWithUnknownName.length} store(s) in registry not found in CBSP (Unknown name)`,
+      );
+      lines.push('    IDs: ' + storesWithUnknownName.map((s) => s.id).join(', '));
+    }
+  }
   lines.push('');
 
   if (nonCatalogInRegistry.length > 0) {
