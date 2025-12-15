@@ -454,7 +454,7 @@ const mutableStoreConfigs: StoreConfigInterface[] = [
     ],
   },
   {
-    id: '2440',
+    id: '4227',
     domain: 'dickssportinggoods.com',
     pathnamePatterns: [
       buildRegExp(['/', capture(repeat(choiceOf(digit, word), { min: 4, max: 24 })), endOfString], {
