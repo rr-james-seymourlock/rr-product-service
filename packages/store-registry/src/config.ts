@@ -420,7 +420,7 @@ const mutableStoreConfigs: StoreConfigInterface[] = [
     ],
   },
   {
-    id: '2445',
+    id: '9847',
     domain: 'westelm.com',
     pathnamePatterns: [
       buildRegExp(['-', capture(repeat(choiceOf(digit, word), { min: 5, max: 24 })), endOfString], {
