@@ -30,17 +30,25 @@ const DEFAULT_CONFIG: Required<CbspClientConfig> = {
 };
 
 /**
- * Cache entry for store IDs and names
+ * Cache entry for store data
  */
 interface CacheEntry {
-  storeIds: Set<number>;
-  sortedIds: number[];
+  /** All store IDs */
+  allStoreIds: Set<number>;
+  /** All store IDs sorted */
+  allSortedIds: number[];
+  /** Store IDs with productSearchEnabled=true */
+  catalogStoreIds: Set<number>;
+  /** Catalog store IDs sorted */
+  catalogSortedIds: number[];
+  /** Store ID to name mapping (all stores) */
   storeNames: Map<number, string>;
+  /** When the cache was populated */
   fetchedAt: number;
 }
 
 /**
- * In-memory cache for store IDs
+ * In-memory cache for store data
  */
 let cache: CacheEntry | null = null;
 
@@ -86,9 +94,9 @@ function isCacheValid(): boolean {
  * Fetch store data from the CBSP API
  */
 async function fetchStoreData(): Promise<CacheEntry> {
-  const url = `${config.baseUrl}/cbsp/partner/1/store/list.json?fields=id,name&productSearchEnabled=true&rows=100000`;
+  const url = `${config.baseUrl}/cbsp/partner/1/store/list.json?fields=id,name,attributes&rows=100000`;
 
-  logger.debug({ url }, 'Fetching catalog stores from CBSP');
+  logger.debug({ url }, 'Fetching stores from CBSP');
 
   const response = await fetch(url);
 
@@ -104,18 +112,31 @@ async function fetchStoreData(): Promise<CacheEntry> {
   const data: unknown = await response.json();
   const parsed = cbspStoreListResponseSchema.parse(data);
 
-  const storeIds = new Set(parsed.store.map((s) => s.id));
-  const sortedIds = [...storeIds].sort((a, b) => a - b);
+  // Build all stores data
+  const allStoreIds = new Set(parsed.store.map((s) => s.id));
+  const allSortedIds = [...allStoreIds].sort((a, b) => a - b);
   const storeNames = new Map(parsed.store.map((s) => [s.id, s.name]));
 
+  // Build catalog-enabled stores data (productSearchEnabled=true)
+  const catalogStores = parsed.store.filter((s) => s.attributes.productSearchEnabled);
+  const catalogStoreIds = new Set(catalogStores.map((s) => s.id));
+  const catalogSortedIds = [...catalogStoreIds].sort((a, b) => a - b);
+
   logger.info(
-    { storeCount: storeIds.size, rows: parsed['@rows'], total: parsed['@total'] },
-    'Fetched catalog stores from CBSP',
+    {
+      totalStores: allStoreIds.size,
+      catalogStores: catalogStoreIds.size,
+      rows: parsed['@rows'],
+      total: parsed['@total'],
+    },
+    'Fetched stores from CBSP',
   );
 
   return {
-    storeIds,
-    sortedIds,
+    allStoreIds,
+    allSortedIds,
+    catalogStoreIds,
+    catalogSortedIds,
     storeNames,
     fetchedAt: Date.now(),
   };
@@ -133,14 +154,109 @@ async function ensureCache(): Promise<CacheEntry> {
   return cache;
 }
 
+// ============================================================================
+// ALL STORES (regardless of productSearchEnabled)
+// ============================================================================
+
 /**
- * Get all product catalog-enabled store IDs
+ * Get all store IDs
  *
- * Returns a sorted array of store IDs that are enabled for product catalog.
+ * Returns a sorted array of ALL store IDs (regardless of catalog status).
  * Results are cached to minimize API calls.
  *
  * @param options.forceRefresh - Force a fresh fetch, bypassing cache
- * @returns Sorted array of store IDs
+ * @returns Sorted array of all store IDs
+ *
+ * @example
+ * ```ts
+ * const storeIds = await getAllStoreIds();
+ * console.log(`Found ${storeIds.length} total stores`);
+ * ```
+ */
+export async function getAllStoreIds(options?: { forceRefresh?: boolean }): Promise<number[]> {
+  if (options?.forceRefresh) {
+    clearCache();
+  }
+
+  const entry = await ensureCache();
+  return entry.allSortedIds;
+}
+
+/**
+ * Get all stores with their IDs and names
+ *
+ * Returns an array of ALL store objects sorted by ID.
+ * Results are cached to minimize API calls.
+ *
+ * @param options.forceRefresh - Force a fresh fetch, bypassing cache
+ * @returns Array of store objects with id and name
+ *
+ * @example
+ * ```ts
+ * const stores = await getAllStores();
+ * stores.forEach(store => console.log(`${store.id}: ${store.name}`));
+ * ```
+ */
+export async function getAllStores(options?: {
+  forceRefresh?: boolean;
+}): Promise<Array<{ id: number; name: string }>> {
+  if (options?.forceRefresh) {
+    clearCache();
+  }
+
+  const entry = await ensureCache();
+  return entry.allSortedIds.map((id) => ({
+    id,
+    name: entry.storeNames.get(id) ?? '',
+  }));
+}
+
+/**
+ * Get the name of any store by ID
+ *
+ * Performs O(1) lookup after initial fetch. Results are cached.
+ *
+ * @param storeId - Store ID to look up (string or number)
+ * @param options.forceRefresh - Force a fresh fetch, bypassing cache
+ * @returns Store name or undefined if not found
+ *
+ * @example
+ * ```ts
+ * const name = await getStoreName(5246);
+ * console.log(name); // "Target"
+ * ```
+ */
+export async function getStoreName(
+  storeId: string | number,
+  options?: { forceRefresh?: boolean },
+): Promise<string | undefined> {
+  if (options?.forceRefresh) {
+    clearCache();
+  }
+
+  const entry = await ensureCache();
+  const numericId = typeof storeId === 'string' ? parseInt(storeId, 10) : storeId;
+
+  if (isNaN(numericId)) {
+    logger.warn({ storeId }, 'Invalid store ID provided');
+    return undefined;
+  }
+
+  return entry.storeNames.get(numericId);
+}
+
+// ============================================================================
+// CATALOG STORES (productSearchEnabled=true only)
+// ============================================================================
+
+/**
+ * Get all product catalog-enabled store IDs
+ *
+ * Returns a sorted array of store IDs that have productSearchEnabled=true.
+ * Results are cached to minimize API calls.
+ *
+ * @param options.forceRefresh - Force a fresh fetch, bypassing cache
+ * @returns Sorted array of catalog-enabled store IDs
  *
  * @example
  * ```ts
@@ -156,7 +272,36 @@ export async function getAllCatalogStoreIds(options?: {
   }
 
   const entry = await ensureCache();
-  return entry.sortedIds;
+  return entry.catalogSortedIds;
+}
+
+/**
+ * Get all catalog-enabled stores with their IDs and names
+ *
+ * Returns an array of store objects (productSearchEnabled=true) sorted by ID.
+ * Results are cached to minimize API calls.
+ *
+ * @param options.forceRefresh - Force a fresh fetch, bypassing cache
+ * @returns Array of store objects with id and name
+ *
+ * @example
+ * ```ts
+ * const stores = await getAllCatalogStores();
+ * stores.forEach(store => console.log(`${store.id}: ${store.name}`));
+ * ```
+ */
+export async function getAllCatalogStores(options?: {
+  forceRefresh?: boolean;
+}): Promise<Array<{ id: number; name: string }>> {
+  if (options?.forceRefresh) {
+    clearCache();
+  }
+
+  const entry = await ensureCache();
+  return entry.catalogSortedIds.map((id) => ({
+    id,
+    name: entry.storeNames.get(id) ?? '',
+  }));
 }
 
 /**
@@ -166,7 +311,7 @@ export async function getAllCatalogStoreIds(options?: {
  *
  * @param storeId - Store ID to check (string or number)
  * @param options.forceRefresh - Force a fresh fetch, bypassing cache
- * @returns true if the store is enabled for product catalog
+ * @returns true if the store has productSearchEnabled=true
  *
  * @example
  * ```ts
@@ -191,17 +336,18 @@ export async function isCatalogStoreEnabled(
     return false;
   }
 
-  return entry.storeIds.has(numericId);
+  return entry.catalogStoreIds.has(numericId);
 }
 
 /**
  * Get the name of a catalog-enabled store by ID
  *
  * Performs O(1) lookup after initial fetch. Results are cached.
+ * Returns undefined if the store exists but is not catalog-enabled.
  *
  * @param storeId - Store ID to look up (string or number)
  * @param options.forceRefresh - Force a fresh fetch, bypassing cache
- * @returns Store name or undefined if not found
+ * @returns Store name or undefined if not found or not catalog-enabled
  *
  * @example
  * ```ts
@@ -225,49 +371,36 @@ export async function getCatalogStoreName(
     return undefined;
   }
 
+  // Only return name if store is catalog-enabled
+  if (!entry.catalogStoreIds.has(numericId)) {
+    return undefined;
+  }
+
   return entry.storeNames.get(numericId);
 }
 
-/**
- * Get all catalog-enabled stores with their IDs and names
- *
- * Returns an array of store objects sorted by ID.
- * Results are cached to minimize API calls.
- *
- * @param options.forceRefresh - Force a fresh fetch, bypassing cache
- * @returns Array of store objects with id and name
- *
- * @example
- * ```ts
- * const stores = await getAllCatalogStores();
- * stores.forEach(store => console.log(`${store.id}: ${store.name}`));
- * ```
- */
-export async function getAllCatalogStores(options?: {
-  forceRefresh?: boolean;
-}): Promise<Array<{ id: number; name: string }>> {
-  if (options?.forceRefresh) {
-    clearCache();
-  }
-
-  const entry = await ensureCache();
-  return entry.sortedIds.map((id) => ({
-    id,
-    name: entry.storeNames.get(id) ?? '',
-  }));
-}
+// ============================================================================
+// CACHE STATUS
+// ============================================================================
 
 /**
  * Get the current cache status (useful for debugging)
  */
 export function getCacheStatus(): {
   isCached: boolean;
-  storeCount: number;
+  totalStoreCount: number;
+  catalogStoreCount: number;
   cacheAge: number | null;
   ttlRemaining: number | null;
 } {
   if (!cache) {
-    return { isCached: false, storeCount: 0, cacheAge: null, ttlRemaining: null };
+    return {
+      isCached: false,
+      totalStoreCount: 0,
+      catalogStoreCount: 0,
+      cacheAge: null,
+      ttlRemaining: null,
+    };
   }
 
   const cacheAge = Date.now() - cache.fetchedAt;
@@ -275,7 +408,8 @@ export function getCacheStatus(): {
 
   return {
     isCached: true,
-    storeCount: cache.storeIds.size,
+    totalStoreCount: cache.allStoreIds.size,
+    catalogStoreCount: cache.catalogStoreIds.size,
     cacheAge,
     ttlRemaining,
   };

@@ -1,11 +1,24 @@
 import { z } from 'zod';
 
 /**
+ * Schema for store attributes
+ * We only care about productSearchEnabled, but passthrough allows other fields
+ */
+export const storeAttributesSchema = z
+  .object({
+    productSearchEnabled: z.boolean(),
+  })
+  .passthrough();
+
+export type StoreAttributes = z.infer<typeof storeAttributesSchema>;
+
+/**
  * Schema for individual store entry in CBSP response
  */
 export const storeEntrySchema = z.object({
   id: z.number(),
   name: z.string(),
+  attributes: storeAttributesSchema,
 });
 
 /**
@@ -13,9 +26,13 @@ export const storeEntrySchema = z.object({
  *
  * Example response:
  * {
- *   "@rows": "803",
- *   "@total": "803",
- *   "store": [{ "id": 4626, "name": "Kohl's" }, { "id": 16400, "name": "Walmart" }, ...]
+ *   "@rows": "4000",
+ *   "@total": "4000",
+ *   "store": [{
+ *     "id": 4626,
+ *     "name": "Kohl's",
+ *     "attributes": { "productSearchEnabled": true, ... }
+ *   }, ...]
  * }
  */
 export const cbspStoreListResponseSchema = z.object({

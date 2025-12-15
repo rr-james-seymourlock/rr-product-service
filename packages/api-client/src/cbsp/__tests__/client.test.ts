@@ -5,8 +5,11 @@ import {
   configure,
   getAllCatalogStoreIds,
   getAllCatalogStores,
+  getAllStoreIds,
+  getAllStores,
   getCacheStatus,
   getCatalogStoreName,
+  getStoreName,
   isCatalogStoreEnabled,
 } from '../client';
 
@@ -14,16 +17,19 @@ import {
 const mockFetch = vi.fn();
 vi.stubGlobal('fetch', mockFetch);
 
-// Sample API response
+// Sample API response with attributes
 const mockApiResponse = {
-  '@rows': '5',
-  '@total': '5',
+  '@rows': '7',
+  '@total': '7',
   store: [
-    { id: 5246, name: 'Target' },
-    { id: 3866, name: "Lands' End" },
-    { id: 9376, name: 'Walmart' },
-    { id: 16829, name: 'Best Buy' },
-    { id: 2946, name: "Macy's" },
+    { id: 5246, name: 'Target', attributes: { productSearchEnabled: true } },
+    { id: 3866, name: "Lands' End", attributes: { productSearchEnabled: true } },
+    { id: 9376, name: 'Walmart', attributes: { productSearchEnabled: true } },
+    { id: 16829, name: 'Best Buy', attributes: { productSearchEnabled: true } },
+    { id: 2946, name: "Macy's", attributes: { productSearchEnabled: true } },
+    // Non-catalog stores
+    { id: 1001, name: 'Store A', attributes: { productSearchEnabled: false } },
+    { id: 1002, name: 'Store B', attributes: { productSearchEnabled: false } },
   ],
 };
 
@@ -39,8 +45,87 @@ describe('CBSP Client', () => {
     vi.clearAllMocks();
   });
 
+  // ==========================================================================
+  // ALL STORES
+  // ==========================================================================
+
+  describe('getAllStoreIds', () => {
+    it('should fetch and return all sorted store IDs', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve(mockApiResponse),
+      });
+
+      const storeIds = await getAllStoreIds();
+
+      expect(storeIds).toEqual([1001, 1002, 2946, 3866, 5246, 9376, 16829]);
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('/cbsp/partner/1/store/list.json'),
+      );
+      expect(mockFetch).toHaveBeenCalledWith(expect.stringContaining('fields=id,name,attributes'));
+      expect(mockFetch).toHaveBeenCalledWith(expect.not.stringContaining('productSearchEnabled='));
+    });
+  });
+
+  describe('getAllStores', () => {
+    beforeEach(() => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve(mockApiResponse),
+      });
+    });
+
+    it('should return all stores sorted by ID', async () => {
+      const stores = await getAllStores();
+
+      expect(stores).toEqual([
+        { id: 1001, name: 'Store A' },
+        { id: 1002, name: 'Store B' },
+        { id: 2946, name: "Macy's" },
+        { id: 3866, name: "Lands' End" },
+        { id: 5246, name: 'Target' },
+        { id: 9376, name: 'Walmart' },
+        { id: 16829, name: 'Best Buy' },
+      ]);
+    });
+  });
+
+  describe('getStoreName', () => {
+    beforeEach(() => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve(mockApiResponse),
+      });
+    });
+
+    it('should return name for catalog-enabled store', async () => {
+      const name = await getStoreName(5246);
+      expect(name).toBe('Target');
+    });
+
+    it('should return name for non-catalog store', async () => {
+      const name = await getStoreName(1001);
+      expect(name).toBe('Store A');
+    });
+
+    it('should return undefined for non-existent store', async () => {
+      const name = await getStoreName(99999);
+      expect(name).toBeUndefined();
+    });
+
+    it('should return undefined for invalid store ID', async () => {
+      const name = await getStoreName('invalid');
+      expect(name).toBeUndefined();
+    });
+  });
+
+  // ==========================================================================
+  // CATALOG STORES (productSearchEnabled=true)
+  // ==========================================================================
+
   describe('getAllCatalogStoreIds', () => {
-    it('should fetch and return sorted store IDs', async () => {
+    it('should fetch and return sorted catalog store IDs only', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: () => Promise.resolve(mockApiResponse),
@@ -48,11 +133,9 @@ describe('CBSP Client', () => {
 
       const storeIds = await getAllCatalogStoreIds();
 
+      // Should only include stores with productSearchEnabled=true
       expect(storeIds).toEqual([2946, 3866, 5246, 9376, 16829]);
       expect(mockFetch).toHaveBeenCalledTimes(1);
-      expect(mockFetch).toHaveBeenCalledWith(
-        expect.stringContaining('/cbsp/partner/1/store/list.json'),
-      );
     });
 
     it('should cache results and not re-fetch within TTL', async () => {
@@ -99,17 +182,22 @@ describe('CBSP Client', () => {
       });
     });
 
-    it('should return true for enabled store ID (number)', async () => {
+    it('should return true for catalog-enabled store ID (number)', async () => {
       const result = await isCatalogStoreEnabled(5246);
       expect(result).toBe(true);
     });
 
-    it('should return true for enabled store ID (string)', async () => {
+    it('should return true for catalog-enabled store ID (string)', async () => {
       const result = await isCatalogStoreEnabled('5246');
       expect(result).toBe(true);
     });
 
-    it('should return false for non-enabled store ID', async () => {
+    it('should return false for non-catalog store ID', async () => {
+      const result = await isCatalogStoreEnabled(1001);
+      expect(result).toBe(false);
+    });
+
+    it('should return false for non-existent store ID', async () => {
       const result = await isCatalogStoreEnabled(99999);
       expect(result).toBe(false);
     });
@@ -136,14 +224,19 @@ describe('CBSP Client', () => {
       });
     });
 
-    it('should return store name for valid store ID (number)', async () => {
+    it('should return store name for catalog-enabled store (number)', async () => {
       const name = await getCatalogStoreName(5246);
       expect(name).toBe('Target');
     });
 
-    it('should return store name for valid store ID (string)', async () => {
+    it('should return store name for catalog-enabled store (string)', async () => {
       const name = await getCatalogStoreName('3866');
       expect(name).toBe("Lands' End");
+    });
+
+    it('should return undefined for non-catalog store', async () => {
+      const name = await getCatalogStoreName(1001);
+      expect(name).toBeUndefined();
     });
 
     it('should return undefined for non-existent store ID', async () => {
@@ -165,7 +258,7 @@ describe('CBSP Client', () => {
       });
     });
 
-    it('should return sorted stores with IDs and names', async () => {
+    it('should return sorted catalog stores with IDs and names', async () => {
       const stores = await getAllCatalogStores();
 
       expect(stores).toEqual([
@@ -184,6 +277,10 @@ describe('CBSP Client', () => {
       expect(mockFetch).toHaveBeenCalledTimes(1);
     });
   });
+
+  // ==========================================================================
+  // CONFIGURATION
+  // ==========================================================================
 
   describe('configure', () => {
     it('should use custom base URL', async () => {
@@ -205,7 +302,8 @@ describe('CBSP Client', () => {
       const status = getCacheStatus();
 
       expect(status.isCached).toBe(false);
-      expect(status.storeCount).toBe(0);
+      expect(status.totalStoreCount).toBe(0);
+      expect(status.catalogStoreCount).toBe(0);
       expect(status.cacheAge).toBeNull();
       expect(status.ttlRemaining).toBeNull();
     });
@@ -220,7 +318,8 @@ describe('CBSP Client', () => {
       const status = getCacheStatus();
 
       expect(status.isCached).toBe(true);
-      expect(status.storeCount).toBe(5);
+      expect(status.totalStoreCount).toBe(7);
+      expect(status.catalogStoreCount).toBe(5);
       expect(status.cacheAge).toBeGreaterThanOrEqual(0);
       expect(status.ttlRemaining).toBeGreaterThan(0);
     });

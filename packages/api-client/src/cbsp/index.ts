@@ -17,14 +17,26 @@
  * ```
  */
 export {
+  // Configuration
   configure,
   clearCache,
+  getCacheStatus,
+  type CbspClientConfig,
+  // All stores
+  getAllStoreIds,
+  getAllStores,
+  getStoreName,
+  // Catalog stores (productSearchEnabled=true)
   getAllCatalogStoreIds,
   getAllCatalogStores,
   getCatalogStoreName,
   isCatalogStoreEnabled,
-  getCacheStatus,
-  type CbspClientConfig,
 } from './client';
 
-export { cbspStoreListResponseSchema, type CbspStoreListResponse, type StoreEntry } from './schema';
+export {
+  cbspStoreListResponseSchema,
+  storeAttributesSchema,
+  type CbspStoreListResponse,
+  type StoreAttributes,
+  type StoreEntry,
+} from './schema';
