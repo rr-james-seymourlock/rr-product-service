@@ -444,7 +444,7 @@ const mutableStoreConfigs: StoreConfigInterface[] = [
     ],
   },
   {
-    id: '2434',
+    id: '2302',
     domain: 'rei.com',
     pathnamePatterns: [
       buildRegExp(
