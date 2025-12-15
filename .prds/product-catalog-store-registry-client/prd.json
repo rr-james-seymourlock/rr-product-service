@@ -1,0 +1,107 @@
+{
+  "introduction": {
+    "title": "Product Catalog Store Registry Client",
+    "overview": "A lightweight package that provides access to Rakuten's product catalog-enabled store IDs via the CBSP API. Supports fetching all enabled store IDs as a flat list and checking if a specific store ID is enabled for product catalog.",
+    "lastUpdated": "2025-12-15"
+  },
+  "problemStatement": {
+    "problem": "The product-id-extractor service needs to know which stores are enabled for product catalog functionality. Currently there's no programmatic way to check if a store ID should have product data extracted. This leads to unnecessary processing of URLs from stores that aren't part of the product catalog program.",
+    "marketOpportunity": "By filtering extraction to only product catalog-enabled stores (~803 stores), we can reduce unnecessary API calls, improve processing efficiency, and ensure data quality by only processing relevant store URLs.",
+    "targetUsers": [
+      "Product ID extraction service",
+      "Store onboarding workflows",
+      "Data validation pipelines",
+      "Internal tooling and MCP servers"
+    ]
+  },
+  "solutionOverview": {
+    "description": "Create a new @rr/catalog-store-client package that wraps the CBSP store list API. The package will fetch and cache the list of product catalog-enabled store IDs, providing simple APIs to get all IDs or check membership. Built with caching to minimize API calls and support for both Node.js and edge runtimes.",
+    "keyFeatures": [
+      "getAllStoreIds() - Returns a flat array of all product catalog-enabled store IDs",
+      "isStoreEnabled(storeId) - Checks if a specific store ID is enabled for product catalog",
+      "In-memory caching with configurable TTL to minimize API calls",
+      "TypeScript-first with full type safety",
+      "Zod schema validation for API responses",
+      "Configurable API endpoint for different environments (prod/staging)"
+    ],
+    "successMetrics": [
+      "100% test coverage for core functionality",
+      "API response cached with configurable TTL (default 5 minutes)",
+      "Sub-millisecond lookup time for isStoreEnabled() after initial fetch",
+      "Zero runtime dependencies beyond shared workspace packages"
+    ]
+  },
+  "userStories": [
+    {
+      "id": "US001",
+      "title": "Check If A Store",
+      "userStory": "As a product-id-extractor service, I want to check if a store ID is enabled for product catalog so that I only process URLs from stores that are part of the product catalog program",
+      "businessValue": "I only process URLs from stores that are part of the product catalog program",
+      "acceptanceCriteria": [
+        "isStoreEnabled(storeId) returns boolean",
+        "Lookup is O(1) after initial fetch using Set",
+        "Handles string or number store IDs"
+      ],
+      "status": "not_started",
+      "priority": "P0",
+      "estimatedComplexity": "S",
+      "dependencies": []
+    },
+    {
+      "id": "US002",
+      "title": "Get All Product Catalog-enabled",
+      "userStory": "As a store onboarding workflow, I want to get all product catalog-enabled store IDs so that I can validate new stores against the enabled list and identify gaps",
+      "businessValue": "I can validate new stores against the enabled list and identify gaps",
+      "acceptanceCriteria": [
+        "getAllStoreIds() returns number[]",
+        "Returns deduplicated, sorted array",
+        "Caches results to avoid repeated API calls"
+      ],
+      "status": "not_started",
+      "priority": "P0",
+      "estimatedComplexity": "S",
+      "dependencies": []
+    },
+    {
+      "id": "US003",
+      "title": "Configure Cache Ttl And",
+      "userStory": "As a developer, I want to configure cache TTL and API endpoint so that I can tune performance for different environments and use cases",
+      "businessValue": "I can tune performance for different environments and use cases",
+      "acceptanceCriteria": [
+        "Configurable TTL (default 5 minutes)",
+        "Configurable API base URL",
+        "Option to force refresh cache"
+      ],
+      "status": "not_started",
+      "priority": "P1",
+      "estimatedComplexity": "S",
+      "dependencies": []
+    }
+  ],
+  "technicalRequirements": {
+    "constraints": [],
+    "integrationNeeds": [],
+    "complianceRequirements": []
+  },
+  "acceptanceCriteria": {
+    "global": [],
+    "qualityStandards": []
+  },
+  "constraints": {
+    "timeline": "",
+    "resources": [],
+    "nonNegotiables": []
+  },
+  "metadata": {
+    "version": "1.0",
+    "created": "2025-12-15",
+    "lastUpdated": "2025-12-15",
+    "approver": ""
+  },
+  "progress": {
+    "overall": 0,
+    "completed": 0,
+    "total": 3,
+    "blocked": 0
+  }
+}

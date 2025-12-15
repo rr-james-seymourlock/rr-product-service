@@ -4,7 +4,9 @@ import {
   clearCache,
   configure,
   getAllCatalogStoreIds,
+  getAllCatalogStores,
   getCacheStatus,
+  getCatalogStoreName,
   isCatalogStoreEnabled,
 } from '../client';
 
@@ -16,7 +18,13 @@ vi.stubGlobal('fetch', mockFetch);
 const mockApiResponse = {
   '@rows': '5',
   '@total': '5',
-  store: [{ id: 5246 }, { id: 3866 }, { id: 9376 }, { id: 16829 }, { id: 2946 }],
+  store: [
+    { id: 5246, name: 'Target' },
+    { id: 3866, name: "Lands' End" },
+    { id: 9376, name: 'Walmart' },
+    { id: 16829, name: 'Best Buy' },
+    { id: 2946, name: "Macy's" },
+  ],
 };
 
 describe('CBSP Client', () => {
@@ -115,6 +123,63 @@ describe('CBSP Client', () => {
       await isCatalogStoreEnabled(5246);
       await isCatalogStoreEnabled(3866);
       await isCatalogStoreEnabled(99999);
+
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('getCatalogStoreName', () => {
+    beforeEach(() => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve(mockApiResponse),
+      });
+    });
+
+    it('should return store name for valid store ID (number)', async () => {
+      const name = await getCatalogStoreName(5246);
+      expect(name).toBe('Target');
+    });
+
+    it('should return store name for valid store ID (string)', async () => {
+      const name = await getCatalogStoreName('3866');
+      expect(name).toBe("Lands' End");
+    });
+
+    it('should return undefined for non-existent store ID', async () => {
+      const name = await getCatalogStoreName(99999);
+      expect(name).toBeUndefined();
+    });
+
+    it('should return undefined for invalid store ID', async () => {
+      const name = await getCatalogStoreName('invalid');
+      expect(name).toBeUndefined();
+    });
+  });
+
+  describe('getAllCatalogStores', () => {
+    beforeEach(() => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve(mockApiResponse),
+      });
+    });
+
+    it('should return sorted stores with IDs and names', async () => {
+      const stores = await getAllCatalogStores();
+
+      expect(stores).toEqual([
+        { id: 2946, name: "Macy's" },
+        { id: 3866, name: "Lands' End" },
+        { id: 5246, name: 'Target' },
+        { id: 9376, name: 'Walmart' },
+        { id: 16829, name: 'Best Buy' },
+      ]);
+    });
+
+    it('should use cached data', async () => {
+      await getAllCatalogStores();
+      await getAllCatalogStores();
 
       expect(mockFetch).toHaveBeenCalledTimes(1);
     });

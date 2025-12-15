@@ -5,6 +5,7 @@ import { z } from 'zod';
  */
 export const storeEntrySchema = z.object({
   id: z.number(),
+  name: z.string(),
 });
 
 /**
@@ -14,7 +15,7 @@ export const storeEntrySchema = z.object({
  * {
  *   "@rows": "803",
  *   "@total": "803",
- *   "store": [{ "id": 4626 }, { "id": 16400 }, ...]
+ *   "store": [{ "id": 4626, "name": "Kohl's" }, { "id": 16400, "name": "Walmart" }, ...]
  * }
  */
 export const cbspStoreListResponseSchema = z.object({

@@ -20,6 +20,8 @@ export {
   configure,
   clearCache,
   getAllCatalogStoreIds,
+  getAllCatalogStores,
+  getCatalogStoreName,
   isCatalogStoreEnabled,
   getCacheStatus,
   type CbspClientConfig,
