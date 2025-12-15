@@ -96,10 +96,17 @@ function generateCoverageReport(data: StoresData): string {
   }
 
   // Find stores in registry that aren't catalog-enabled (shouldn't happen but good to check)
-  const nonCatalogInRegistry: string[] = [];
+  // Look up names from the full store list
+  const allStoresById = new Map(data.stores.map((s) => [String(s.id), s]));
+  const nonCatalogInRegistry: StoreWithStatus[] = [];
   for (const storeId of registryStoreIds) {
     if (!catalogStoreIds.has(storeId)) {
-      nonCatalogInRegistry.push(storeId);
+      const store = allStoresById.get(storeId);
+      nonCatalogInRegistry.push({
+        id: Number(storeId),
+        name: store?.name ?? 'Unknown',
+        productSearchEnabled: store?.productSearchEnabled ?? false,
+      });
     }
   }
 
@@ -134,11 +141,10 @@ function generateCoverageReport(data: StoresData): string {
       `WARNING: ${nonCatalogInRegistry.length} stores in registry are NOT catalog-enabled:`,
     );
     lines.push('-'.repeat(80));
-    for (const storeId of nonCatalogInRegistry.slice(0, 20)) {
-      lines.push(`  - ${storeId}`);
-    }
-    if (nonCatalogInRegistry.length > 20) {
-      lines.push(`  ... and ${nonCatalogInRegistry.length - 20} more`);
+    lines.push(`${'ID'.padEnd(10)} ${'Name'.padEnd(50)}`);
+    lines.push('-'.repeat(62));
+    for (const store of nonCatalogInRegistry.sort((a, b) => a.id - b.id)) {
+      lines.push(`${String(store.id).padEnd(10)} ${store.name.slice(0, 50).padEnd(50)}`);
     }
     lines.push('');
   }
