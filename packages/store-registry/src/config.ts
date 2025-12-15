@@ -463,7 +463,7 @@ const mutableStoreConfigs: StoreConfigInterface[] = [
     ],
   },
   {
-    id: '2442',
+    id: '10408',
     domain: 'crateandbarrel.com',
     pathnamePatterns: [
       buildRegExp(
