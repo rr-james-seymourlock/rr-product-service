@@ -1,14 +1,24 @@
 import { z } from 'zod';
 
 /**
- * Schema for store attributes
- * We only care about productSearchEnabled, but passthrough allows other fields
+ * Schema for store attributes object
+ * productSearchEnabled is optional (defaults to false if missing)
+ * passthrough allows other fields we don't care about
  */
-export const storeAttributesSchema = z
+const storeAttributesObjectSchema = z
   .object({
-    productSearchEnabled: z.boolean(),
+    productSearchEnabled: z.boolean().optional(),
   })
   .passthrough();
+
+/**
+ * Schema for store attributes
+ * Some stores have attributes as a string (empty or malformed), so we handle that
+ */
+export const storeAttributesSchema = z.union([
+  storeAttributesObjectSchema,
+  z.string().transform(() => ({ productSearchEnabled: undefined })),
+]);
 
 export type StoreAttributes = z.infer<typeof storeAttributesSchema>;
 

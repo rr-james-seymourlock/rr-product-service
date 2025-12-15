@@ -118,7 +118,7 @@ async function fetchStoreData(): Promise<CacheEntry> {
   const storeNames = new Map(parsed.store.map((s) => [s.id, s.name]));
 
   // Build catalog-enabled stores data (productSearchEnabled=true)
-  const catalogStores = parsed.store.filter((s) => s.attributes.productSearchEnabled);
+  const catalogStores = parsed.store.filter((s) => s.attributes.productSearchEnabled === true);
   const catalogStoreIds = new Set(catalogStores.map((s) => s.id));
   const catalogSortedIds = [...catalogStoreIds].sort((a, b) => a - b);
 
