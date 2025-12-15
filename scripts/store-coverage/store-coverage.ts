@@ -7,8 +7,8 @@
  * 2. Report: Generate coverage report comparing store-registry to CBSP data
  *
  * Usage:
- *   pnpm tsx scripts/cbsp-coverage/store-coverage.ts              # Generate report only
- *   pnpm tsx scripts/cbsp-coverage/store-coverage.ts --refresh    # Refresh data then report
+ *   pnpm tsx scripts/store-coverage/store-coverage.ts              # Generate report only
+ *   pnpm tsx scripts/store-coverage/store-coverage.ts --refresh    # Refresh data then report
  */
 
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
@@ -112,17 +112,17 @@ function generateCoverageReport(data: StoresData): string {
 
   const coveragePercent = ((coveredStores.length / catalogStores.length) * 100).toFixed(1);
 
-  lines.push('='.repeat(80));
+  lines.push('='.repeat(100));
   lines.push('CBSP STORE COVERAGE REPORT');
-  lines.push('='.repeat(80));
+  lines.push('='.repeat(100));
   lines.push('');
   lines.push(`Data source: ${STORES_FILE}`);
   lines.push(`Data generated: ${data.generatedAt}`);
   lines.push(`Report generated: ${new Date().toISOString()}`);
   lines.push('');
-  lines.push('-'.repeat(80));
+  lines.push('-'.repeat(100));
   lines.push('SUMMARY');
-  lines.push('-'.repeat(80));
+  lines.push('-'.repeat(100));
   lines.push('');
   lines.push(`Total CBSP stores: ${data.totalStores.toLocaleString()}`);
   lines.push(`  - Catalog enabled: ${data.catalogEnabled.toLocaleString()}`);
@@ -136,39 +136,47 @@ function generateCoverageReport(data: StoresData): string {
   lines.push('');
 
   if (nonCatalogInRegistry.length > 0) {
-    lines.push('-'.repeat(80));
+    lines.push('-'.repeat(100));
     lines.push(
       `WARNING: ${nonCatalogInRegistry.length} stores in registry are NOT catalog-enabled:`,
     );
-    lines.push('-'.repeat(80));
-    lines.push(`${'ID'.padEnd(10)} ${'Name'.padEnd(50)}`);
-    lines.push('-'.repeat(62));
+    lines.push('-'.repeat(100));
+    lines.push(`${'ID'.padEnd(10)} ${'Name'.padEnd(40)} ${'Domain'.padEnd(30)}`);
+    lines.push('-'.repeat(82));
     for (const store of nonCatalogInRegistry.sort((a, b) => a.id - b.id)) {
-      lines.push(`${String(store.id).padEnd(10)} ${store.name.slice(0, 50).padEnd(50)}`);
+      const config = STORE_ID_CONFIG.get(String(store.id));
+      const domain = config?.domain ?? '';
+      lines.push(
+        `${String(store.id).padEnd(10)} ${store.name.slice(0, 40).padEnd(40)} ${domain.slice(0, 30).padEnd(30)}`,
+      );
     }
     lines.push('');
   }
 
-  lines.push('-'.repeat(80));
+  lines.push('-'.repeat(100));
   lines.push(`COVERED STORES (${coveredStores.length}):`);
-  lines.push('-'.repeat(80));
-  lines.push(`${'ID'.padEnd(10)} ${'Name'.padEnd(50)}`);
-  lines.push('-'.repeat(62));
+  lines.push('-'.repeat(100));
+  lines.push(`${'ID'.padEnd(10)} ${'Name'.padEnd(40)} ${'Domain'.padEnd(30)}`);
+  lines.push('-'.repeat(82));
   for (const store of coveredStores.sort((a, b) => a.id - b.id)) {
-    lines.push(`${String(store.id).padEnd(10)} ${store.name.slice(0, 50).padEnd(50)}`);
+    const config = STORE_ID_CONFIG.get(String(store.id));
+    const domain = config?.domain ?? '';
+    lines.push(
+      `${String(store.id).padEnd(10)} ${store.name.slice(0, 40).padEnd(40)} ${domain.slice(0, 30).padEnd(30)}`,
+    );
   }
   lines.push('');
 
-  lines.push('-'.repeat(80));
+  lines.push('-'.repeat(100));
   lines.push(`MISSING STORES (${missingStores.length}):`);
-  lines.push('-'.repeat(80));
+  lines.push('-'.repeat(100));
   lines.push(`${'ID'.padEnd(10)} ${'Name'.padEnd(50)}`);
   lines.push('-'.repeat(62));
   for (const store of missingStores.sort((a, b) => a.id - b.id)) {
     lines.push(`${String(store.id).padEnd(10)} ${store.name.slice(0, 50).padEnd(50)}`);
   }
   lines.push('');
-  lines.push('='.repeat(80));
+  lines.push('='.repeat(100));
 
   return lines.join('\n');
 }
