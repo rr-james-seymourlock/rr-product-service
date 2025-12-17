@@ -416,10 +416,15 @@ describe('storeRegistry', () => {
     it.skipIf(Boolean(process.env['CI']))(
       'should have consistent performance regardless of store position',
       () => {
+        // Filter for stores with IDs (some stores are pattern-only without IDs)
+        const storesWithIds = storeConfigs.filter(
+          (s): s is typeof s & { id: string } => s.id !== undefined,
+        );
+
         // Test first, middle, and last stores
-        const firstStore = storeConfigs[0];
-        const middleStore = storeConfigs[Math.floor(storeConfigs.length / 2)];
-        const lastStore = storeConfigs[storeConfigs.length - 1];
+        const firstStore = storesWithIds[0];
+        const middleStore = storesWithIds[Math.floor(storesWithIds.length / 2)];
+        const lastStore = storesWithIds[storesWithIds.length - 1];
 
         // Ensure we have stores to test
         expect(firstStore).toBeDefined();
@@ -427,7 +432,7 @@ describe('storeRegistry', () => {
         expect(lastStore).toBeDefined();
 
         if (!firstStore || !middleStore || !lastStore) {
-          throw new Error('Test requires at least one store config');
+          throw new Error('Test requires at least one store config with an ID');
         }
 
         const iterations = 1000;
