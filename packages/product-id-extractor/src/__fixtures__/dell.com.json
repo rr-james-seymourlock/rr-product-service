@@ -1,0 +1,75 @@
+{
+  "name": "Dell",
+  "id": 9,
+  "domain": "dell.com",
+  "testCases": [
+    {
+      "url": "https://www.dell.com/en-us/work/shop/cty/apd/580-bbmz",
+      "expectedSkus": ["580-bbmz"]
+    },
+    {
+      "url": "https://www.dell.com/en-us/work/shop/cty/apd/210-bpkx",
+      "expectedSkus": ["210-bpkx"]
+    },
+    {
+      "url": "https://www.dell.com/en-us/work/shop/cty/apd/210-bbqs",
+      "expectedSkus": ["210-bbqs"]
+    },
+    {
+      "url": "https://www.dell.com/en-us/work/shop/cty/apd/ad357965",
+      "expectedSkus": ["ad357965"]
+    },
+    {
+      "url": "https://www.dell.com/en-us/work/shop/cty/apd/ab789002",
+      "expectedSkus": ["ab789002"]
+    },
+    {
+      "url": "https://www.dell.com/en-us/work/shop/cty/apd/aa231512",
+      "expectedSkus": ["aa231512"]
+    },
+    {
+      "url": "https://www.dell.com/en-us/work/shop/cty/apd/319-bbjj",
+      "expectedSkus": ["319-bbjj"]
+    },
+    {
+      "url": "https://www.dell.com/en-us/work/shop/cty/apd/810-4945",
+      "expectedSkus": ["810-4945"]
+    },
+    {
+      "url": "https://www.dell.com/en-us/shop/amazon-fire-tv-stick-4k-digital-multimedia-receiver-4k-hdr-8-gb-black-with-alexa-voice-remote-3rd-generation/apd/ab855035/media-players",
+      "expectedSkus": ["ab855035"]
+    },
+    {
+      "url": "https://www.dell.com/en-us/shop/dell-27-monitor-s2721hn/apd/210-axjy/computer-monitors",
+      "expectedSkus": ["210-axjy"]
+    },
+    {
+      "url": "https://www.dell.com/en-us/shop/dell-performance-dock-wd19dcs/apd/210-azbn/docks",
+      "expectedSkus": ["210-azbn"]
+    },
+    {
+      "url": "https://www.dell.com/en-us/shop/desktop-computers/dell-pro-micro-desktop/spd/dell-pro-qcm1250-micro/gcto_qcm1250_usx",
+      "expectedSkus": ["gcto_qcm1250_usx"]
+    },
+    {
+      "url": "https://www.dell.com/en-us/shop/dell-laptops/dell-pro-max-16-laptop/spd/dell-pro-max-mc16250-laptop/xcto_mc16250_usx",
+      "expectedSkus": ["xcto_mc16250_usx"]
+    },
+    {
+      "url": "https://www.dell.com/en-us/shop/dell-laptops/dell-pro-16-laptop/spd/dell-pro-pc16250-laptop/gcto_pc16250_usx",
+      "expectedSkus": ["gcto_pc16250_usx"]
+    },
+    {
+      "url": "https://www.dell.com/en-us/shop/servers-storage-and-networking/poweredge-t360-tower-server/spd/poweredge-t360/pe_t360_tm_vi_vp_sb",
+      "expectedSkus": ["pe_t360_tm_vi_vp_sb"]
+    },
+    {
+      "url": "https://www.dell.com/en-us/shop/dell-laptops/inspiron-14-laptop/spd/inspiron-14-5425-laptop/nbnn5425fjngs",
+      "expectedSkus": ["nbnn5425fjngs"]
+    },
+    {
+      "url": "https://www.dell.com/premier/configure/us/en/rc1420402?productId=rcrc1420402-8722893&pt=c",
+      "expectedSkus": ["rcrc1420402-8722893"]
+    }
+  ]
+}
