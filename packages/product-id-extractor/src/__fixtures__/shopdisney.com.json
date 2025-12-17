@@ -1,0 +1,55 @@
+{
+  "name": "Shop Disney",
+  "id": 98,
+  "domain": "shopdisney.com",
+  "testCases": [
+    {
+      "url": "https://www.shopdisney.com/mickey-mouse-icon-doormat-mickey-mouse-home-collection-434111821818.html",
+      "expectedSkus": ["434111821818"]
+    },
+    {
+      "url": "https://www.shopdisney.com/disney-classics-christmas-pullover-sweatshirt-for-kids-454021549411.html",
+      "expectedSkus": ["454021549411"]
+    },
+    {
+      "url": "https://www.shopdisney.com/toy-story-disney-gift-card-499061255977.html",
+      "expectedSkus": ["499061255977"]
+    },
+    {
+      "url": "https://www.shopdisney.com/belle-time-teacher-watch-for-kids-beauty-and-the-beast-839628005698.html",
+      "expectedSkus": ["839628005698"]
+    },
+    {
+      "url": "https://www.shopdisney.com/mickey-mouse-and-friends-holiday-nice-list-disney-gift-card-499066942124.html",
+      "expectedSkus": ["499066942124"]
+    },
+    {
+      "url": "https://www.shopdisney.com/lego-mini-steamboat-willie-40659-disney100-673419384988.html",
+      "expectedSkus": ["673419384988"]
+    },
+    {
+      "url": "https://www.shopdisney.com/wicket-ewok-pin-star-wars-limited-release-438011520284.html",
+      "expectedSkus": ["438011520284"]
+    },
+    {
+      "url": "https://www.shopdisney.com/mickey-mouse-and-friends-tidbit-plates-with-caddy-set-464015066701.html",
+      "expectedSkus": ["464015066701"]
+    },
+    {
+      "url": "https://www.shopdisney.com/tada-mickey-mouse-disney-gift-card-499061240126.html",
+      "expectedSkus": ["499061240126"]
+    },
+    {
+      "url": "https://www.shopdisney.com/disney-lorcana-trading-card-game-by-ravensburger-the-first-chapter-starter-deck-cruella-de-vil-and-aladdin-416111780722.html",
+      "expectedSkus": ["416111780722"]
+    },
+    {
+      "url": "https://www.shopdisney.com/the-nightmare-before-christmas-dooney-bourke-crossbody-bag-420144986709.html",
+      "expectedSkus": ["420144986709"]
+    },
+    {
+      "url": "https://www.shopdisney.com/mickey-and-minnie-mouse-love-is-in-the-air-figure-by-jim-shore-028399302758.html",
+      "expectedSkus": ["028399302758"]
+    }
+  ]
+}

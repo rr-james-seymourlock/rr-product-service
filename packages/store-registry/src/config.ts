@@ -1085,7 +1085,7 @@ const mutableStoreConfigs: StoreConfigInterface[] = [
   {
     id: '98',
     domain: 'disneystore.com',
-    aliases: [{ domain: 'shopdisney.com' }],
+    aliases: [{ id: '98', domain: 'shopdisney.com' }],
     pathnamePatterns: [
       // Matches -{productId}.html where productId is 9-16 alphanumeric chars
       buildRegExp(
