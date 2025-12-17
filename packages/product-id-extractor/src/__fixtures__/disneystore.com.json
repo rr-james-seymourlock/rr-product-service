@@ -1,0 +1,95 @@
+{
+  "name": "Disney Store",
+  "id": 98,
+  "domain": "disneystore.com",
+  "testCases": [
+    {
+      "url": "https://www.disneystore.com/toy-story-disney-gift-card-499061256059.html",
+      "expectedSkus": ["499061256059"]
+    },
+    {
+      "url": "https://www.disneystore.com/elliott-plush-petes-dragon-the-main-street-electrical-parade-medium-14-412347404784.html",
+      "expectedSkus": ["412347404784"]
+    },
+    {
+      "url": "https://www.disneystore.com/101-dalmatians-magnetic-pin-disney-artist-collection-by-jes-willis-limited-edition-438010111995.html",
+      "expectedSkus": ["438010111995"]
+    },
+    {
+      "url": "https://www.disneystore.com/mickey-mouse-sequin-spirit-jersey-for-adults-451088905280.html",
+      "expectedSkus": ["451088905280"]
+    },
+    {
+      "url": "https://www.disneystore.com/stitch-holiday-disney-gift-card-499060093594.html",
+      "expectedSkus": ["499060093594"]
+    },
+    {
+      "url": "https://www.disneystore.com/tangled-15th-anniversary-jumbo-pin-limited-edition-438019216462.html",
+      "expectedSkus": ["438019216462"]
+    },
+    {
+      "url": "https://www.disneystore.com/lenny-action-figure-toy-story-417139302903.html",
+      "expectedSkus": ["417139302903"]
+    },
+    {
+      "url": "https://www.disneystore.com/disney-its-a-small-world-stacking-block-set-460045383511.html",
+      "expectedSkus": ["460045383511"]
+    },
+    {
+      "url": "https://www.disneystore.com/mickey-mouse-the-main-attraction-plush-pirates-of-the-caribbean-limited-release-412346328579.html",
+      "expectedSkus": ["412346328579"]
+    },
+    {
+      "url": "https://www.disneystore.com/walt-disney-world-piglet-pink-starbucks-tumbler-with-straw-464023453357.html",
+      "expectedSkus": ["464023453357"]
+    },
+    {
+      "url": "https://www.disneystore.com/carl-and-ellie-tie-dye-t-shirt-for-adults-up-197835004157.html",
+      "expectedSkus": ["197835004157"]
+    },
+    {
+      "url": "https://www.disneystore.com/woody-pin-toy-story-438038651329.html",
+      "expectedSkus": ["438038651329"]
+    },
+    {
+      "url": "https://www.disneystore.com/robin-hood-say-cheese-disney-one-family-pin-celebration-2022-limited-edition-465053624540.html",
+      "expectedSkus": ["465053624540"]
+    },
+    {
+      "url": "https://www.disneystore.com/mickey-and-minnie-mouse-retro-cake-plate-set-400036400094.html",
+      "expectedSkus": ["400036400094"]
+    },
+    {
+      "url": "https://www.disneystore.com/mickey-and-minnie-mouse-holiday-pullover-sweater-for-girls-5004057430600M.html",
+      "expectedSkus": ["5004057430600m"]
+    },
+    {
+      "url": "https://www.disneystore.com/chip-plush-handbag-442032982846.html",
+      "expectedSkus": ["442032982846"]
+    },
+    {
+      "url": "https://www.disneystore.com/snow-white-limited-edition-doll-snow-white-and-the-seven-dwarfs-disney-designer-collection-midnight-masquerade-series-fashionably-late-12-416143347825.html",
+      "expectedSkus": ["416143347825"]
+    },
+    {
+      "url": "https://www.disneystore.com/the-nightmare-before-christmas-starbucks-tumbler-with-straw-433131564415.html",
+      "expectedSkus": ["433131564415"]
+    },
+    {
+      "url": "https://www.disneystore.com/santa-mickey-and-minnie-mouse-holiday-pullover-sweatshirt-for-women-451021321603.html",
+      "expectedSkus": ["451021321603"]
+    },
+    {
+      "url": "https://www.disneystore.com/mickey-mouse-and-friends-spirit-jersey-for-adults-lunar-new-year-2024-453021969670.html",
+      "expectedSkus": ["453021969670"]
+    },
+    {
+      "url": "https://www.disneystore.com/mickey-mouse-walt-disney-studios-pullover-hoodie-for-adults-disney100-421404031917.html",
+      "expectedSkus": ["421404031917"]
+    },
+    {
+      "url": "https://www.disneystore.com/disney-nuimos-outfit-rash-guard-with-shorts-and-strap-sandals-412342995669.html",
+      "expectedSkus": ["412342995669"]
+    }
+  ]
+}
