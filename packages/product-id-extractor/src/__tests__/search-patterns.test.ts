@@ -12,7 +12,7 @@ describe('Domain-specific search patterns', () => {
 
     const ids = extractIdsFromUrlComponents({
       urlComponents,
-      storeId: 'test-search-patterns',
+      // No storeId - uses domain from URL to look up config
     });
 
     expect(ids.productIds).toContain('abc123def');
@@ -24,7 +24,7 @@ describe('Domain-specific search patterns', () => {
 
     const ids = extractIdsFromUrlComponents({
       urlComponents,
-      storeId: 'test-search-patterns',
+      // No storeId - uses domain from URL to look up config
     });
 
     expect(ids.productIds).toContain('prod123456');
@@ -38,7 +38,7 @@ describe('Domain-specific search patterns', () => {
 
     const ids = extractIdsFromUrlComponents({
       urlComponents,
-      storeId: 'test-search-patterns',
+      // No storeId - uses domain from URL to look up config
     });
 
     expect(ids.productIds).toContain('999888');
@@ -52,14 +52,15 @@ describe('Domain-specific search patterns', () => {
 
     const ids = extractIdsFromUrlComponents({
       urlComponents,
-      storeId: 'test-search-patterns',
+      // No storeId - uses domain from URL to look up config
     });
 
     expect(ids.productIds).toContain('searchonly123');
   });
 
   it('should verify test store has searchPatterns configured', () => {
-    const config = getStoreConfig({ id: 'test-search-patterns' });
+    // Test store doesn't have an ID (it's for testing only), so look up by domain
+    const config = getStoreConfig({ domain: 'test-search.example.com' });
 
     expect(config).toBeDefined();
     expect(config?.searchPatterns).toBeDefined();
@@ -73,7 +74,7 @@ describe('Domain-specific search patterns', () => {
 
     const ids = extractIdsFromUrlComponents({
       urlComponents,
-      storeId: 'test-search-patterns',
+      // No storeId - uses domain from URL to look up config
     });
 
     expect(ids.productIds).toContain('complex-id_123');
@@ -86,7 +87,7 @@ describe('Domain-specific search patterns', () => {
 
     const ids = extractIdsFromUrlComponents({
       urlComponents,
-      storeId: 'test-search-patterns',
+      // No storeId - uses domain from URL to look up config
     });
 
     // Both should be rejected (too short)
@@ -100,7 +101,7 @@ describe('Domain-specific search patterns', () => {
 
     const ids = extractIdsFromUrlComponents({
       urlComponents,
-      storeId: 'test-search-patterns',
+      // No storeId - uses domain from URL to look up config
     });
 
     expect(ids.productIds).toContain('abcdef'); // Meets 6 char minimum for productId
@@ -115,7 +116,7 @@ describe('Domain-specific search patterns', () => {
 
     const ids = extractIdsFromUrlComponents({
       urlComponents,
-      storeId: 'test-search-patterns',
+      // No storeId - uses domain from URL to look up config
     });
 
     // Should extract from search patterns only

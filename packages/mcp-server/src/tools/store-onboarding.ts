@@ -154,8 +154,77 @@ export class StoreOnboardingManager {
     return join(this.PRODUCT_ID_EXTRACTOR_DIR, 'src', '__fixtures__');
   }
 
+  private static get STORES_DATA_PATH() {
+    return join(this.ROOT_PATH, 'scripts', 'store-coverage', 'data', 'stores.json');
+  }
+
+  /** Cache for stores data to avoid repeated file reads */
+  private static storesCache: Map<number, { name: string; productSearchEnabled: boolean }> | null =
+    null;
+
   static setRootPath(path: string) {
     this.ROOT_PATH = path;
+    // Clear cache when root path changes
+    this.storesCache = null;
+  }
+
+  // --------------------------------------------------------------------------
+  // Store Data Lookup
+  // --------------------------------------------------------------------------
+
+  /**
+   * Load stores data from stores.json and cache it
+   */
+  private static async loadStoresData(): Promise<
+    Map<number, { name: string; productSearchEnabled: boolean }>
+  > {
+    if (this.storesCache) {
+      return this.storesCache;
+    }
+
+    try {
+      const content = await readFile(this.STORES_DATA_PATH, 'utf8');
+      const data = JSON.parse(content) as {
+        stores: Array<{ id: number; name: string; productSearchEnabled?: boolean }>;
+      };
+
+      const storesMap = new Map<number, { name: string; productSearchEnabled: boolean }>();
+      for (const store of data.stores) {
+        storesMap.set(store.id, {
+          name: store.name,
+          productSearchEnabled: store.productSearchEnabled ?? false,
+        });
+      }
+
+      this.storesCache = storesMap;
+      return storesMap;
+    } catch {
+      // Return empty map if file doesn't exist or can't be parsed
+      return new Map();
+    }
+  }
+
+  /**
+   * Look up store name from stores.json by store ID
+   * @param storeId - The Rakuten store ID to look up
+   * @returns Store metadata if found, null otherwise
+   */
+  static async lookupStoreById(
+    storeId: string,
+  ): Promise<{ name: string; productSearchEnabled: boolean } | null> {
+    const stores = await this.loadStoresData();
+    const id = parseInt(storeId, 10);
+    if (isNaN(id)) {
+      return null;
+    }
+    return stores.get(id) ?? null;
+  }
+
+  /**
+   * Clear the stores cache (useful for testing)
+   */
+  static clearStoresCache(): void {
+    this.storesCache = null;
   }
 
   // --------------------------------------------------------------------------
@@ -1736,11 +1805,32 @@ function createGeneratePatternsTool(server: McpServer) {
       state: z.object({
         urls: z.array(z.string()).describe('Product URLs that were analyzed'),
         storeId: z.string().describe('Store ID'),
-        storeName: z.string().describe('Store name'),
+        storeName: z
+          .string()
+          .optional()
+          .describe('Store name (auto-looked up from stores.json if not provided)'),
         domain: z.string().describe('Store domain'),
       }),
     },
     async ({ state }) => {
+      // Auto-lookup store name if not provided
+      let storeName = state.storeName;
+      if (!storeName) {
+        const storeData = await StoreOnboardingManager.lookupStoreById(state.storeId);
+        if (storeData) {
+          storeName = storeData.name;
+        } else {
+          return {
+            content: [
+              {
+                type: 'text',
+                text: `Error: Store name not provided and could not find store ${state.storeId} in stores.json`,
+              },
+            ],
+          };
+        }
+      }
+
       const { patterns } = StoreOnboardingManager.analyzeUrls(state.urls);
 
       if (patterns.length === 0) {
@@ -1753,7 +1843,7 @@ function createGeneratePatternsTool(server: McpServer) {
 
       const configCode = StoreOnboardingManager.generateStoreConfig(
         state.storeId,
-        state.storeName,
+        storeName,
         state.domain,
         generatedPatterns,
       );
@@ -1789,11 +1879,32 @@ function createInsertConfigTool(server: McpServer) {
       state: z.object({
         urls: z.array(z.string()).describe('Product URLs to analyze for patterns'),
         storeId: z.string().describe('Store ID'),
-        storeName: z.string().describe('Store name'),
+        storeName: z
+          .string()
+          .optional()
+          .describe('Store name (auto-looked up from stores.json if not provided)'),
         domain: z.string().describe('Store domain'),
       }),
     },
     async ({ state }) => {
+      // Auto-lookup store name if not provided
+      let storeName = state.storeName;
+      if (!storeName) {
+        const storeData = await StoreOnboardingManager.lookupStoreById(state.storeId);
+        if (storeData) {
+          storeName = storeData.name;
+        } else {
+          return {
+            content: [
+              {
+                type: 'text',
+                text: `Error: Store name not provided and could not find store ${state.storeId} in stores.json`,
+              },
+            ],
+          };
+        }
+      }
+
       // First analyze URLs to get patterns
       const { patterns, warnings } = StoreOnboardingManager.analyzeUrls(state.urls);
 
@@ -1814,7 +1925,7 @@ function createInsertConfigTool(server: McpServer) {
       // Insert into config.ts
       const result = await StoreOnboardingManager.insertStoreConfig(
         state.storeId,
-        state.storeName,
+        storeName,
         state.domain,
         generatedPatterns,
       );
@@ -1827,7 +1938,7 @@ function createInsertConfigTool(server: McpServer) {
 
       let response = `## Config Inserted Successfully\n\n`;
       response += `**File:** ${result.filePath}\n`;
-      response += `**Store:** ${state.storeName} (${state.storeId})\n`;
+      response += `**Store:** ${storeName} (${state.storeId})\n`;
       response += `**Domain:** ${state.domain}\n`;
       response += `**Patterns:** ${generatedPatterns.length}\n\n`;
 
@@ -1855,7 +1966,10 @@ function createGenerateFixtureTool(server: McpServer) {
       state: z.object({
         urls: z.array(z.string()).describe('Product URLs with identified IDs'),
         storeId: z.string().describe('Store ID'),
-        storeName: z.string().describe('Store name'),
+        storeName: z
+          .string()
+          .optional()
+          .describe('Store name (auto-looked up from stores.json if not provided)'),
         domain: z.string().describe('Store domain'),
         writeFile: z
           .boolean()
@@ -1865,6 +1979,24 @@ function createGenerateFixtureTool(server: McpServer) {
       }),
     },
     async ({ state }) => {
+      // Auto-lookup store name if not provided
+      let storeName = state.storeName;
+      if (!storeName) {
+        const storeData = await StoreOnboardingManager.lookupStoreById(state.storeId);
+        if (storeData) {
+          storeName = storeData.name;
+        } else {
+          return {
+            content: [
+              {
+                type: 'text',
+                text: `Error: Store name not provided and could not find store ${state.storeId} in stores.json`,
+              },
+            ],
+          };
+        }
+      }
+
       const { results } = StoreOnboardingManager.analyzeUrls(state.urls);
 
       // Create test cases from analysis results - use ORIGINAL URL for realistic fixtures
@@ -1887,7 +2019,7 @@ function createGenerateFixtureTool(server: McpServer) {
       }
 
       const fixtureContent = StoreOnboardingManager.generateFixture(
-        state.storeName,
+        storeName,
         state.storeId,
         state.domain,
         testCases,
@@ -1901,7 +2033,7 @@ function createGenerateFixtureTool(server: McpServer) {
       const hasStoreConfig = configExists.exists;
 
       let response = `## Generated Fixture\n\n`;
-      response += `**Store:** ${state.storeName} (${state.storeId})\n`;
+      response += `**Store:** ${storeName} (${state.storeId})\n`;
       response += `**Domain:** ${state.domain}\n`;
       response += `**Test Cases:** ${testCases.length}\n`;
       response += `**Store Config:** ${hasStoreConfig ? '✓ Exists' : '✗ Not configured'}\n\n`;
@@ -2110,7 +2242,10 @@ function createCommitAndPushTool(server: McpServer) {
     {
       state: z.object({
         storeId: z.string().describe('Store ID'),
-        storeName: z.string().describe('Store name'),
+        storeName: z
+          .string()
+          .optional()
+          .describe('Store name (auto-looked up from stores.json if not provided)'),
         domain: z.string().describe('Store domain'),
         createBranch: z.boolean().optional().default(false).describe('Create a new feature branch'),
         createPr: z
@@ -2121,6 +2256,24 @@ function createCommitAndPushTool(server: McpServer) {
       }),
     },
     async ({ state }) => {
+      // Auto-lookup store name if not provided
+      let storeName = state.storeName;
+      if (!storeName) {
+        const storeData = await StoreOnboardingManager.lookupStoreById(state.storeId);
+        if (storeData) {
+          storeName = storeData.name;
+        } else {
+          return {
+            content: [
+              {
+                type: 'text',
+                text: `Error: Store name not provided and could not find store ${state.storeId} in stores.json`,
+              },
+            ],
+          };
+        }
+      }
+
       const configPath = StoreOnboardingManager.getConfigPath();
       const fixturePath = StoreOnboardingManager.getFixturePath(state.domain);
 
@@ -2170,7 +2323,7 @@ function createCommitAndPushTool(server: McpServer) {
       // Step 2: Create branch if requested
       if (state.createBranch) {
         response += `### Step 2: Creating Branch\n`;
-        const branchResult = await StoreOnboardingManager.createBranch(state.storeName);
+        const branchResult = await StoreOnboardingManager.createBranch(storeName);
 
         if (!branchResult.success) {
           response += `**Status:** ✗ Failed to create branch\n`;
@@ -2200,7 +2353,7 @@ function createCommitAndPushTool(server: McpServer) {
       // Step 4: Create commit
       response += `### Step 4: Creating Commit\n`;
       const commitResult = await StoreOnboardingManager.createCommit(
-        state.storeName,
+        storeName,
         state.storeId,
         false,
       );
@@ -2213,18 +2366,18 @@ function createCommitAndPushTool(server: McpServer) {
         };
       }
 
-      response += `**Commit created:** feat(store-registry): add ${state.storeName} (${state.storeId}) store configuration\n\n`;
+      response += `**Commit created:** feat(store-registry): add ${storeName} (${state.storeId}) store configuration\n\n`;
 
       // Step 5: Push and create PR if requested
       if (state.createPr) {
         response += `### Step 5: Push & Create PR\n`;
 
         // Note: Patterns not available in commit/push tool - PR body will be generic
-        const branchName = `feat/store-${state.storeName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-config`;
+        const branchName = `feat/store-${storeName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-config`;
 
         const prResult = await StoreOnboardingManager.pushAndCreatePR(
           branchName,
-          state.storeName,
+          storeName,
           state.storeId,
           [], // No patterns available - use store_generate_patterns before committing for better PR description
           false,

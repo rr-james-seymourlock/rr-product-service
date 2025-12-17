@@ -17,10 +17,13 @@ const logger = createLogger('store-registry.registry');
  */
 function buildStoreIdMap() {
   // Pre-calculate total size to avoid Map rehashing during construction
+  // Only count stores that have an ID (some stores are pattern-only without Rakuten IDs)
   let totalSize = 0;
   for (const config of storeConfigs) {
-    totalSize += 1; // Primary ID
-    totalSize += config.aliases?.length ?? 0; // Alias IDs
+    if (config.id !== undefined) {
+      totalSize += 1; // Primary ID
+    }
+    totalSize += config.aliases?.length ?? 0; // Alias IDs (always have IDs)
   }
 
   // Pre-allocate array with exact size - single allocation, no resizing
@@ -29,7 +32,10 @@ function buildStoreIdMap() {
 
   // Imperative loop - no intermediate arrays or spread operators
   for (const config of storeConfigs) {
-    entries[index++] = [config.id, config];
+    // Skip stores without IDs - they can only be looked up by domain
+    if (config.id !== undefined) {
+      entries[index++] = [config.id, config];
+    }
 
     if (config.aliases) {
       for (const alias of config.aliases) {
@@ -49,17 +55,23 @@ function buildStoreIdMap() {
  */
 function buildStoreNameMap() {
   // Pre-calculate total size
+  // Only count stores that have an ID (domain -> ID mapping requires an ID)
   let totalSize = 0;
   for (const config of storeConfigs) {
-    totalSize += 1; // Primary domain
-    totalSize += config.aliases?.length ?? 0; // Alias domains
+    if (config.id !== undefined) {
+      totalSize += 1; // Primary domain
+    }
+    totalSize += config.aliases?.length ?? 0; // Alias domains (always have IDs)
   }
 
   const entries: Array<[string, string]> = new Array(totalSize);
   let index = 0;
 
   for (const config of storeConfigs) {
-    entries[index++] = [config.domain, config.id];
+    // Skip stores without IDs - they can't be mapped to an ID
+    if (config.id !== undefined) {
+      entries[index++] = [config.domain, config.id];
+    }
 
     if (config.aliases) {
       for (const alias of config.aliases) {
@@ -109,10 +121,11 @@ function buildStoreDomainMap() {
  * @returns ReadonlyMap with store IDs as keys and pattern arrays as values
  */
 function buildCompiledPatternsMap() {
-  // Pre-calculate size - only stores with patterns
+  // Pre-calculate size - only stores with patterns AND an ID
+  // Stores without IDs can still have patterns, but they're looked up via STORE_DOMAIN_CONFIG
   let totalSize = 0;
   for (const config of storeConfigs) {
-    if (config.pathnamePatterns !== undefined) {
+    if (config.pathnamePatterns !== undefined && config.id !== undefined) {
       totalSize += 1;
     }
   }
@@ -121,7 +134,7 @@ function buildCompiledPatternsMap() {
   let index = 0;
 
   for (const config of storeConfigs) {
-    if (config.pathnamePatterns !== undefined) {
+    if (config.pathnamePatterns !== undefined && config.id !== undefined) {
       entries[index++] = [config.id, config.pathnamePatterns];
     }
   }

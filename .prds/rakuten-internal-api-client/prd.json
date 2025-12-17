@@ -1,0 +1,123 @@
+{
+  "introduction": {
+    "title": "Rakuten Internal API Client",
+    "overview": "A unified package (@rr/api-client) that provides typed clients for Rakuten's internal APIs. Starts with the CBSP store list API and is structured to easily add additional internal API integrations as needed.",
+    "lastUpdated": "2025-12-15"
+  },
+  "problemStatement": {
+    "problem": "Multiple services need to interact with various Rakuten internal APIs (CBSP, partner services, etc.). Without a shared client package, each service implements its own API calls, leading to duplicated code, inconsistent error handling, and scattered API knowledge.",
+    "marketOpportunity": "A centralized API client package provides consistent interfaces, shared caching strategies, unified error handling, and a single place to document and maintain internal API integrations.",
+    "targetUsers": [
+      "Product ID extraction service",
+      "Store onboarding workflows",
+      "Data validation pipelines",
+      "Internal tooling and MCP servers",
+      "Future services needing Rakuten API access"
+    ]
+  },
+  "solutionOverview": {
+    "description": "Create @rr/api-client package with a modular structure where each internal API has its own submodule. Start with CBSP store list API, structured to easily add more APIs. Each submodule exports typed functions with consistent patterns for caching, error handling, and configuration.",
+    "keyFeatures": [
+      "Modular structure: api-client/cbsp, api-client/partner, etc.",
+      "CBSP Store List: getAllCatalogStoreIds(), isCatalogStoreEnabled()",
+      "Shared utilities: caching, retry logic, error handling",
+      "TypeScript-first with Zod schema validation",
+      "Configurable base URLs per environment",
+      "Consistent logging via @rr/logger"
+    ],
+    "successMetrics": [
+      "100% test coverage for all API modules",
+      "Shared caching layer with configurable TTL per API",
+      "Sub-millisecond lookups for cached data",
+      "Clear documentation for adding new API integrations"
+    ]
+  },
+  "userStories": [
+    {
+      "id": "US001",
+      "title": "Check If A Store",
+      "userStory": "As a product-id-extractor service, I want to check if a store ID is enabled for product catalog via CBSP API so that I only process URLs from stores in the product catalog program",
+      "businessValue": "I only process URLs from stores in the product catalog program",
+      "acceptanceCriteria": [
+        "isCatalogStoreEnabled(storeId) returns boolean",
+        "O(1) lookup after initial fetch using Set",
+        "Handles string or number store IDs"
+      ],
+      "status": "not_started",
+      "priority": "P0",
+      "estimatedComplexity": "S",
+      "dependencies": []
+    },
+    {
+      "id": "US002",
+      "title": "Get All Product Catalog-enabled",
+      "userStory": "As a store onboarding workflow, I want to get all product catalog-enabled store IDs from CBSP so that I can validate new stores and identify coverage gaps",
+      "businessValue": "I can validate new stores and identify coverage gaps",
+      "acceptanceCriteria": [
+        "getAllCatalogStoreIds() returns number[]",
+        "Returns deduplicated, sorted array",
+        "Caches results with configurable TTL"
+      ],
+      "status": "not_started",
+      "priority": "P0",
+      "estimatedComplexity": "S",
+      "dependencies": []
+    },
+    {
+      "id": "US003",
+      "title": "Add A New Internal",
+      "userStory": "As a developer, I want to add a new internal API client to the package so that I can extend the package without restructuring",
+      "businessValue": "I can extend the package without restructuring",
+      "acceptanceCriteria": [
+        "Clear module structure (src/cbsp/, src/partner/, etc.)",
+        "Shared utilities importable from common module",
+        "Documentation template for new APIs"
+      ],
+      "status": "not_started",
+      "priority": "P1",
+      "estimatedComplexity": "S",
+      "dependencies": []
+    },
+    {
+      "id": "US004",
+      "title": "Configure Api Endpoints And",
+      "userStory": "As a service consumer, I want to configure API endpoints and caching per environment so that I can use the same client in dev, staging, and prod",
+      "businessValue": "I can use the same client in dev, staging, and prod",
+      "acceptanceCriteria": [
+        "Configurable base URLs per API",
+        "Configurable TTL per API",
+        "Force refresh option to bypass cache"
+      ],
+      "status": "not_started",
+      "priority": "P1",
+      "estimatedComplexity": "S",
+      "dependencies": []
+    }
+  ],
+  "technicalRequirements": {
+    "constraints": [],
+    "integrationNeeds": [],
+    "complianceRequirements": []
+  },
+  "acceptanceCriteria": {
+    "global": [],
+    "qualityStandards": []
+  },
+  "constraints": {
+    "timeline": "",
+    "resources": [],
+    "nonNegotiables": []
+  },
+  "metadata": {
+    "version": "1.0",
+    "created": "2025-12-15",
+    "lastUpdated": "2025-12-15",
+    "approver": ""
+  },
+  "progress": {
+    "overall": 0,
+    "completed": 0,
+    "total": 4,
+    "blocked": 0
+  }
+}
