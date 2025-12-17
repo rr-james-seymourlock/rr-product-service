@@ -234,7 +234,7 @@ const mutableStoreConfigs: StoreConfigInterface[] = [
     transformId: (id: string) => id.replace('p-', 'sku-'),
   },
   {
-    id: '8973',
+    id: '13482',
     domain: 'ikea.com',
     pathnamePatterns: [
       buildRegExp(
@@ -256,7 +256,7 @@ const mutableStoreConfigs: StoreConfigInterface[] = [
     transformId: (id: string) => id.replace('_', '-'),
   },
   {
-    id: '16016',
+    id: '16008',
     domain: 'mountainwarehouse.com',
     pathnamePatterns: [
       buildRegExp(['-p', capture([repeat(digit, { min: 4, max: 16 })]), '.aspx'], { global: true }),
@@ -289,7 +289,7 @@ const mutableStoreConfigs: StoreConfigInterface[] = [
     ],
   },
   {
-    id: '10045',
+    // No Rakuten store ID - supported for URL pattern extraction only
     domain: 'smashbox.com',
     pathnamePatterns: [
       buildRegExp(
@@ -495,7 +495,7 @@ const mutableStoreConfigs: StoreConfigInterface[] = [
     ],
   },
   {
-    id: '8980',
+    id: '10180',
     domain: 'katespade.com',
     pathnamePatterns: [
       buildRegExp(
@@ -505,7 +505,7 @@ const mutableStoreConfigs: StoreConfigInterface[] = [
     ],
   },
   {
-    id: '8979',
+    id: '3827',
     domain: 'journeys.com',
     pathnamePatterns: [
       buildRegExp(['-', capture(repeat(choiceOf(digit), { min: 4, max: 24 })), endOfString], {
@@ -514,7 +514,7 @@ const mutableStoreConfigs: StoreConfigInterface[] = [
     ],
   },
   {
-    id: '8978',
+    id: '977',
     domain: 'josbank.com',
     pathnamePatterns: [
       buildRegExp(['-', capture(repeat(choiceOf(digit, word), { min: 4, max: 24 })), endOfString], {
@@ -523,7 +523,7 @@ const mutableStoreConfigs: StoreConfigInterface[] = [
     ],
   },
   {
-    id: '8976',
+    id: '69',
     domain: 'jcpenney.com',
     pathnamePatterns: [
       buildRegExp(
@@ -533,7 +533,7 @@ const mutableStoreConfigs: StoreConfigInterface[] = [
     ],
   },
   {
-    id: '8981',
+    id: '11377',
     domain: 'kirklands.com',
     pathnamePatterns: [
       buildRegExp([wordBoundary, capture(repeat(choiceOf(digit), { min: 6, max: 24 })), '.uts'], {
@@ -572,7 +572,7 @@ const mutableStoreConfigs: StoreConfigInterface[] = [
     ],
   },
   {
-    id: '8972',
+    id: '11973',
     domain: 'iherb.com',
     pathnamePatterns: [
       buildRegExp(
@@ -582,7 +582,7 @@ const mutableStoreConfigs: StoreConfigInterface[] = [
     ],
   },
   {
-    id: '8970',
+    id: '24779',
     domain: 'houzz.com',
     pathnamePatterns: [
       buildRegExp(
@@ -592,7 +592,7 @@ const mutableStoreConfigs: StoreConfigInterface[] = [
     ],
   },
   {
-    id: '8963',
+    id: '7646',
     domain: 'harryanddavid.com',
     pathnamePatterns: [
       buildRegExp(
@@ -627,7 +627,7 @@ const mutableStoreConfigs: StoreConfigInterface[] = [
     ],
   },
   {
-    id: '22043',
+    // No Rakuten store ID - supported for URL pattern extraction only
     domain: 'cuisinart.com',
     pathnamePatterns: [
       buildRegExp(
@@ -637,7 +637,7 @@ const mutableStoreConfigs: StoreConfigInterface[] = [
     ],
   },
   {
-    id: '8965',
+    // No Rakuten store ID - supported for URL pattern extraction only
     domain: 'healthypets.com',
     pathnamePatterns: [
       buildRegExp([wordBoundary, capture(repeat(choiceOf(digit), { min: 5, max: 24 })), '.html'], {
@@ -678,7 +678,7 @@ const mutableStoreConfigs: StoreConfigInterface[] = [
     ],
   },
   {
-    id: '8962',
+    id: '10657',
     domain: 'harborfreight.com',
     pathnamePatterns: [
       buildRegExp([wordBoundary, capture(repeat(choiceOf(digit), { min: 5, max: 24 })), '.html'], {
@@ -777,7 +777,7 @@ const mutableStoreConfigs: StoreConfigInterface[] = [
     ],
   },
   {
-    id: '2880',
+    id: '10802',
     domain: 'wayfair.com',
     pathnamePatterns: [
       buildRegExp(
@@ -883,7 +883,7 @@ const mutableStoreConfigs: StoreConfigInterface[] = [
     ],
   },
   {
-    id: '2447',
+    id: '24127',
     domain: 'overstock.com',
     pathnamePatterns: [
       buildRegExp(
@@ -1005,7 +1005,7 @@ const mutableStoreConfigs: StoreConfigInterface[] = [
     ],
   },
   {
-    id: 'test-search-patterns',
+    // Test configuration for search pattern unit tests - no Rakuten store ID
     domain: 'test-search.example.com',
     pathnamePatterns: [
       buildRegExp([wordBoundary, 'test-', capture(repeat(digit, { min: 6 })), wordBoundary], {

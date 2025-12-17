@@ -93,9 +93,12 @@ describe('storeRegistry', () => {
 
     it('should contain all primary store IDs', () => {
       // Build a map of the last occurrence of each ID (matching Map behavior where last wins)
+      // Only include stores that have an ID
       const lastOccurrenceMap = new Map<string, StoreConfigInterface>();
       storeConfigs.forEach((store) => {
-        lastOccurrenceMap.set(store.id, store);
+        if (store.id !== undefined) {
+          lastOccurrenceMap.set(store.id, store);
+        }
       });
 
       // Verify all unique IDs are in STORE_ID_CONFIG
@@ -120,9 +123,12 @@ describe('storeRegistry', () => {
 
     it('should have correct size (primary + aliases)', () => {
       // Calculate unique IDs (accounting for duplicates where last wins)
+      // Only count stores that have an ID
       const uniqueIds = new Set<string>();
       storeConfigs.forEach((store) => {
-        uniqueIds.add(store.id);
+        if (store.id !== undefined) {
+          uniqueIds.add(store.id);
+        }
         store.aliases?.forEach((alias) => {
           uniqueIds.add(alias.id);
         });
@@ -136,11 +142,14 @@ describe('storeRegistry', () => {
       expect(STORE_NAME_CONFIG).toBeInstanceOf(Map);
     });
 
-    it('should contain all primary domains', () => {
+    it('should contain all primary domains for stores with IDs', () => {
+      // Only stores with IDs are in STORE_NAME_CONFIG (domain -> ID mapping requires an ID)
       storeConfigs.forEach((store) => {
-        expect(STORE_NAME_CONFIG.has(store.domain)).toBe(true);
-        const storeId = STORE_NAME_CONFIG.get(store.domain);
-        expect(storeId).toBe(store.id);
+        if (store.id !== undefined) {
+          expect(STORE_NAME_CONFIG.has(store.domain)).toBe(true);
+          const storeId = STORE_NAME_CONFIG.get(store.domain);
+          expect(storeId).toBe(store.id);
+        }
       });
     });
 
@@ -156,9 +165,11 @@ describe('storeRegistry', () => {
       });
     });
 
-    it('should have correct size (primary + alias domains)', () => {
+    it('should have correct size (primary + alias domains, excluding stores without IDs)', () => {
+      // Only count stores that have an ID
       const expectedSize = storeConfigs.reduce((count, store) => {
-        return count + 1 + (store.aliases?.length ?? 0);
+        const primaryCount = store.id !== undefined ? 1 : 0;
+        return count + primaryCount + (store.aliases?.length ?? 0);
       }, 0);
       expect(STORE_NAME_CONFIG.size).toBe(expectedSize);
     });
@@ -232,13 +243,14 @@ describe('storeRegistry', () => {
       expect(COMPILED_PATTERNS).toBeInstanceOf(Map);
     });
 
-    it('should only contain stores with pathnamePatterns', () => {
-      // Build map of last occurrence for stores with patterns (matching Map behavior)
+    it('should only contain stores with pathnamePatterns and an ID', () => {
+      // Build map of last occurrence for stores with patterns AND an ID (matching Map behavior)
+      // Stores without IDs can have patterns but aren't in this map
       const lastOccurrenceWithPatterns = new Map<string, StoreConfigInterface>();
       storeConfigs
-        .filter((s) => s.pathnamePatterns !== undefined)
+        .filter((s) => s.pathnamePatterns !== undefined && s.id !== undefined)
         .forEach((store) => {
-          lastOccurrenceWithPatterns.set(store.id, store);
+          lastOccurrenceWithPatterns.set(store.id!, store);
         });
 
       expect(COMPILED_PATTERNS.size).toBe(lastOccurrenceWithPatterns.size);
@@ -250,10 +262,14 @@ describe('storeRegistry', () => {
       });
     });
 
-    it('should not contain stores without pathnamePatterns', () => {
-      const storesWithoutPatterns = storeConfigs.filter((s) => s.pathnamePatterns === undefined);
+    it('should not contain stores without pathnamePatterns or without IDs', () => {
+      const storesWithoutPatterns = storeConfigs.filter(
+        (s) => s.pathnamePatterns === undefined || s.id === undefined,
+      );
       storesWithoutPatterns.forEach((store) => {
-        expect(COMPILED_PATTERNS.has(store.id)).toBe(false);
+        if (store.id !== undefined) {
+          expect(COMPILED_PATTERNS.has(store.id)).toBe(false);
+        }
       });
     });
 
@@ -270,10 +286,14 @@ describe('storeRegistry', () => {
   describe('StoreConfigInterface structure', () => {
     it('should have required fields', () => {
       storeConfigs.forEach((store) => {
-        expect(store.id).toBeDefined();
-        expect(typeof store.id).toBe('string');
-        expect(store.id.length).toBeGreaterThan(0);
+        // id is optional - some stores are supported for URL pattern extraction
+        // but don't have a Rakuten store ID
+        if (store.id !== undefined) {
+          expect(typeof store.id).toBe('string');
+          expect(store.id.length).toBeGreaterThan(0);
+        }
 
+        // domain is always required
         expect(store.domain).toBeDefined();
         expect(typeof store.domain).toBe('string');
         expect(store.domain.length).toBeGreaterThan(0);
@@ -369,7 +389,7 @@ describe('storeRegistry', () => {
       // Simulate 1 second of 1000 RPS traffic
       const iterations = 1000;
       const domains = ['target.com', 'nike.com', 'walmart.com', 'bestbuy.com'];
-      const ids = ['5246', '9528', '3828', '4712'];
+      const ids = ['5246', '9528', '4767', '2302'];
 
       const startTime = performance.now();
 

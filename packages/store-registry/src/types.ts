@@ -15,9 +15,14 @@ export type StoreAlias = {
 /**
  * Complete store configuration type.
  * Defines the structure of store configuration objects including patterns and aliases.
+ *
+ * Note: `id` is optional for stores we support for data processing but don't have
+ * a valid Rakuten store ID for. These stores can still have URL patterns for
+ * product ID extraction.
  */
 export type StoreConfigInterface = {
-  readonly id: string;
+  /** Rakuten store ID. Optional for stores not in the Rakuten system. */
+  readonly id?: string;
   readonly domain: string;
   /** Optional list of alternative domains and IDs that map to this store */
   readonly aliases?: ReadonlyArray<StoreAlias>;
