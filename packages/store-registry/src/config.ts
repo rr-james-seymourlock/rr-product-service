@@ -1078,6 +1078,22 @@ const mutableStoreConfigs: StoreConfigInterface[] = [
       }),
     ],
   },
+  // Disney Store (ID: 98)
+  // URL patterns:
+  // - /{slug}-{productId}.html (e.g., /toy-story-disney-gift-card-499061256059.html)
+  // - Product IDs are 9-16 alphanumeric chars (mostly digits, may have letter suffix)
+  {
+    id: '98',
+    domain: 'disneystore.com',
+    aliases: [{ id: '98', domain: 'shopdisney.com' }],
+    pathnamePatterns: [
+      // Matches -{productId}.html where productId is 9-16 alphanumeric chars
+      buildRegExp(
+        ['-', capture(repeat(charClass(charRange('a', 'z'), digit), { min: 9, max: 16 })), '.html'],
+        { global: true },
+      ),
+    ],
+  },
 ];
 
 export const storeConfigs: ReadonlyArray<StoreConfigInterface> = Object.freeze(
