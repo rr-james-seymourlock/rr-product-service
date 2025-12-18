@@ -79,7 +79,7 @@
       "id": "3",
       "title": "Implement cart_predict_matches MCP tool",
       "description": "Create MCP tool that predicts which matching strategies will apply to each cart item with confidence levels",
-      "status": "pending",
+      "status": "done",
       "priority": "high",
       "dependencies": ["2"],
       "details": "Tool should: (1) Analyze cart items against product views, (2) Predict matching strategy (sku, url, extracted_id, etc.), (3) Assign confidence level with rationale, (4) Identify items that may not match, (5) Note fallback strategies",
@@ -89,44 +89,48 @@
           "id": "3.1",
           "title": "Research and design for implement cart_predict_matches mcp tool",
           "description": "Implementation step 1 for: Implement cart_predict_matches MCP tool",
-          "status": "pending",
+          "status": "done",
           "priority": "high",
           "dependencies": [],
           "subtasks": [],
           "userStoryId": "US002",
           "createdAt": "2025-12-18T18:40:15.350Z",
-          "updatedAt": "2025-12-18T18:40:15.350Z"
+          "updatedAt": "2025-12-18T19:02:38.750Z",
+          "completedAt": "2025-12-18T19:02:38.750Z"
         },
         {
           "id": "3.2",
           "title": "Set up foundation for implement cart_predict_matches mcp tool",
           "description": "Implementation step 2 for: Implement cart_predict_matches MCP tool",
-          "status": "pending",
+          "status": "done",
           "priority": "high",
           "dependencies": ["3.1"],
           "subtasks": [],
           "userStoryId": "US002",
           "createdAt": "2025-12-18T18:40:15.350Z",
-          "updatedAt": "2025-12-18T18:40:15.350Z"
+          "updatedAt": "2025-12-18T19:02:38.783Z",
+          "completedAt": "2025-12-18T19:02:38.783Z"
         },
         {
           "id": "3.3",
           "title": "Implement core logic for implement cart_predict_matches mcp tool",
           "description": "Implementation step 3 for: Implement cart_predict_matches MCP tool",
-          "status": "pending",
+          "status": "done",
           "priority": "high",
           "dependencies": ["3.2"],
           "subtasks": [],
           "userStoryId": "US002",
           "createdAt": "2025-12-18T18:40:15.350Z",
-          "updatedAt": "2025-12-18T18:40:15.350Z"
+          "updatedAt": "2025-12-18T19:02:38.815Z",
+          "completedAt": "2025-12-18T19:02:38.815Z"
         }
       ],
       "userStoryId": "US002",
       "createdAt": "2025-12-18T18:39:52.872Z",
-      "updatedAt": "2025-12-18T18:40:15.350Z",
+      "updatedAt": "2025-12-18T19:02:38.815Z",
       "complexity": 5,
-      "recommendedSubtasks": 3
+      "recommendedSubtasks": 3,
+      "completedAt": "2025-12-18T19:02:38.815Z"
     },
     {
       "id": "4",
@@ -293,9 +297,9 @@
   "metadata": {
     "version": "1.0",
     "created": "2025-12-18T18:39:52.690Z",
-    "lastUpdated": "2025-12-18T18:48:03.609Z",
+    "lastUpdated": "2025-12-18T19:02:38.815Z",
     "totalTasks": 20,
-    "completedTasks": 5,
+    "completedTasks": 9,
     "blockedTasks": 0
   }
 }

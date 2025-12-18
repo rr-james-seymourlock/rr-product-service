@@ -517,11 +517,211 @@ export class CartEnricherManager {
 }
 
 // ============================================================================
+// Match Prediction Logic
+// ============================================================================
+
+/**
+ * Confidence levels for each matching strategy
+ */
+const STRATEGY_CONFIDENCE: Record<MatchingStrategy, PredictionConfidence> = {
+  sku: 'high',
+  variant_sku: 'high',
+  image_sku: 'high',
+  extracted_id_sku: 'high',
+  url: 'medium',
+  extracted_id: 'medium',
+  title_color: 'medium',
+  title: 'low',
+  price: 'low',
+};
+
+/**
+ * Parse cart title to extract base name and color suffix
+ */
+function parseCartTitle(title: string): { base: string; color: string | null } {
+  // Pattern: "Name - Color" or "Name – Color" (with dashes)
+  const separatorPattern = /\s+[-–—]\s+/;
+  const parts = title.split(separatorPattern);
+
+  if (parts.length >= 2) {
+    const color = parts.pop()?.trim() ?? null;
+    const base = parts.join(' - ').trim();
+    return { base, color };
+  }
+
+  return { base: title.trim(), color: null };
+}
+
+/**
+ * Extract SKUs from image URL filename
+ */
+function extractSkusFromImageUrl(imageUrl: string | undefined): string[] {
+  if (!imageUrl) return [];
+
+  const filename = imageUrl.split('/').pop() ?? '';
+  const skuPattern = /([A-Z][A-Z0-9]{3,9})(?=[-_.])/g;
+  const matches: string[] = [];
+
+  let match;
+  while ((match = skuPattern.exec(filename)) !== null) {
+    if (match[1]) {
+      matches.push(match[1]);
+    }
+  }
+
+  return matches;
+}
+
+/**
+ * Predict matching strategy for a cart item against product views
+ */
+function predictMatchForCartItem(
+  cartItem: RawCartProduct,
+  products: UniqueProduct[],
+): MatchPrediction {
+  const strategies: MatchingStrategy[] = [];
+  let primaryStrategy: MatchingStrategy | null = null;
+  let rationale = '';
+  let hasCorrespondingView = false;
+
+  // Extract potential identifiers from cart item
+  const cartImageSkus = extractSkusFromImageUrl(cartItem.image_url);
+  const cartExtractedIds = cartItem.url ? CartEnricherManager.extractProductId(cartItem.url) : [];
+  const cartUrl = cartItem.url?.toLowerCase().replace(/\/+$/, '') ?? '';
+  const { base: cartTitleBase, color: cartTitleColor } = parseCartTitle(cartItem.name);
+
+  // Find matching products
+  for (const product of products) {
+    const productUrl = product.url.toLowerCase().replace(/\/+$/, '');
+    const productSkus = product.skus;
+    const productExtractedIds = product.extractedIds;
+    const productColors = product.colors.map((c) => c.toLowerCase());
+
+    // Check Image SKU → Product SKU (high confidence)
+    if (cartImageSkus.length > 0 && productSkus.length > 0) {
+      const imageSkuMatch = cartImageSkus.some((sku) => productSkus.includes(sku));
+      if (imageSkuMatch) {
+        hasCorrespondingView = true;
+        if (!primaryStrategy) {
+          primaryStrategy = 'image_sku';
+          rationale = `Cart image URL contains SKU that matches product SKU`;
+        }
+        if (!strategies.includes('image_sku')) strategies.push('image_sku');
+      }
+    }
+
+    // Check Extracted ID → Product SKU (high confidence)
+    if (cartExtractedIds.length > 0 && productSkus.length > 0) {
+      const extractedIdSkuMatch = cartExtractedIds.some((id) => productSkus.includes(id));
+      if (extractedIdSkuMatch) {
+        hasCorrespondingView = true;
+        if (!primaryStrategy) {
+          primaryStrategy = 'extracted_id_sku';
+          rationale = `Cart extracted ID matches product SKU`;
+        }
+        if (!strategies.includes('extracted_id_sku')) strategies.push('extracted_id_sku');
+      }
+    }
+
+    // Check URL match (medium confidence)
+    if (cartUrl && cartUrl === productUrl) {
+      hasCorrespondingView = true;
+      if (!primaryStrategy) {
+        primaryStrategy = 'url';
+        rationale = `Cart URL matches product URL exactly`;
+      }
+      if (!strategies.includes('url')) strategies.push('url');
+    }
+
+    // Check Extracted ID match (medium confidence)
+    if (cartExtractedIds.length > 0 && productExtractedIds.length > 0) {
+      const extractedIdMatch = cartExtractedIds.some((id) => productExtractedIds.includes(id));
+      if (extractedIdMatch) {
+        hasCorrespondingView = true;
+        if (!primaryStrategy) {
+          primaryStrategy = 'extracted_id';
+          rationale = `Cart extracted ID matches product extracted ID`;
+        }
+        if (!strategies.includes('extracted_id')) strategies.push('extracted_id');
+      }
+    }
+
+    // Check Title + Color match (medium confidence)
+    if (cartTitleBase && cartTitleColor) {
+      const normalizedCartBase = cartTitleBase.toLowerCase();
+      const normalizedCartColor = cartTitleColor.toLowerCase();
+      const normalizedProductTitle = product.name.toLowerCase();
+
+      if (
+        normalizedProductTitle === normalizedCartBase &&
+        productColors.includes(normalizedCartColor)
+      ) {
+        hasCorrespondingView = true;
+        if (!primaryStrategy) {
+          primaryStrategy = 'title_color';
+          rationale = `Cart title "${cartTitleBase}" + color "${cartTitleColor}" matches product`;
+        }
+        if (!strategies.includes('title_color')) strategies.push('title_color');
+      }
+    }
+
+    // Check Title match (low confidence) - fuzzy matching
+    const normalizedCartTitle = cartItem.name.toLowerCase();
+    const normalizedProductTitle = product.name.toLowerCase();
+
+    // Simple containment check for prediction purposes
+    if (
+      normalizedProductTitle.includes(normalizedCartTitle) ||
+      normalizedCartTitle.includes(normalizedProductTitle)
+    ) {
+      hasCorrespondingView = true;
+      if (!primaryStrategy) {
+        primaryStrategy = 'title';
+        rationale = `Cart title similar to product title (fuzzy match)`;
+      }
+      if (!strategies.includes('title')) strategies.push('title');
+    }
+
+    // Check Price match (low confidence - supporting signal only)
+    const cartPriceDollars = cartItem.item_price / 100;
+    const productPriceMin = product.priceRange.min;
+    const productPriceMax = product.priceRange.max;
+
+    if (cartPriceDollars >= productPriceMin * 0.9 && cartPriceDollars <= productPriceMax * 1.1) {
+      if (!strategies.includes('price')) strategies.push('price');
+    }
+  }
+
+  // Determine confidence based on primary strategy
+  const confidence: PredictionConfidence = primaryStrategy
+    ? STRATEGY_CONFIDENCE[primaryStrategy]
+    : 'low';
+
+  // Build final rationale
+  if (!primaryStrategy && !hasCorrespondingView) {
+    rationale = 'No matching product view found - cart item was not viewed before checkout';
+  } else if (!primaryStrategy) {
+    primaryStrategy = 'title';
+    rationale = 'Will attempt title similarity matching as fallback';
+  }
+
+  return {
+    cartItemName: cartItem.name,
+    predictedStrategy: primaryStrategy,
+    confidence,
+    rationale,
+    alternativeStrategies: strategies.filter((s) => s !== primaryStrategy),
+    hasCorrespondingView,
+  };
+}
+
+// ============================================================================
 // MCP Tool Registration
 // ============================================================================
 
 export function registerCartEnricherTools(server: McpServer) {
   createAnalyzeSessionTool(server);
+  createPredictMatchesTool(server);
 }
 
 function createAnalyzeSessionTool(server: McpServer) {
@@ -660,6 +860,109 @@ function createAnalyzeSessionTool(server: McpServer) {
         response += `1. Run \`cart_check_store_registry\` to verify store ID extraction setup\n`;
         response += `2. Run \`cart_predict_matches\` to see expected matching strategies\n`;
         response += `3. Run \`cart_create_fixture\` to generate test fixture\n`;
+      }
+
+      return {
+        content: [{ type: 'text', text: response }],
+      };
+    },
+  );
+}
+
+function createPredictMatchesTool(server: McpServer) {
+  return server.tool(
+    'cart_predict_matches',
+    'Predict which matching strategies will apply to each cart item with confidence levels',
+    {
+      state: z.object({
+        productViews: z
+          .array(RawProductViewEventSchema)
+          .describe('Array of raw product view events'),
+        cartEvents: z.array(RawCartEventSchema).describe('Array of raw cart events'),
+      }),
+    },
+    async ({ state }) => {
+      if (state.cartEvents.length === 0) {
+        return {
+          content: [{ type: 'text', text: 'Error: No cart events provided.' }],
+        };
+      }
+
+      // Get unique products from product views
+      const uniqueProducts = CartEnricherManager.identifyUniqueProducts(
+        state.productViews as RawProductViewEvent[],
+      );
+
+      // Get final cart items
+      const finalCartEvent = state.cartEvents[state.cartEvents.length - 1]!;
+      const cartItems = finalCartEvent.product_list;
+
+      // Predict matches for each cart item
+      const predictions: MatchPrediction[] = cartItems.map((item) =>
+        predictMatchForCartItem(item as RawCartProduct, uniqueProducts),
+      );
+
+      // Generate response
+      let response = `## Match Predictions\n\n`;
+
+      // Summary
+      const highConfidence = predictions.filter((p) => p.confidence === 'high').length;
+      const mediumConfidence = predictions.filter((p) => p.confidence === 'medium').length;
+      const lowConfidence = predictions.filter((p) => p.confidence === 'low').length;
+      const withViews = predictions.filter((p) => p.hasCorrespondingView).length;
+
+      response += `### Summary\n`;
+      response += `- **Total Cart Items:** ${predictions.length}\n`;
+      response += `- **With Corresponding Views:** ${withViews} (${((withViews / predictions.length) * 100).toFixed(0)}%)\n`;
+      response += `- **High Confidence:** ${highConfidence}\n`;
+      response += `- **Medium Confidence:** ${mediumConfidence}\n`;
+      response += `- **Low Confidence:** ${lowConfidence}\n\n`;
+
+      // Strategy distribution
+      const strategyCount: Record<string, number> = {};
+      for (const p of predictions) {
+        if (p.predictedStrategy) {
+          strategyCount[p.predictedStrategy] = (strategyCount[p.predictedStrategy] ?? 0) + 1;
+        }
+      }
+
+      response += `### Expected Strategy Distribution\n`;
+      for (const [strategy, count] of Object.entries(strategyCount).sort((a, b) => b[1] - a[1])) {
+        const confidence = STRATEGY_CONFIDENCE[strategy as MatchingStrategy];
+        response += `- **${strategy}** (${confidence}): ${count} item(s)\n`;
+      }
+      response += '\n';
+
+      // Individual predictions
+      response += `### Individual Predictions\n`;
+      for (const prediction of predictions) {
+        const icon =
+          prediction.confidence === 'high' ? '✓' : prediction.confidence === 'medium' ? '◐' : '○';
+        response += `\n**${icon} ${prediction.cartItemName}**\n`;
+        response += `- Strategy: \`${prediction.predictedStrategy ?? 'none'}\` (${prediction.confidence} confidence)\n`;
+        response += `- Rationale: ${prediction.rationale}\n`;
+        if (prediction.alternativeStrategies.length > 0) {
+          response += `- Alternative signals: ${prediction.alternativeStrategies.join(', ')}\n`;
+        }
+        if (!prediction.hasCorrespondingView) {
+          response += `- ⚠️ No matching product view found\n`;
+        }
+      }
+
+      // Recommendations
+      response += `\n### Recommendations\n`;
+      if (highConfidence === predictions.length) {
+        response += `✓ All items expected to match with high confidence\n`;
+      } else if (lowConfidence > 0) {
+        response += `⚠️ ${lowConfidence} item(s) may match with low confidence - review title similarity threshold\n`;
+      }
+
+      const noViewItems = predictions.filter((p) => !p.hasCorrespondingView);
+      if (noViewItems.length > 0) {
+        response += `\n**Items without product views:**\n`;
+        for (const item of noViewItems) {
+          response += `- ${item.cartItemName}\n`;
+        }
       }
 
       return {
