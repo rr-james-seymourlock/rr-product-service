@@ -1,0 +1,302 @@
+{
+  "introduction": {
+    "title": "Cart Enricher Data Analysis and Continuous Improvement",
+    "overview": "Establish an AI-assisted workflow for analyzing raw session data, validating cart enrichment logic, and continuously improving the matching system. When new store data is provided, Claude analyzes the data, generates a comprehensive report, evaluates current matching strategies against the data, identifies improvement opportunities, and creates test fixtures to validate changes.",
+    "lastUpdated": "2025-12-18"
+  },
+  "problemStatement": {
+    "problem": "The cart-enricher service uses 9 matching strategies with varying confidence levels, but we lack a systematic process to: (1) Analyze new store data to understand unique patterns, (2) Evaluate how well current matching logic handles diverse merchant implementations, (3) Identify gaps where new matching strategies could improve accuracy, (4) Track which stores benefit from which strategies. Without this feedback loop, we cannot optimize matching accuracy across the 4,000+ merchant network.",
+    "marketOpportunity": "Each new store's data provides insights into merchant-specific patterns that could improve matching across similar stores. By systematically analyzing data and identifying patterns (e.g., SKUs in image URLs, product IDs in query params, title formatting conventions), we can expand high-confidence matching coverage and reduce reliance on low-confidence fallbacks like title similarity.",
+    "targetUsers": [
+      "Engineers analyzing new store data",
+      "Engineers improving cart-enricher matching logic",
+      "Product team tracking match rates and confidence distribution",
+      "QA validating matching accuracy across stores"
+    ]
+  },
+  "solutionOverview": {
+    "description": "A three-phase workflow: (1) DATA ANALYSIS - Claude reviews raw product views and cart events, identifies unique products, traces cart evolution, and generates a structured report with matching predictions. (2) SYSTEM EVALUATION - Claude reviews current cart-enricher code, evaluates which strategies apply to the data, identifies gaps or opportunities for new strategies. (3) IMPLEMENTATION - Create fixtures, implement improvements if identified, and validate with comprehensive tests.",
+    "keyFeatures": [
+      "AI-generated data analysis report with unique product identification and cart evolution tracking",
+      "Matching strategy prediction with confidence levels and rationale",
+      "Code review of cart-enricher matching logic against new data patterns",
+      "Identification of improvement opportunities (new strategies, pattern recognition, confidence tuning)",
+      "Cross-store pattern recognition (e.g., multiple Shopify stores with similar URL structures)",
+      "Fixture creation with expected matches based on analysis",
+      "Regression testing to ensure improvements don't break existing stores"
+    ],
+    "successMetrics": [
+      "Data analysis reports accurately predict matching outcomes",
+      "Identified improvements increase high-confidence match rates",
+      "New matching strategies generalize across similar stores",
+      "No regression in existing fixture match rates",
+      "Reduced reliance on low-confidence matching strategies (title, price)"
+    ]
+  },
+  "userStories": [
+    {
+      "id": "US001",
+      "title": "Receive A Structured Analysis",
+      "userStory": "As a engineer, I want to receive a structured analysis report when providing raw session data so that I understand the data characteristics before making any code changes",
+      "businessValue": "I understand the data characteristics before making any code changes",
+      "acceptanceCriteria": [
+        "Report identifies unique products vs duplicate views with counts",
+        "Report traces cart evolution showing items added/removed across snapshots",
+        "Report lists which cart items have corresponding product views",
+        "Report identifies data quality issues (missing fields, malformed URLs)",
+        "Report includes store-specific observations (URL patterns, ID formats, naming conventions)"
+      ],
+      "status": "not_started",
+      "priority": "P0",
+      "estimatedComplexity": "M",
+      "dependencies": []
+    },
+    {
+      "id": "US002",
+      "title": "Receive Matching Strategy Predictions",
+      "userStory": "As a engineer, I want to receive matching strategy predictions with confidence levels so that I know which strategies will apply before running tests",
+      "businessValue": "I know which strategies will apply before running tests",
+      "acceptanceCriteria": [
+        "Prediction specifies which of the 9 strategies will match each cart item",
+        "Prediction includes confidence level (high/medium/low) with rationale",
+        "Prediction identifies items that may not match and why",
+        "Prediction highlights multiple potential matching paths when applicable",
+        "Prediction notes when lower-confidence strategies must be used as fallback"
+      ],
+      "status": "not_started",
+      "priority": "P0",
+      "estimatedComplexity": "M",
+      "dependencies": []
+    },
+    {
+      "id": "US003",
+      "title": "Have The Cart-enricher Code",
+      "userStory": "As a engineer, I want to have the cart-enricher code reviewed against new data patterns so that I can identify if current logic handles the store's data correctly",
+      "businessValue": "I can identify if current logic handles the store's data correctly",
+      "acceptanceCriteria": [
+        "Review analyzes how each matching strategy applies to the new data",
+        "Review identifies strategies that should match but may not due to implementation gaps",
+        "Review highlights edge cases in the data that current logic may mishandle",
+        "Review compares data patterns to existing fixtures for similarity",
+        "Review notes any store-specific normalization requirements"
+      ],
+      "status": "not_started",
+      "priority": "P0",
+      "estimatedComplexity": "M",
+      "dependencies": []
+    },
+    {
+      "id": "US004",
+      "title": "Receive Recommendations For Matching",
+      "userStory": "As a engineer, I want to receive recommendations for matching logic improvements so that I can enhance the system based on real-world data patterns",
+      "businessValue": "I can enhance the system based on real-world data patterns",
+      "acceptanceCriteria": [
+        "Recommendations identify new matching strategies that would improve accuracy",
+        "Recommendations suggest confidence level adjustments based on observed reliability",
+        "Recommendations highlight patterns that could be generalized across stores",
+        "Recommendations include implementation guidance with code examples",
+        "Recommendations estimate impact (number of stores/items affected)"
+      ],
+      "status": "not_started",
+      "priority": "P0",
+      "estimatedComplexity": "M",
+      "dependencies": []
+    },
+    {
+      "id": "US005",
+      "title": "Identify Cross-store Patterns From",
+      "userStory": "As a engineer, I want to identify cross-store patterns from accumulated fixture data so that I can implement improvements that benefit multiple stores at once",
+      "businessValue": "I can implement improvements that benefit multiple stores at once",
+      "acceptanceCriteria": [
+        "Pattern analysis identifies common URL structures across stores (e.g., Shopify, Magento)",
+        "Pattern analysis identifies common ID formats (numeric, alphanumeric, compound)",
+        "Pattern analysis identifies common SKU embedding locations (image URLs, descriptions)",
+        "Pattern analysis suggests generic matching rules that could replace store-specific logic",
+        "Pattern analysis tracks which stores use which matching strategies"
+      ],
+      "status": "not_started",
+      "priority": "P1",
+      "estimatedComplexity": "M",
+      "dependencies": []
+    },
+    {
+      "id": "US006",
+      "title": "Create Test Fixtures With",
+      "userStory": "As a engineer, I want to create test fixtures with expected matches based on analysis so that I have validated test cases that reflect real-world matching behavior",
+      "businessValue": "I have validated test cases that reflect real-world matching behavior",
+      "acceptanceCriteria": [
+        "Fixture includes all unique product views from the session",
+        "Fixture includes representative cart events",
+        "Expected matches reflect analysis predictions with correct confidence levels",
+        "Fixture documents matching rationale for each cart item",
+        "Fixture follows established TypeScript structure and naming conventions"
+      ],
+      "status": "not_started",
+      "priority": "P0",
+      "estimatedComplexity": "M",
+      "dependencies": []
+    },
+    {
+      "id": "US007",
+      "title": "Implement And Validate Matching",
+      "userStory": "As a engineer, I want to implement and validate matching logic improvements so that I can safely enhance the system with confidence it works",
+      "businessValue": "I can safely enhance the system with confidence it works",
+      "acceptanceCriteria": [
+        "New matching strategies are implemented following existing patterns",
+        "All existing fixture tests continue to pass (no regression)",
+        "New fixture tests pass with expected confidence levels",
+        "Code passes typecheck and lint",
+        "Implementation includes appropriate test coverage"
+      ],
+      "status": "not_started",
+      "priority": "P0",
+      "estimatedComplexity": "M",
+      "dependencies": []
+    },
+    {
+      "id": "US008",
+      "title": "Track Matching Accuracy Metrics",
+      "userStory": "As a product manager, I want to track matching accuracy metrics across stores so that I can measure system effectiveness and prioritize improvements",
+      "businessValue": "I can measure system effectiveness and prioritize improvements",
+      "acceptanceCriteria": [
+        "Metrics show match rate by store",
+        "Metrics show confidence level distribution",
+        "Metrics identify stores with low match rates for investigation",
+        "Metrics track improvement over time as new strategies are added",
+        "Metrics highlight which strategies contribute most to matches"
+      ],
+      "status": "not_started",
+      "priority": "P2",
+      "estimatedComplexity": "M",
+      "dependencies": []
+    },
+    {
+      "id": "US009",
+      "title": "Have Store Metadata Automatically",
+      "userStory": "As a engineer, I want to have store metadata automatically extracted from the raw data so that I don't need to manually specify store details when providing session data",
+      "businessValue": "I don't need to manually specify store details when providing session data",
+      "acceptanceCriteria": [
+        "Store ID is extracted from product view and cart event data",
+        "Store name is extracted from the data",
+        "Domain is extracted from product URLs",
+        "Validation confirms consistent store info across all events",
+        "Error reported if store metadata is inconsistent or missing"
+      ],
+      "status": "not_started",
+      "priority": "P0",
+      "estimatedComplexity": "M",
+      "dependencies": []
+    },
+    {
+      "id": "US010",
+      "title": "Verify The Store Is",
+      "userStory": "As a engineer, I want to verify the store is configured in store-registry for ID extraction so that I know if product ID extraction will work before analyzing cart matching",
+      "businessValue": "I know if product ID extraction will work before analyzing cart matching",
+      "acceptanceCriteria": [
+        "Check if store ID exists in store-registry config",
+        "Check if domain has existing test fixtures",
+        "Report current ID extraction pattern if configured",
+        "Report if store uses generic patterns vs store-specific config",
+        "Flag if store is not yet onboarded to store-registry"
+      ],
+      "status": "not_started",
+      "priority": "P0",
+      "estimatedComplexity": "M",
+      "dependencies": []
+    },
+    {
+      "id": "US011",
+      "title": "Onboard A New Store",
+      "userStory": "As a engineer, I want to onboard a new store to store-registry when not configured so that I can set up ID extraction as part of the cart enricher analysis workflow",
+      "businessValue": "I can set up ID extraction as part of the cart enricher analysis workflow",
+      "acceptanceCriteria": [
+        "Use store onboarding MCP to validate store metadata",
+        "Analyze product URLs to identify ID patterns",
+        "Generate store config with ts-regex-builder patterns",
+        "Insert config into store-registry",
+        "Create test fixture with URLs from the session data"
+      ],
+      "status": "not_started",
+      "priority": "P0",
+      "estimatedComplexity": "M",
+      "dependencies": []
+    },
+    {
+      "id": "US012",
+      "title": "Validate Product Id Extraction",
+      "userStory": "As a engineer, I want to validate product ID extraction against session URLs so that I can confirm extracted IDs match between product views and cart items",
+      "businessValue": "I can confirm extracted IDs match between product views and cart items",
+      "acceptanceCriteria": [
+        "Run ID extraction on all product view URLs",
+        "Run ID extraction on all cart item URLs (if present)",
+        "Compare extracted IDs between matching products and cart items",
+        "Report any URLs that fail to extract IDs",
+        "Identify if extraction failures impact cart matching accuracy"
+      ],
+      "status": "not_started",
+      "priority": "P0",
+      "estimatedComplexity": "M",
+      "dependencies": []
+    },
+    {
+      "id": "US013",
+      "title": "Add New Url Test",
+      "userStory": "As a engineer, I want to add new URL test cases to existing store-registry fixtures so that I expand test coverage with real-world URLs from session data",
+      "businessValue": "I expand test coverage with real-world URLs from session data",
+      "acceptanceCriteria": [
+        "Filter session URLs to product pages only (exclude cart, category, etc.)",
+        "Append new test cases to existing store fixture",
+        "Verify new URLs extract IDs correctly with existing patterns",
+        "Flag URLs that don't match existing patterns for review",
+        "Run regression tests to ensure no breakage"
+      ],
+      "status": "not_started",
+      "priority": "P1",
+      "estimatedComplexity": "M",
+      "dependencies": []
+    },
+    {
+      "id": "US014",
+      "title": "Update Store-registry Patterns When",
+      "userStory": "As a engineer, I want to update store-registry patterns when URLs don't extract correctly so that I can fix ID extraction issues discovered during cart enricher analysis",
+      "businessValue": "I can fix ID extraction issues discovered during cart enricher analysis",
+      "acceptanceCriteria": [
+        "Identify URL patterns not covered by current regex",
+        "Propose updated patterns that handle new URL formats",
+        "Validate updated patterns against all existing fixture URLs",
+        "Run regression tests before committing changes",
+        "Document pattern changes with rationale"
+      ],
+      "status": "not_started",
+      "priority": "P1",
+      "estimatedComplexity": "M",
+      "dependencies": []
+    }
+  ],
+  "technicalRequirements": {
+    "constraints": [],
+    "integrationNeeds": [],
+    "complianceRequirements": []
+  },
+  "acceptanceCriteria": {
+    "global": [],
+    "qualityStandards": []
+  },
+  "constraints": {
+    "timeline": "",
+    "resources": [],
+    "nonNegotiables": []
+  },
+  "metadata": {
+    "version": "1.0",
+    "created": "2025-12-18",
+    "lastUpdated": "2025-12-18",
+    "approver": ""
+  },
+  "progress": {
+    "overall": 0,
+    "completed": 0,
+    "total": 14,
+    "blocked": 0
+  }
+}
