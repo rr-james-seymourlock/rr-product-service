@@ -16,3 +16,4 @@ export { fixture as columbiaSession001 } from './columbia-session-001.js';
 export { fixture as samsungSession001 } from './samsung-session-001.js';
 export { fixture as nordstromrackSession001 } from './nordstromrack-session-001.js';
 export { fixture as acehardwareSession001 } from './acehardware-session-001.js';
+export { fixture as macysSession001 } from './macys-session-001.js';
