@@ -1094,6 +1094,37 @@ const mutableStoreConfigs: StoreConfigInterface[] = [
       ),
     ],
   },
+  // Dell (ID: 9)
+  // URL patterns:
+  // - /apd/{product-id} (e.g., /apd/580-bbmz, /apd/210-bpkx, /apd/ab855035)
+  // - /spd/{slug}/{sku} (e.g., /spd/dell-pro-qcm1250-micro/gcto_qcm1250_usx)
+  // - ?productId={id} is handled by generic search patterns
+  {
+    id: '9',
+    domain: 'dell.com',
+    pathnamePatterns: [
+      // Matches /apd/{product-id} - IDs are alphanumeric with hyphens (6-20 chars)
+      buildRegExp(
+        [
+          '/apd/',
+          capture(repeat(choiceOf(word, digit, '-'), { min: 6, max: 20 })),
+          choiceOf('/', endOfString),
+        ],
+        { global: true },
+      ),
+      // Matches /spd/{slug}/{sku} - captures the last segment (SKU)
+      buildRegExp(
+        [
+          '/spd/',
+          repeat(choiceOf(word, digit, '-'), { min: 1 }),
+          '/',
+          capture(repeat(choiceOf(word, digit, '_'), { min: 6, max: 30 })),
+          choiceOf('/', endOfString),
+        ],
+        { global: true },
+      ),
+    ],
+  },
 ];
 
 export const storeConfigs: ReadonlyArray<StoreConfigInterface> = Object.freeze(

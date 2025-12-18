@@ -35,6 +35,28 @@ const MAX_URLS_PER_REQUEST = 50;
 /** Maximum output length for test results display */
 const MAX_OUTPUT_LENGTH = 2000;
 
+/**
+ * Query parameter names that are already handled by generic search patterns
+ * in product-id-extractor/src/config.ts. Store-specific searchPatterns should
+ * NOT be generated for these params since the generic rules already extract them.
+ *
+ * Source: packages/product-id-extractor/src/config.ts (searchPattern)
+ */
+const GENERIC_SEARCH_PARAM_NAMES = new Set([
+  'sku',
+  'pid',
+  'id',
+  'productid',
+  'product_id', // Normalized version
+  'skuid',
+  'athcpid',
+  'upc_id',
+  'variant',
+  'prdtno',
+  'item_id', // Common variant
+  'itemid', // Common variant
+]);
+
 // ============================================================================
 // Utility Functions
 // ============================================================================
@@ -115,6 +137,12 @@ export interface IdentifiedPattern {
   exampleUrls: string[];
   /** Example IDs extracted */
   exampleIds: string[];
+  /**
+   * True if this pattern is already covered by generic rules in product-id-extractor.
+   * Search patterns with common param names (productId, sku, etc.) don't need
+   * store-specific patterns since the generic rules already extract them.
+   */
+  coveredByGenericRules?: boolean;
 }
 
 /** Generated regex pattern for store config */
@@ -123,6 +151,13 @@ export interface GeneratedPattern {
   tsRegexBuilderCode: string;
   comment: string;
   rawRegex: string;
+  /**
+   * True if this pattern is already covered by generic rules.
+   * These patterns should NOT be added to store config.
+   */
+  coveredByGenericRules?: boolean;
+  /** For search patterns covered by generic rules, the param name */
+  searchParamName?: string;
 }
 
 /** Test case for fixture generation */
@@ -758,6 +793,12 @@ export class StoreOnboardingManager {
         description = `Product ID in search param "${group.searchParamName}", format: ${group.format}`;
       }
 
+      // Check if search pattern is already covered by generic rules
+      const isCoveredByGenericRules =
+        group.type === 'search_param' &&
+        group.searchParamName !== undefined &&
+        GENERIC_SEARCH_PARAM_NAMES.has(group.searchParamName.toLowerCase());
+
       const pattern: IdentifiedPattern = {
         type: group.type,
         description,
@@ -769,6 +810,7 @@ export class StoreOnboardingManager {
       if (group.pathSegmentFromEnd !== undefined)
         pattern.pathSegmentFromEnd = group.pathSegmentFromEnd;
       if (group.searchParamName !== undefined) pattern.searchParamName = group.searchParamName;
+      if (isCoveredByGenericRules) pattern.coveredByGenericRules = true;
       patterns.push(pattern);
     }
 
@@ -864,12 +906,18 @@ export class StoreOnboardingManager {
         comment = `// Matches alphanumeric ID in ${paramName} query parameter`;
       }
 
-      return {
+      const result: GeneratedPattern = {
         type: 'search',
         tsRegexBuilderCode,
         comment,
         rawRegex,
       };
+      // Pass through the coveredByGenericRules flag if present
+      if (pattern.coveredByGenericRules) {
+        result.coveredByGenericRules = true;
+        result.searchParamName = paramName;
+      }
+      return result;
     }
   }
 
@@ -883,9 +931,21 @@ export class StoreOnboardingManager {
     patterns: GeneratedPattern[],
   ): string {
     const pathnamePatterns = patterns.filter((p) => p.type === 'pathname');
-    const searchPatterns = patterns.filter((p) => p.type === 'search');
+
+    // Filter out search patterns covered by generic rules
+    const searchPatterns = patterns.filter((p) => p.type === 'search' && !p.coveredByGenericRules);
+    const genericCoveredParams = patterns
+      .filter((p) => p.type === 'search' && p.coveredByGenericRules)
+      .map((p) => p.searchParamName)
+      .filter(Boolean);
 
     let code = `  // ${storeName} (ID: ${storeId})\n`;
+
+    // Add comment about generic-covered params if any
+    if (genericCoveredParams.length > 0) {
+      code += `  // Note: ${genericCoveredParams.join(', ')} query param(s) handled by generic rules\n`;
+    }
+
     code += `  {\n`;
     code += `    id: '${storeId}',\n`;
     code += `    domain: '${domain}',\n`;
@@ -1759,10 +1819,14 @@ function createAnalyzeUrlsTool(server: McpServer) {
       if (patterns.length > 0) {
         response += `### Identified Patterns (${patterns.length})\n\n`;
         for (const pattern of patterns) {
-          response += `**Pattern: ${pattern.description}**\n`;
+          const genericTag = pattern.coveredByGenericRules ? ' ✅ (handled by generic rules)' : '';
+          response += `**Pattern: ${pattern.description}**${genericTag}\n`;
           response += `- Type: ${pattern.type}\n`;
           response += `- Format: ${pattern.format}\n`;
           response += `- Confidence: ${pattern.confidence}\n`;
+          if (pattern.coveredByGenericRules) {
+            response += `- **Generic Rules:** Already covered - no store config needed\n`;
+          }
           response += `- Example IDs: ${pattern.exampleIds.slice(0, 3).join(', ')}\n`;
           response += `- Example URLs:\n`;
           response += pattern.exampleUrls.map((u) => `  - ${u}`).join('\n');
@@ -1854,14 +1918,31 @@ function createGeneratePatternsTool(server: McpServer) {
       response += configCode;
       response += '\n```\n\n';
 
-      response += `### Generated Patterns (${generatedPatterns.length})\n\n`;
-      for (const pattern of generatedPatterns) {
-        response += `**${pattern.type} pattern:**\n`;
-        response += `${pattern.comment}\n`;
-        response += '```typescript\n';
-        response += pattern.tsRegexBuilderCode;
-        response += '\n```\n';
-        response += `Raw regex: \`${pattern.rawRegex}\`\n\n`;
+      // Separate patterns by whether they're covered by generic rules
+      const customPatterns = generatedPatterns.filter((p) => !p.coveredByGenericRules);
+      const genericCovered = generatedPatterns.filter((p) => p.coveredByGenericRules);
+
+      response += `### Custom Patterns (${customPatterns.length})\n\n`;
+      if (customPatterns.length === 0) {
+        response += `_No store-specific patterns needed._\n\n`;
+      } else {
+        for (const pattern of customPatterns) {
+          response += `**${pattern.type} pattern:**\n`;
+          response += `${pattern.comment}\n`;
+          response += '```typescript\n';
+          response += pattern.tsRegexBuilderCode;
+          response += '\n```\n';
+          response += `Raw regex: \`${pattern.rawRegex}\`\n\n`;
+        }
+      }
+
+      if (genericCovered.length > 0) {
+        response += `### Already Covered by Generic Rules (${genericCovered.length})\n\n`;
+        response += `The following search params are already handled by generic extraction rules in \`product-id-extractor\`:\n\n`;
+        for (const pattern of genericCovered) {
+          response += `- **${pattern.searchParamName}** - No store-specific config needed\n`;
+        }
+        response += `\n`;
       }
 
       return {
@@ -1922,6 +2003,33 @@ function createInsertConfigTool(server: McpServer) {
       // Generate pattern code
       const generatedPatterns = patterns.map((p) => StoreOnboardingManager.generatePatternCode(p));
 
+      // Check if all patterns are covered by generic rules
+      const customPatterns = generatedPatterns.filter((p) => !p.coveredByGenericRules);
+      const genericCovered = generatedPatterns.filter((p) => p.coveredByGenericRules);
+
+      if (customPatterns.length === 0) {
+        // All patterns are handled by generic rules - no store config needed
+        let response = `## No Store Config Needed! ✅\n\n`;
+        response += `**Store:** ${storeName} (${state.storeId})\n`;
+        response += `**Domain:** ${state.domain}\n\n`;
+        response += `All identified patterns are already handled by generic extraction rules:\n\n`;
+        for (const pattern of genericCovered) {
+          response += `- **${pattern.searchParamName}** query parameter\n`;
+        }
+        response += `\n### Next Steps\n`;
+        response += `1. Run \`store_generate_fixture\` to create test cases (validates generic rules work)\n`;
+        response += `2. Run \`store_run_tests\` to verify extraction works with generic rules\n`;
+        response += `\n**Note:** No config.ts modification needed since generic rules cover all patterns.\n`;
+
+        if (warnings.length > 0) {
+          response += `\n### Warnings\n${warnings.map((w) => `- ${w}`).join('\n')}`;
+        }
+
+        return {
+          content: [{ type: 'text', text: response }],
+        };
+      }
+
       // Insert into config.ts
       const result = await StoreOnboardingManager.insertStoreConfig(
         state.storeId,
@@ -1940,7 +2048,11 @@ function createInsertConfigTool(server: McpServer) {
       response += `**File:** ${result.filePath}\n`;
       response += `**Store:** ${storeName} (${state.storeId})\n`;
       response += `**Domain:** ${state.domain}\n`;
-      response += `**Patterns:** ${generatedPatterns.length}\n\n`;
+      response += `**Custom Patterns:** ${customPatterns.length}\n`;
+      if (genericCovered.length > 0) {
+        response += `**Generic-Covered (skipped):** ${genericCovered.length} (${genericCovered.map((p) => p.searchParamName).join(', ')})\n`;
+      }
+      response += `\n`;
 
       response += `### Next Steps\n`;
       response += `1. Run \`store_generate_fixture\` to create test cases\n`;
