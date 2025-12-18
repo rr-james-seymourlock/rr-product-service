@@ -153,7 +153,7 @@
       "id": "5",
       "title": "Implement cart_validate_id_extraction MCP tool",
       "description": "Create MCP tool that runs ID extraction on all session URLs and reports results",
-      "status": "pending",
+      "status": "done",
       "priority": "high",
       "dependencies": ["4"],
       "details": "Tool should: (1) Extract IDs from all product view URLs, (2) Extract IDs from cart item URLs if present, (3) Compare extracted IDs between products and cart items, (4) Report URLs that fail extraction, (5) Identify impact on matching accuracy",
@@ -161,9 +161,10 @@
       "subtasks": [],
       "userStoryId": "US012",
       "createdAt": "2025-12-18T18:39:53.052Z",
-      "updatedAt": "2025-12-18T18:40:10.602Z",
+      "updatedAt": "2025-12-18T19:22:36.752Z",
       "complexity": 4,
-      "recommendedSubtasks": 3
+      "recommendedSubtasks": 3,
+      "completedAt": "2025-12-18T19:22:36.752Z"
     },
     {
       "id": "6",
@@ -298,9 +299,9 @@
   "metadata": {
     "version": "1.0",
     "created": "2025-12-18T18:39:52.690Z",
-    "lastUpdated": "2025-12-18T19:04:36.415Z",
+    "lastUpdated": "2025-12-18T19:22:36.752Z",
     "totalTasks": 20,
-    "completedTasks": 10,
+    "completedTasks": 11,
     "blockedTasks": 0
   }
 }

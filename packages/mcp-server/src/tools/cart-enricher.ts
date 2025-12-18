@@ -723,6 +723,7 @@ export function registerCartEnricherTools(server: McpServer) {
   createAnalyzeSessionTool(server);
   createPredictMatchesTool(server);
   createCheckStoreRegistryTool(server);
+  createValidateIdExtractionTool(server);
 }
 
 function createAnalyzeSessionTool(server: McpServer) {
@@ -1105,6 +1106,177 @@ function createCheckStoreRegistryTool(server: McpServer) {
         response += `3. Run \`store_generate_fixture\` to create test fixture\n`;
         response += `4. Run \`store_run_tests\` - if generic rules work, you're done!\n`;
         response += `5. If tests fail, run \`store_insert_config\` to add store-specific patterns\n`;
+      }
+
+      return {
+        content: [{ type: 'text', text: response }],
+      };
+    },
+  );
+}
+
+function createValidateIdExtractionTool(server: McpServer) {
+  return server.tool(
+    'cart_validate_id_extraction',
+    'Run ID extraction on all session URLs and compare results between products and cart items',
+    {
+      state: z.object({
+        productViews: z
+          .array(RawProductViewEventSchema)
+          .describe('Array of raw product view events'),
+        cartEvents: z.array(RawCartEventSchema).describe('Array of raw cart events'),
+      }),
+    },
+    async ({ state }) => {
+      if (state.productViews.length === 0 && state.cartEvents.length === 0) {
+        return {
+          content: [{ type: 'text', text: 'Error: No session data provided.' }],
+        };
+      }
+
+      // Extract IDs from all product view URLs
+      const productExtractions = (state.productViews as RawProductViewEvent[]).map((pv) => ({
+        name: pv.name,
+        url: pv.url,
+        extractedIds: CartEnricherManager.extractProductId(pv.url),
+        skusFromData: pv.sku_list ?? [],
+      }));
+
+      // Extract IDs from cart item URLs
+      const finalCartEvent =
+        state.cartEvents.length > 0 ? state.cartEvents[state.cartEvents.length - 1] : null;
+      const cartExtractions = finalCartEvent
+        ? finalCartEvent.product_list.map((item) => ({
+            name: item.name,
+            url: item.url,
+            extractedIds: item.url ? CartEnricherManager.extractProductId(item.url) : [],
+            imageUrl: item.image_url,
+            imageSkus: extractSkusFromImageUrl(item.image_url),
+          }))
+        : [];
+
+      // Calculate statistics
+      const productUrlsWithIds = productExtractions.filter((p) => p.extractedIds.length > 0);
+      const productUrlsWithoutIds = productExtractions.filter((p) => p.extractedIds.length === 0);
+      const cartUrlsWithIds = cartExtractions.filter(
+        (c) => c.extractedIds.length > 0 || c.imageSkus.length > 0,
+      );
+      const cartUrlsWithoutIds = cartExtractions.filter(
+        (c) => c.extractedIds.length === 0 && c.imageSkus.length === 0 && c.url,
+      );
+      const cartItemsWithoutUrls = cartExtractions.filter((c) => !c.url);
+
+      // Build map of all product extracted IDs
+      const allProductIds = new Set<string>();
+      for (const p of productExtractions) {
+        for (const id of p.extractedIds) {
+          allProductIds.add(id);
+        }
+        for (const sku of p.skusFromData) {
+          allProductIds.add(sku);
+        }
+      }
+
+      // Check cart ID matches against products
+      const cartMatches = cartExtractions.map((cart) => {
+        const urlIdMatch = cart.extractedIds.some((id) => allProductIds.has(id));
+        const imageSkuMatch = cart.imageSkus.some((sku) => allProductIds.has(sku));
+        return {
+          ...cart,
+          urlIdMatch,
+          imageSkuMatch,
+          hasMatch: urlIdMatch || imageSkuMatch,
+        };
+      });
+
+      const matchingCartItems = cartMatches.filter((c) => c.hasMatch);
+      const nonMatchingCartItems = cartMatches.filter((c) => !c.hasMatch && (c.url || c.imageUrl));
+
+      // Generate response
+      let response = `## ID Extraction Validation\n\n`;
+
+      // Product URLs
+      response += `### Product View URLs\n`;
+      response += `- **Total URLs:** ${productExtractions.length}\n`;
+      response += `- **Successful extractions:** ${productUrlsWithIds.length} (${((productUrlsWithIds.length / productExtractions.length) * 100).toFixed(0)}%)\n`;
+      response += `- **Failed extractions:** ${productUrlsWithoutIds.length}\n\n`;
+
+      if (productUrlsWithoutIds.length > 0) {
+        response += `**URLs without extracted IDs:**\n`;
+        for (const p of productUrlsWithoutIds.slice(0, 5)) {
+          response += `- ${p.name}\n`;
+          response += `  URL: ${p.url}\n`;
+        }
+        if (productUrlsWithoutIds.length > 5) {
+          response += `  ... and ${productUrlsWithoutIds.length - 5} more\n`;
+        }
+        response += '\n';
+      }
+
+      // Cart URLs
+      response += `### Cart Item URLs\n`;
+      response += `- **Total items:** ${cartExtractions.length}\n`;
+      response += `- **Items with URLs:** ${cartExtractions.filter((c) => c.url).length}\n`;
+      response += `- **Items without URLs:** ${cartItemsWithoutUrls.length}\n`;
+      response += `- **Successful extractions:** ${cartUrlsWithIds.length}\n`;
+      response += `- **Failed extractions:** ${cartUrlsWithoutIds.length}\n\n`;
+
+      // ID Comparison
+      response += `### ID Comparison (Cart → Product)\n`;
+      response += `- **Cart items matching product IDs:** ${matchingCartItems.length}/${cartExtractions.length}\n`;
+      response += `- **Cart items NOT matching:** ${nonMatchingCartItems.length}\n\n`;
+
+      if (matchingCartItems.length > 0) {
+        response += `**Matching Items:**\n`;
+        for (const item of matchingCartItems.slice(0, 5)) {
+          response += `- ✓ ${item.name}\n`;
+          if (item.urlIdMatch) {
+            response += `  URL IDs: ${item.extractedIds.join(', ')}\n`;
+          }
+          if (item.imageSkuMatch) {
+            response += `  Image SKUs: ${item.imageSkus.join(', ')}\n`;
+          }
+        }
+        if (matchingCartItems.length > 5) {
+          response += `  ... and ${matchingCartItems.length - 5} more\n`;
+        }
+        response += '\n';
+      }
+
+      if (nonMatchingCartItems.length > 0) {
+        response += `**Non-matching Items:**\n`;
+        for (const item of nonMatchingCartItems) {
+          response += `- ✗ ${item.name}\n`;
+          if (item.url) {
+            response += `  URL: ${item.url}\n`;
+            response += `  Extracted IDs: ${item.extractedIds.length > 0 ? item.extractedIds.join(', ') : 'none'}\n`;
+          }
+          if (item.imageUrl && item.imageSkus.length > 0) {
+            response += `  Image SKUs: ${item.imageSkus.join(', ')}\n`;
+          }
+        }
+        response += '\n';
+      }
+
+      // Impact assessment
+      response += `### Impact on Matching Accuracy\n`;
+      const potentialMatchRate =
+        cartExtractions.length > 0 ? (matchingCartItems.length / cartExtractions.length) * 100 : 0;
+
+      if (potentialMatchRate >= 80) {
+        response += `✓ **High ID overlap** (${potentialMatchRate.toFixed(0)}%) - extracted_id matching should work well\n`;
+      } else if (potentialMatchRate >= 50) {
+        response += `⚠️ **Medium ID overlap** (${potentialMatchRate.toFixed(0)}%) - some items may need fallback strategies\n`;
+      } else {
+        response += `❌ **Low ID overlap** (${potentialMatchRate.toFixed(0)}%) - ID extraction may need improvement\n`;
+      }
+
+      if (productUrlsWithoutIds.length > 0) {
+        response += `\n⚠️ ${productUrlsWithoutIds.length} product URLs failed ID extraction - consider updating store-registry patterns\n`;
+      }
+
+      if (cartItemsWithoutUrls.length > 0) {
+        response += `\n📝 ${cartItemsWithoutUrls.length} cart items have no URLs - will rely on image_sku or title matching\n`;
       }
 
       return {
