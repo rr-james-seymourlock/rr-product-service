@@ -724,6 +724,7 @@ export function registerCartEnricherTools(server: McpServer) {
   createPredictMatchesTool(server);
   createCheckStoreRegistryTool(server);
   createValidateIdExtractionTool(server);
+  createCreateFixtureTool(server);
 }
 
 function createAnalyzeSessionTool(server: McpServer) {
@@ -1284,4 +1285,263 @@ function createValidateIdExtractionTool(server: McpServer) {
       };
     },
   );
+}
+
+function createCreateFixtureTool(server: McpServer) {
+  return server.tool(
+    'cart_create_fixture',
+    'Generate a cart-enricher fixture TypeScript file from analyzed session data',
+    {
+      state: z.object({
+        productViews: z
+          .array(RawProductViewEventSchema)
+          .describe('Array of raw product view events'),
+        cartEvents: z.array(RawCartEventSchema).describe('Array of raw cart events'),
+        fixtureName: z
+          .string()
+          .optional()
+          .describe(
+            'Optional fixture name (e.g., "macys-session-001"). Auto-generated from store name if not provided.',
+          ),
+        fixtureDescription: z.string().optional().describe('Optional description for the fixture'),
+      }),
+    },
+    async ({ state }) => {
+      if (state.productViews.length === 0 && state.cartEvents.length === 0) {
+        return {
+          content: [
+            { type: 'text', text: 'Error: No session data provided for fixture generation.' },
+          ],
+        };
+      }
+
+      // Extract store metadata
+      const storeMetadata = CartEnricherManager.extractStoreMetadata(
+        state.productViews as RawProductViewEvent[],
+        state.cartEvents as RawCartEvent[],
+      );
+
+      // Generate fixture name from store name if not provided
+      const storeName = storeMetadata.storeName || 'unknown-store';
+      const storeSlug = storeName.toLowerCase().replace(/[^a-z0-9]+/g, '');
+      const fixtureName = state.fixtureName || `${storeSlug}-session-001`;
+
+      // Get unique products
+      const uniqueProducts = CartEnricherManager.identifyUniqueProducts(
+        state.productViews as RawProductViewEvent[],
+      );
+
+      // Get final cart event
+      const finalCartEvent =
+        state.cartEvents.length > 0 ? state.cartEvents[state.cartEvents.length - 1] : null;
+      const cartItems = finalCartEvent ? finalCartEvent.product_list : [];
+
+      // Generate match predictions for expected matches
+      const predictions: MatchPrediction[] = cartItems.map((item) =>
+        predictMatchForCartItem(item as RawCartProduct, uniqueProducts),
+      );
+
+      // Generate description
+      const description =
+        state.fixtureDescription ||
+        `${uniqueProducts.length} unique product views and ${cartItems.length} cart items`;
+
+      // Build expected matches from predictions
+      const expectedMatches: Array<{
+        cartItemName: string;
+        productSku: string;
+        confidence: 'high' | 'medium' | 'low';
+        reason: string;
+      }> = [];
+
+      for (const prediction of predictions) {
+        // Find matching product to get a representative SKU/ID
+        const cartItem = cartItems.find((c) => c.name === prediction.cartItemName);
+        const matchingProduct = uniqueProducts.find((p) => {
+          // Match by extracted ID or title
+          if (cartItem?.url) {
+            const cartExtractedIds = CartEnricherManager.extractProductId(cartItem.url);
+            if (cartExtractedIds.some((id) => p.extractedIds.includes(id))) {
+              return true;
+            }
+          }
+          return p.name.toLowerCase().includes(prediction.cartItemName.toLowerCase());
+        });
+
+        // Get product SKU - prefer extracted ID, then SKU from data
+        let productSku = 'UNKNOWN';
+        if (matchingProduct) {
+          if (matchingProduct.extractedIds.length > 0) {
+            productSku = matchingProduct.extractedIds[0]!;
+          } else if (matchingProduct.skus.length > 0) {
+            productSku = matchingProduct.skus[0]!;
+          }
+        }
+
+        expectedMatches.push({
+          cartItemName: prediction.cartItemName,
+          productSku,
+          confidence: prediction.confidence,
+          reason: prediction.rationale,
+        });
+      }
+
+      // Generate fixture TypeScript code
+      const fixtureCode = generateFixtureCode({
+        fixtureName,
+        description,
+        storeId: storeMetadata.storeId,
+        storeName: storeMetadata.storeName,
+        expectedMatches,
+        productViews: state.productViews as RawProductViewEvent[],
+        cartEvents: state.cartEvents as RawCartEvent[],
+        uniqueProducts,
+      });
+
+      // Generate response
+      let response = `## Generated Fixture\n\n`;
+      response += `**Name:** ${fixtureName}\n`;
+      response += `**Description:** ${description}\n`;
+      response += `**Store:** ${storeMetadata.storeName} (${storeMetadata.storeId})\n\n`;
+
+      response += `### Summary\n`;
+      response += `- **Unique Product Views:** ${uniqueProducts.length}\n`;
+      response += `- **Cart Items:** ${cartItems.length}\n`;
+      response += `- **Expected Matches:** ${expectedMatches.length}\n\n`;
+
+      response += `### Expected Matches\n`;
+      for (const match of expectedMatches) {
+        const icon = match.confidence === 'high' ? '✓' : match.confidence === 'medium' ? '◐' : '○';
+        response += `- ${icon} **${match.cartItemName}** → \`${match.productSku}\` (${match.confidence})\n`;
+        response += `  ${match.reason}\n`;
+      }
+
+      response += `\n### File Path\n`;
+      response += `\`packages/cart-enricher/src/__fixtures__/${fixtureName}.ts\`\n\n`;
+
+      response += `### Generated Code\n\n`;
+      response += '```typescript\n';
+      response += fixtureCode;
+      response += '\n```\n\n';
+
+      response += `### Next Steps\n`;
+      response += `1. Review the generated fixture code\n`;
+      response += `2. Copy the code to \`packages/cart-enricher/src/__fixtures__/${fixtureName}.ts\`\n`;
+      response += `3. Update \`packages/cart-enricher/src/__fixtures__/index.ts\` to export the fixture\n`;
+      response += `4. Run tests: \`pnpm --filter @rr/cart-enricher test\`\n`;
+
+      return {
+        content: [{ type: 'text', text: response }],
+      };
+    },
+  );
+}
+
+/**
+ * Generate TypeScript fixture code
+ */
+function generateFixtureCode(params: {
+  fixtureName: string;
+  description: string;
+  storeId: string;
+  storeName: string;
+  expectedMatches: Array<{
+    cartItemName: string;
+    productSku: string;
+    confidence: 'high' | 'medium' | 'low';
+    reason: string;
+  }>;
+  productViews: RawProductViewEvent[];
+  cartEvents: RawCartEvent[];
+  uniqueProducts: UniqueProduct[];
+}): string {
+  const {
+    fixtureName,
+    description,
+    storeId,
+    storeName,
+    expectedMatches,
+    productViews,
+    cartEvents,
+  } = params;
+
+  // Deduplicate product views - keep first occurrence of each unique product
+  const seenUrls = new Set<string>();
+  const deduplicatedViews = productViews.filter((pv) => {
+    const key = pv.url.toLowerCase();
+    if (seenUrls.has(key)) return false;
+    seenUrls.add(key);
+    return true;
+  });
+
+  let code = `/**
+ * ${storeName} Session Fixture - Real user browsing session
+ *
+ * ${description}
+ *
+ * Key characteristics:
+`;
+
+  // Add key characteristics based on data analysis
+  const hasUrls = cartEvents.some((ce) => ce.product_list.some((p) => p.url));
+  const hasImageUrls = cartEvents.some((ce) => ce.product_list.some((p) => p.image_url));
+  const hasSkus = productViews.some((pv) => pv.sku_list && pv.sku_list.length > 0);
+
+  if (hasUrls) {
+    code += ` * - Cart items have URLs for ID extraction\n`;
+  }
+  if (hasImageUrls) {
+    code += ` * - Cart items have image URLs for SKU extraction\n`;
+  }
+  if (hasSkus) {
+    code += ` * - Product views include SKU data\n`;
+  }
+  code += ` */
+import type { CartEnricherFixture, RawCartEvent, RawProductViewEvent } from './types.js';
+
+export const fixture: CartEnricherFixture = {
+  name: '${fixtureName}',
+  description: '${description}',
+  storeId: '${storeId}',
+  storeName: '${storeName}',
+
+  /**
+   * Expected matches based on analysis:
+`;
+
+  for (const match of expectedMatches) {
+    code += `   * - ${match.cartItemName} → ${match.productSku} (${match.confidence}): ${match.reason}\n`;
+  }
+
+  code += `   */
+  expectedMatches: [
+`;
+
+  for (const match of expectedMatches) {
+    code += `    {
+      cartItemName: ${JSON.stringify(match.cartItemName)},
+      productSku: ${JSON.stringify(match.productSku)},
+      confidence: '${match.confidence}' as const,
+      reason: ${JSON.stringify(match.reason)},
+    },
+`;
+  }
+
+  code += `  ],
+
+  /**
+   * Raw product view events from the session (deduplicated - first occurrence only)
+   */
+  productViews: ${JSON.stringify(deduplicatedViews, null, 4)} as RawProductViewEvent[],
+
+  /**
+   * Raw cart events from the session
+   */
+  cartEvents: ${JSON.stringify(cartEvents, null, 4)} as RawCartEvent[],
+};
+
+export default fixture;
+`;
+
+  return code;
 }

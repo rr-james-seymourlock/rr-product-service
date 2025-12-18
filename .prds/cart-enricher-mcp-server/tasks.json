@@ -202,7 +202,7 @@
       "id": "8",
       "title": "Implement cart_create_fixture MCP tool",
       "description": "Create MCP tool that generates cart-enricher fixture files from analyzed session data",
-      "status": "pending",
+      "status": "done",
       "priority": "high",
       "dependencies": ["3"],
       "details": "Tool should: (1) Generate TypeScript fixture file, (2) Include all unique product views, (3) Include representative cart events, (4) Add expectedMatches with confidence levels, (5) Follow established naming conventions",
@@ -210,9 +210,10 @@
       "subtasks": [],
       "userStoryId": "US006",
       "createdAt": "2025-12-18T18:39:53.317Z",
-      "updatedAt": "2025-12-18T18:40:10.602Z",
+      "updatedAt": "2025-12-18T19:25:14.146Z",
       "complexity": 4,
-      "recommendedSubtasks": 3
+      "recommendedSubtasks": 3,
+      "completedAt": "2025-12-18T19:25:14.146Z"
     },
     {
       "id": "9",
@@ -299,9 +300,9 @@
   "metadata": {
     "version": "1.0",
     "created": "2025-12-18T18:39:52.690Z",
-    "lastUpdated": "2025-12-18T19:22:36.752Z",
+    "lastUpdated": "2025-12-18T19:25:14.146Z",
     "totalTasks": 20,
-    "completedTasks": 11,
+    "completedTasks": 12,
     "blockedTasks": 0
   }
 }
