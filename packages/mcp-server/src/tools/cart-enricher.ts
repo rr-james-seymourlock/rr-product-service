@@ -726,6 +726,7 @@ export function registerCartEnricherTools(server: McpServer) {
   createValidateIdExtractionTool(server);
   createCreateFixtureTool(server);
   createRunFullAnalysisTool(server);
+  createReviewMatchingLogicTool(server);
 }
 
 function createAnalyzeSessionTool(server: McpServer) {
@@ -1930,6 +1931,395 @@ function createRunFullAnalysisTool(server: McpServer) {
         response += `5. Consider running individual analysis tools for deeper investigation:\n`;
         response += `   - \`cart_check_store_registry\` for store config details\n`;
         response += `   - \`cart_validate_id_extraction\` for URL pattern analysis\n`;
+      }
+
+      return {
+        content: [{ type: 'text', text: response }],
+      };
+    },
+  );
+}
+
+function createReviewMatchingLogicTool(server: McpServer) {
+  return server.tool(
+    'cart_review_matching_logic',
+    'Review cart-enricher matching strategies against session data and identify gaps or improvement opportunities',
+    {
+      state: z.object({
+        productViews: z
+          .array(RawProductViewEventSchema)
+          .describe('Array of raw product view events'),
+        cartEvents: z.array(RawCartEventSchema).describe('Array of raw cart events'),
+      }),
+    },
+    async ({ state }) => {
+      if (state.productViews.length === 0 && state.cartEvents.length === 0) {
+        return {
+          content: [{ type: 'text', text: 'Error: No session data provided.' }],
+        };
+      }
+
+      const productViews = state.productViews as RawProductViewEvent[];
+      const cartEvents = state.cartEvents as RawCartEvent[];
+
+      // Get unique products and cart items
+      const uniqueProducts = CartEnricherManager.identifyUniqueProducts(productViews);
+      const finalCartEvent = cartEvents.length > 0 ? cartEvents[cartEvents.length - 1] : null;
+      const cartItems = finalCartEvent ? finalCartEvent.product_list : [];
+
+      let response = `## Matching Logic Review\n\n`;
+      response += `Analyzing how cart-enricher's 9 matching strategies apply to this session data.\n\n`;
+
+      // ========================================================================
+      // Strategy 1: SKU Match (high confidence)
+      // ========================================================================
+      response += `---\n### Strategy 1: SKU Match (high confidence)\n`;
+      response += `**Logic:** cart.ids.skus ∩ product.ids.skus\n\n`;
+
+      const productsWithSkus = uniqueProducts.filter((p) => p.skus.length > 0);
+
+      response += `| Check | Result |\n`;
+      response += `|-------|--------|\n`;
+      response += `| Products with SKUs | ${productsWithSkus.length}/${uniqueProducts.length} |\n`;
+      response += `| Cart items with SKUs | Requires normalization |\n`;
+
+      if (productsWithSkus.length > 0) {
+        response += `\n**Product SKU samples:**\n`;
+        for (const p of productsWithSkus.slice(0, 3)) {
+          response += `- ${p.name}: ${p.skus.slice(0, 3).join(', ')}${p.skus.length > 3 ? '...' : ''}\n`;
+        }
+      }
+
+      if (productsWithSkus.length === 0) {
+        response += `\n⚠️ **Gap:** No SKUs in product data - SKU matching unavailable\n`;
+      }
+      response += '\n';
+
+      // ========================================================================
+      // Strategy 2: Variant SKU Match (high confidence)
+      // ========================================================================
+      response += `---\n### Strategy 2: Variant SKU Match (high confidence)\n`;
+      response += `**Logic:** cart.ids.skus ∩ product.variants[].sku\n\n`;
+      response += `This strategy requires normalized products with variant data.\n`;
+      response += `Raw product views contain sku_list which would become variants after normalization.\n`;
+
+      const avgSkusPerProduct =
+        productsWithSkus.length > 0
+          ? productsWithSkus.reduce((sum, p) => sum + p.skus.length, 0) / productsWithSkus.length
+          : 0;
+      response += `- Average SKUs per product: ${avgSkusPerProduct.toFixed(1)}\n`;
+      response += '\n';
+
+      // ========================================================================
+      // Strategy 3: Image SKU Match (high confidence)
+      // ========================================================================
+      response += `---\n### Strategy 3: Image SKU Match (high confidence)\n`;
+      response += `**Logic:** SKU extracted from cart.imageUrl ∩ product.ids.skus\n\n`;
+
+      const cartItemsWithImages = cartItems.filter((c) => c.image_url);
+      const imageSkuResults = cartItems.map((c) => ({
+        name: c.name,
+        imageUrl: c.image_url,
+        extractedSkus: extractSkusFromImageUrl(c.image_url),
+      }));
+      const itemsWithImageSkus = imageSkuResults.filter((r) => r.extractedSkus.length > 0);
+
+      response += `| Check | Result |\n`;
+      response += `|-------|--------|\n`;
+      response += `| Cart items with images | ${cartItemsWithImages.length}/${cartItems.length} |\n`;
+      response += `| Items with extractable image SKUs | ${itemsWithImageSkus.length}/${cartItems.length} |\n`;
+
+      if (itemsWithImageSkus.length > 0) {
+        response += `\n**Extracted image SKUs:**\n`;
+        for (const r of itemsWithImageSkus) {
+          response += `- ${r.name}: ${r.extractedSkus.join(', ')}\n`;
+        }
+      }
+
+      if (cartItemsWithImages.length > 0 && itemsWithImageSkus.length === 0) {
+        response += `\n⚠️ **Gap:** Cart images exist but no SKUs extracted - image URL pattern may not match\n`;
+        response += `Current pattern: \`/([A-Z][A-Z0-9]{3,9})(?=[-_.])/g\`\n`;
+      }
+      response += '\n';
+
+      // ========================================================================
+      // Strategy 4: Extracted ID → SKU Match (high confidence)
+      // ========================================================================
+      response += `---\n### Strategy 4: Extracted ID → SKU Match (high confidence)\n`;
+      response += `**Logic:** cart.ids.extractedIds ∩ product.ids.skus\n\n`;
+
+      const cartExtractedIds = cartItems
+        .filter((c) => c.url)
+        .map((c) => ({
+          name: c.name,
+          url: c.url!,
+          extractedIds: CartEnricherManager.extractProductId(c.url!),
+        }));
+
+      const cartIdsMatchingProductSkus = cartExtractedIds.filter((c) =>
+        c.extractedIds.some((id) => productsWithSkus.some((p) => p.skus.includes(id))),
+      );
+
+      response += `| Check | Result |\n`;
+      response += `|-------|--------|\n`;
+      response += `| Cart items with extractable IDs | ${cartExtractedIds.filter((c) => c.extractedIds.length > 0).length}/${cartItems.length} |\n`;
+      response += `| Cart IDs matching product SKUs | ${cartIdsMatchingProductSkus.length} |\n`;
+
+      if (cartIdsMatchingProductSkus.length > 0) {
+        response += `\n✓ **Working:** Some cart extracted IDs match product SKUs\n`;
+      } else if (cartExtractedIds.filter((c) => c.extractedIds.length > 0).length > 0) {
+        response += `\n⚠️ **Gap:** Cart URLs yield IDs but don't match product SKUs\n`;
+        response += `This may indicate different ID systems (product ID vs UPC/SKU)\n`;
+      }
+      response += '\n';
+
+      // ========================================================================
+      // Strategy 5: URL Match (medium confidence)
+      // ========================================================================
+      response += `---\n### Strategy 5: URL Match (medium confidence)\n`;
+      response += `**Logic:** Normalized URL comparison\n\n`;
+
+      const cartItemsWithUrls = cartItems.filter((c) => c.url);
+      const urlMatches = cartItems.filter((c) => {
+        if (!c.url) return false;
+        const cartUrl = c.url.toLowerCase().replace(/\/+$/, '');
+        return uniqueProducts.some((p) => p.url.toLowerCase().replace(/\/+$/, '') === cartUrl);
+      });
+
+      response += `| Check | Result |\n`;
+      response += `|-------|--------|\n`;
+      response += `| Cart items with URLs | ${cartItemsWithUrls.length}/${cartItems.length} |\n`;
+      response += `| Exact URL matches | ${urlMatches.length}/${cartItems.length} |\n`;
+
+      if (cartItemsWithUrls.length > 0 && urlMatches.length === 0) {
+        response += `\n**Sample URL comparison:**\n`;
+        const sample = cartItemsWithUrls[0];
+        const productSample = uniqueProducts[0];
+        if (sample && productSample) {
+          response += `- Cart: \`${sample.url}\`\n`;
+          response += `- Product: \`${productSample.url}\`\n`;
+
+          // Analyze differences
+          const cartUrl = sample.url || '';
+          const productUrl = productSample.url;
+          if (cartUrl.startsWith('http') && !productUrl.startsWith('http')) {
+            response += `- ⚠️ Cart URLs are absolute, product URLs are relative\n`;
+          }
+          if (!cartUrl.startsWith('http') && productUrl.startsWith('http')) {
+            response += `- ⚠️ Cart URLs are relative, product URLs are absolute\n`;
+          }
+        }
+      }
+      response += '\n';
+
+      // ========================================================================
+      // Strategy 6: Extracted ID Match (medium confidence)
+      // ========================================================================
+      response += `---\n### Strategy 6: Extracted ID Match (medium confidence)\n`;
+      response += `**Logic:** cart.ids.extractedIds ∩ product.ids.extractedIds\n\n`;
+
+      const idMatches = cartExtractedIds.filter((c) =>
+        c.extractedIds.some((id) => uniqueProducts.some((p) => p.extractedIds.includes(id))),
+      );
+
+      response += `| Check | Result |\n`;
+      response += `|-------|--------|\n`;
+      response += `| Cart items with extracted IDs | ${cartExtractedIds.filter((c) => c.extractedIds.length > 0).length}/${cartItems.length} |\n`;
+      response += `| Products with extracted IDs | ${uniqueProducts.filter((p) => p.extractedIds.length > 0).length}/${uniqueProducts.length} |\n`;
+      response += `| ID matches | ${idMatches.length}/${cartItems.length} |\n`;
+
+      if (idMatches.length > 0) {
+        response += `\n✓ **Working:** Extracted ID matching is effective\n`;
+      }
+      response += '\n';
+
+      // ========================================================================
+      // Strategy 7: Title + Color Match (medium confidence)
+      // ========================================================================
+      response += `---\n### Strategy 7: Title + Color Match (medium confidence)\n`;
+      response += `**Logic:** Parse "Title - Color" from cart, match product title + color field\n\n`;
+
+      const parsedCartTitles = cartItems.map((c) => ({
+        original: c.name,
+        ...parseCartTitle(c.name),
+      }));
+
+      const titlesWithColor = parsedCartTitles.filter((t) => t.color !== null);
+      const productsWithColors = uniqueProducts.filter((p) => p.colors.length > 0);
+
+      response += `| Check | Result |\n`;
+      response += `|-------|--------|\n`;
+      response += `| Cart titles with color suffix | ${titlesWithColor.length}/${cartItems.length} |\n`;
+      response += `| Products with color data | ${productsWithColors.length}/${uniqueProducts.length} |\n`;
+
+      if (titlesWithColor.length > 0) {
+        response += `\n**Parsed cart titles:**\n`;
+        for (const t of titlesWithColor.slice(0, 3)) {
+          response += `- "${t.original}" → Base: "${t.base}", Color: "${t.color}"\n`;
+        }
+      }
+
+      if (titlesWithColor.length === 0 && productsWithColors.length > 0) {
+        response += `\n📝 **Note:** Products have colors but cart titles don't include color suffix\n`;
+        response += `This strategy won't be applicable for this store\n`;
+      }
+      response += '\n';
+
+      // ========================================================================
+      // Strategy 8: Title Similarity (low confidence)
+      // ========================================================================
+      response += `---\n### Strategy 8: Title Similarity (low confidence)\n`;
+      response += `**Logic:** Fuzzy title matching using Dice coefficient + Levenshtein\n\n`;
+
+      // Calculate similarity for each cart item
+      const titleSimilarities = cartItems.map((c) => {
+        let bestMatch = { product: '', similarity: 0 };
+        for (const p of uniqueProducts) {
+          const cartTitle = c.name.toLowerCase().trim();
+          const productTitle = p.name.toLowerCase().trim();
+
+          // Simple containment check
+          let similarity = 0;
+          if (cartTitle === productTitle) {
+            similarity = 1;
+          } else if (cartTitle.includes(productTitle) || productTitle.includes(cartTitle)) {
+            similarity = 0.9;
+          } else {
+            // Token overlap
+            const cartTokens = new Set(cartTitle.split(/\s+/));
+            const productTokens = new Set(productTitle.split(/\s+/));
+            let overlap = 0;
+            for (const t of cartTokens) {
+              if (productTokens.has(t)) overlap++;
+            }
+            similarity = (2 * overlap) / (cartTokens.size + productTokens.size);
+          }
+
+          if (similarity > bestMatch.similarity) {
+            bestMatch = { product: p.name, similarity };
+          }
+        }
+        return { cartTitle: c.name, ...bestMatch };
+      });
+
+      const highSimilarity = titleSimilarities.filter((t) => t.similarity >= 0.8);
+      const mediumSimilarity = titleSimilarities.filter(
+        (t) => t.similarity >= 0.6 && t.similarity < 0.8,
+      );
+      const lowSimilarity = titleSimilarities.filter((t) => t.similarity < 0.6);
+
+      response += `| Similarity Range | Count |\n`;
+      response += `|------------------|-------|\n`;
+      response += `| ≥80% (will match) | ${highSimilarity.length} |\n`;
+      response += `| 60-80% (borderline) | ${mediumSimilarity.length} |\n`;
+      response += `| <60% (won't match) | ${lowSimilarity.length} |\n`;
+
+      if (lowSimilarity.length > 0) {
+        response += `\n**Low similarity items (may not match):**\n`;
+        for (const t of lowSimilarity.slice(0, 3)) {
+          response += `- "${t.cartTitle}" → Best: "${t.product}" (${(t.similarity * 100).toFixed(0)}%)\n`;
+        }
+      }
+      response += '\n';
+
+      // ========================================================================
+      // Strategy 9: Price Match (low confidence, supporting only)
+      // ========================================================================
+      response += `---\n### Strategy 9: Price Match (low, supporting only)\n`;
+      response += `**Logic:** Price within 10% tolerance (tax, discounts)\n\n`;
+
+      const cartPrices = cartItems.map((c) => ({
+        name: c.name,
+        price: c.item_price,
+        priceDollars: c.item_price / 100,
+      }));
+
+      const productPrices = uniqueProducts.map((p) => ({
+        name: p.name,
+        priceRange: p.priceRange,
+      }));
+
+      // Check for price format consistency
+      const cartPriceFormat =
+        cartPrices.length > 0 && cartPrices[0]!.price > 1000 ? 'cents' : 'dollars';
+      const productPriceFormat =
+        productPrices.length > 0 && productPrices[0]!.priceRange.min < 1000 ? 'dollars' : 'cents';
+
+      response += `| Check | Result |\n`;
+      response += `|-------|--------|\n`;
+      response += `| Cart price format | ${cartPriceFormat} |\n`;
+      response += `| Product price format | ${productPriceFormat} |\n`;
+
+      if (cartPriceFormat !== productPriceFormat) {
+        response += `\n📝 **Note:** Price formats differ - normalization handles conversion\n`;
+      }
+      response += '\n';
+
+      // ========================================================================
+      // Summary & Recommendations
+      // ========================================================================
+      response += `---\n## Summary\n\n`;
+
+      const strategies = [
+        {
+          name: 'SKU',
+          works: productsWithSkus.length > 0,
+          confidence: 'high',
+        },
+        {
+          name: 'Image SKU',
+          works: itemsWithImageSkus.length > 0,
+          confidence: 'high',
+        },
+        {
+          name: 'Extracted ID → SKU',
+          works: cartIdsMatchingProductSkus.length > 0,
+          confidence: 'high',
+        },
+        { name: 'URL', works: urlMatches.length > 0, confidence: 'medium' },
+        { name: 'Extracted ID', works: idMatches.length > 0, confidence: 'medium' },
+        {
+          name: 'Title + Color',
+          works: titlesWithColor.length > 0 && productsWithColors.length > 0,
+          confidence: 'medium',
+        },
+        { name: 'Title Similarity', works: highSimilarity.length > 0, confidence: 'low' },
+      ];
+
+      const workingStrategies = strategies.filter((s) => s.works);
+      const gapStrategies = strategies.filter((s) => !s.works);
+
+      response += `### Working Strategies (${workingStrategies.length}/7)\n`;
+      for (const s of workingStrategies) {
+        response += `- ✓ ${s.name} (${s.confidence})\n`;
+      }
+      response += '\n';
+
+      response += `### Gap Strategies (${gapStrategies.length}/7)\n`;
+      for (const s of gapStrategies) {
+        response += `- ✗ ${s.name} (${s.confidence})\n`;
+      }
+      response += '\n';
+
+      // Recommendations
+      response += `### Recommendations\n`;
+
+      if (idMatches.length === cartItems.length) {
+        response += `✓ All cart items match via extracted_id - strong matching scenario\n`;
+      } else if (idMatches.length > 0) {
+        response += `◐ Partial extracted_id coverage - ${idMatches.length}/${cartItems.length} items\n`;
+      }
+
+      if (gapStrategies.some((s) => s.name === 'SKU')) {
+        response += `- Consider if product data should include SKU lists\n`;
+      }
+
+      if (gapStrategies.some((s) => s.name === 'Image SKU') && cartItemsWithImages.length > 0) {
+        response += `- Review image URL patterns for extractable SKUs\n`;
+      }
+
+      if (lowSimilarity.length > 0) {
+        response += `- ${lowSimilarity.length} item(s) have low title similarity - may need manual review\n`;
       }
 
       return {
