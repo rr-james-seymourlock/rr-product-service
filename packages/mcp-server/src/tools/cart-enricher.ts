@@ -725,6 +725,7 @@ export function registerCartEnricherTools(server: McpServer) {
   createCheckStoreRegistryTool(server);
   createValidateIdExtractionTool(server);
   createCreateFixtureTool(server);
+  createRunFullAnalysisTool(server);
 }
 
 function createAnalyzeSessionTool(server: McpServer) {
@@ -1544,4 +1545,396 @@ export default fixture;
 `;
 
   return code;
+}
+
+function createRunFullAnalysisTool(server: McpServer) {
+  return server.tool(
+    'cart_run_full_analysis',
+    'Run the complete cart enricher analysis workflow: session analysis, store registry check, ID extraction validation, match predictions, and fixture generation',
+    {
+      state: z.object({
+        productViews: z
+          .array(RawProductViewEventSchema)
+          .describe('Array of raw product view events'),
+        cartEvents: z.array(RawCartEventSchema).describe('Array of raw cart events'),
+        generateFixture: z
+          .boolean()
+          .default(true)
+          .describe('Whether to generate fixture code (default: true)'),
+        fixtureName: z.string().optional().describe('Optional fixture name for generated code'),
+      }),
+    },
+    async ({ state }) => {
+      if (state.productViews.length === 0 && state.cartEvents.length === 0) {
+        return {
+          content: [{ type: 'text', text: 'Error: No session data provided.' }],
+        };
+      }
+
+      const productViews = state.productViews as RawProductViewEvent[];
+      const cartEvents = state.cartEvents as RawCartEvent[];
+
+      let response = `# Cart Enricher Full Analysis Report\n\n`;
+      response += `_Generated: ${new Date().toISOString()}_\n\n`;
+
+      // ========================================================================
+      // Step 1: Session Analysis
+      // ========================================================================
+      response += `---\n## 1. Session Analysis\n\n`;
+
+      const sessionReport = CartEnricherManager.analyzeSession(productViews, cartEvents);
+
+      // Store metadata
+      response += `### Store Information\n`;
+      response += `| Property | Value |\n`;
+      response += `|----------|-------|\n`;
+      response += `| Store ID | ${sessionReport.storeMetadata.storeId} |\n`;
+      response += `| Store Name | ${sessionReport.storeMetadata.storeName} |\n`;
+      response += `| Domain | ${sessionReport.storeMetadata.domain} |\n`;
+      response += `| Data Consistent | ${sessionReport.storeMetadata.isConsistent ? '✓ Yes' : '✗ No'} |\n\n`;
+
+      if (sessionReport.storeMetadata.inconsistencies.length > 0) {
+        response += `**Inconsistencies:**\n`;
+        for (const issue of sessionReport.storeMetadata.inconsistencies) {
+          response += `- ⚠️ ${issue}\n`;
+        }
+        response += '\n';
+      }
+
+      // Product views summary
+      response += `### Product Views\n`;
+      response += `- **Total Events:** ${sessionReport.productViews.total}\n`;
+      response += `- **Unique Products:** ${sessionReport.productViews.unique}\n\n`;
+
+      // Cart summary
+      response += `### Cart Summary\n`;
+      response += `- **Cart Snapshots:** ${sessionReport.cartEvents.total}\n`;
+      if (sessionReport.cartEvents.finalCart) {
+        response += `- **Final Cart Items:** ${sessionReport.cartEvents.finalCart.itemCount}\n`;
+        response += `- **Final Cart Total:** $${(sessionReport.cartEvents.finalCart.cartTotal / 100).toFixed(2)}\n`;
+      }
+      response += '\n';
+
+      // Data quality
+      const hasIssues =
+        sessionReport.dataQuality.missingFields.length > 0 ||
+        sessionReport.dataQuality.malformedUrls.length > 0 ||
+        sessionReport.dataQuality.warnings.length > 0;
+
+      response += `### Data Quality\n`;
+      if (!hasIssues) {
+        response += `✓ No issues detected\n\n`;
+      } else {
+        if (sessionReport.dataQuality.missingFields.length > 0) {
+          response += `**Missing Fields:** ${sessionReport.dataQuality.missingFields.length}\n`;
+        }
+        if (sessionReport.dataQuality.malformedUrls.length > 0) {
+          response += `**Malformed URLs:** ${sessionReport.dataQuality.malformedUrls.length}\n`;
+        }
+        if (sessionReport.dataQuality.warnings.length > 0) {
+          response += `**Warnings:** ${sessionReport.dataQuality.warnings.length}\n`;
+        }
+        response += '\n';
+      }
+
+      // ========================================================================
+      // Step 2: Store Registry Check
+      // ========================================================================
+      response += `---\n## 2. Store Registry Status\n\n`;
+
+      const { storeId, domain } = sessionReport.storeMetadata;
+
+      if (!storeId && !domain) {
+        response += `⚠️ Could not determine store ID or domain from session data\n\n`;
+      } else {
+        const storeCheck = await StoreOnboardingManager.checkStoreExists(storeId, domain);
+        const fixtureExists = domain ? await StoreOnboardingManager.fixtureExists(domain) : false;
+
+        response += `| Check | Status |\n`;
+        response += `|-------|--------|\n`;
+        response += `| Store Config | ${storeCheck.exists ? '✓ Exists' : '✗ Not found'} |\n`;
+        response += `| Test Fixture | ${fixtureExists ? '✓ Exists' : '✗ Not found'} |\n\n`;
+
+        if (!storeCheck.exists && !fixtureExists) {
+          response += `**Action Required:** Store needs onboarding to store-registry\n`;
+          response += `- Use \`store_validate_metadata\` → \`store_generate_fixture\` → \`store_run_tests\`\n\n`;
+        }
+      }
+
+      // ========================================================================
+      // Step 3: ID Extraction Validation
+      // ========================================================================
+      response += `---\n## 3. ID Extraction Validation\n\n`;
+
+      // Product URLs
+      const productExtractions = productViews.map((pv) => ({
+        name: pv.name,
+        url: pv.url,
+        extractedIds: CartEnricherManager.extractProductId(pv.url),
+      }));
+
+      const productUrlsWithIds = productExtractions.filter((p) => p.extractedIds.length > 0);
+      const productExtractionRate =
+        productExtractions.length > 0
+          ? (productUrlsWithIds.length / productExtractions.length) * 100
+          : 0;
+
+      response += `### Product View URLs\n`;
+      response += `- **Total:** ${productExtractions.length}\n`;
+      response += `- **Successful Extractions:** ${productUrlsWithIds.length} (${productExtractionRate.toFixed(0)}%)\n\n`;
+
+      // Cart URLs
+      const finalCartEvent = cartEvents.length > 0 ? cartEvents[cartEvents.length - 1] : null;
+      const cartItems = finalCartEvent ? finalCartEvent.product_list : [];
+
+      const cartExtractions = cartItems.map((item) => ({
+        name: item.name,
+        url: item.url,
+        extractedIds: item.url ? CartEnricherManager.extractProductId(item.url) : [],
+        imageSkus: extractSkusFromImageUrl(item.image_url),
+      }));
+
+      const cartWithIds = cartExtractions.filter(
+        (c) => c.extractedIds.length > 0 || c.imageSkus.length > 0,
+      );
+
+      response += `### Cart Item URLs\n`;
+      response += `- **Total Items:** ${cartExtractions.length}\n`;
+      response += `- **With Extractable IDs:** ${cartWithIds.length}\n\n`;
+
+      // ID overlap
+      const allProductIds = new Set<string>();
+      for (const p of productExtractions) {
+        for (const id of p.extractedIds) {
+          allProductIds.add(id);
+        }
+      }
+
+      const matchingCartItems = cartExtractions.filter(
+        (c) =>
+          c.extractedIds.some((id) => allProductIds.has(id)) ||
+          c.imageSkus.some((sku) => allProductIds.has(sku)),
+      );
+
+      const idOverlapRate =
+        cartExtractions.length > 0 ? (matchingCartItems.length / cartExtractions.length) * 100 : 0;
+
+      response += `### ID Overlap (Cart → Product)\n`;
+      response += `- **Cart items matching product IDs:** ${matchingCartItems.length}/${cartExtractions.length} (${idOverlapRate.toFixed(0)}%)\n\n`;
+
+      // ========================================================================
+      // Step 4: Match Predictions
+      // ========================================================================
+      response += `---\n## 4. Match Predictions\n\n`;
+
+      const uniqueProducts = CartEnricherManager.identifyUniqueProducts(productViews);
+      const predictions = cartItems.map((item) =>
+        predictMatchForCartItem(item as RawCartProduct, uniqueProducts),
+      );
+
+      const highConfidence = predictions.filter((p) => p.confidence === 'high').length;
+      const mediumConfidence = predictions.filter((p) => p.confidence === 'medium').length;
+      const lowConfidence = predictions.filter((p) => p.confidence === 'low').length;
+      const withViews = predictions.filter((p) => p.hasCorrespondingView).length;
+
+      response += `### Confidence Distribution\n`;
+      response += `| Confidence | Count | Percentage |\n`;
+      response += `|------------|-------|------------|\n`;
+      response += `| High | ${highConfidence} | ${predictions.length > 0 ? ((highConfidence / predictions.length) * 100).toFixed(0) : 0}% |\n`;
+      response += `| Medium | ${mediumConfidence} | ${predictions.length > 0 ? ((mediumConfidence / predictions.length) * 100).toFixed(0) : 0}% |\n`;
+      response += `| Low | ${lowConfidence} | ${predictions.length > 0 ? ((lowConfidence / predictions.length) * 100).toFixed(0) : 0}% |\n\n`;
+
+      response += `### Items with Product Views: ${withViews}/${predictions.length}\n\n`;
+
+      // Strategy breakdown
+      const strategyCount: Record<string, number> = {};
+      for (const p of predictions) {
+        if (p.predictedStrategy) {
+          strategyCount[p.predictedStrategy] = (strategyCount[p.predictedStrategy] ?? 0) + 1;
+        }
+      }
+
+      if (Object.keys(strategyCount).length > 0) {
+        response += `### Expected Matching Strategies\n`;
+        response += `| Strategy | Count | Confidence |\n`;
+        response += `|----------|-------|------------|\n`;
+        for (const [strategy, count] of Object.entries(strategyCount).sort((a, b) => b[1] - a[1])) {
+          const confidence = STRATEGY_CONFIDENCE[strategy as MatchingStrategy];
+          response += `| ${strategy} | ${count} | ${confidence} |\n`;
+        }
+        response += '\n';
+      }
+
+      // Individual predictions
+      response += `### Per-Item Predictions\n`;
+      for (const prediction of predictions) {
+        const icon =
+          prediction.confidence === 'high' ? '✓' : prediction.confidence === 'medium' ? '◐' : '○';
+        response += `- ${icon} **${prediction.cartItemName}**\n`;
+        response += `  - Strategy: \`${prediction.predictedStrategy ?? 'none'}\` (${prediction.confidence})\n`;
+        response += `  - ${prediction.rationale}\n`;
+      }
+      response += '\n';
+
+      // ========================================================================
+      // Step 5: Overall Assessment
+      // ========================================================================
+      response += `---\n## 5. Overall Assessment\n\n`;
+
+      // Calculate overall score
+      const scores = {
+        dataQuality: hasIssues ? 70 : 100,
+        idExtraction: productExtractionRate,
+        idOverlap: idOverlapRate,
+        matchConfidence:
+          predictions.length > 0
+            ? ((highConfidence * 100 + mediumConfidence * 70 + lowConfidence * 40) /
+                predictions.length /
+                100) *
+              100
+            : 0,
+      };
+
+      const overallScore =
+        (scores.dataQuality * 0.1 +
+          scores.idExtraction * 0.25 +
+          scores.idOverlap * 0.25 +
+          scores.matchConfidence * 0.4) |
+        0;
+
+      response += `### Quality Scores\n`;
+      response += `| Metric | Score |\n`;
+      response += `|--------|-------|\n`;
+      response += `| Data Quality | ${scores.dataQuality.toFixed(0)}% |\n`;
+      response += `| ID Extraction | ${scores.idExtraction.toFixed(0)}% |\n`;
+      response += `| ID Overlap | ${scores.idOverlap.toFixed(0)}% |\n`;
+      response += `| Match Confidence | ${scores.matchConfidence.toFixed(0)}% |\n`;
+      response += `| **Overall** | **${overallScore}%** |\n\n`;
+
+      // Assessment summary
+      if (overallScore >= 80) {
+        response += `### ✓ Ready for Fixture Creation\n`;
+        response += `This session data has high-quality matching potential. Proceed with fixture creation.\n\n`;
+      } else if (overallScore >= 60) {
+        response += `### ◐ Moderate Quality\n`;
+        response += `Some improvements may be needed for optimal matching:\n`;
+        if (scores.idExtraction < 80) {
+          response += `- Consider updating store-registry patterns for better ID extraction\n`;
+        }
+        if (scores.idOverlap < 80) {
+          response += `- Some cart items may not match due to missing product views\n`;
+        }
+        if (scores.matchConfidence < 80) {
+          response += `- Low-confidence matching strategies may need review\n`;
+        }
+        response += '\n';
+      } else {
+        response += `### ✗ Needs Improvement\n`;
+        response += `Significant issues detected:\n`;
+        if (scores.idExtraction < 50) {
+          response += `- ID extraction is failing for many URLs - store-registry patterns need update\n`;
+        }
+        if (scores.idOverlap < 50) {
+          response += `- Low overlap between cart IDs and product IDs\n`;
+        }
+        response += '\n';
+      }
+
+      // ========================================================================
+      // Step 6: Generated Fixture (if requested)
+      // ========================================================================
+      if (state.generateFixture !== false) {
+        response += `---\n## 6. Generated Fixture\n\n`;
+
+        const storeSlug = (sessionReport.storeMetadata.storeName || 'unknown-store')
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '');
+        const fixtureName = state.fixtureName || `${storeSlug}-session-001`;
+        const description = `${uniqueProducts.length} unique product views and ${cartItems.length} cart items`;
+
+        // Build expected matches
+        const expectedMatches: Array<{
+          cartItemName: string;
+          productSku: string;
+          confidence: 'high' | 'medium' | 'low';
+          reason: string;
+        }> = [];
+
+        for (const prediction of predictions) {
+          const cartItem = cartItems.find((c) => c.name === prediction.cartItemName);
+          const matchingProduct = uniqueProducts.find((p) => {
+            if (cartItem?.url) {
+              const cartExtractedIds = CartEnricherManager.extractProductId(cartItem.url);
+              if (cartExtractedIds.some((id) => p.extractedIds.includes(id))) {
+                return true;
+              }
+            }
+            return p.name.toLowerCase().includes(prediction.cartItemName.toLowerCase());
+          });
+
+          let productSku = 'UNKNOWN';
+          if (matchingProduct) {
+            if (matchingProduct.extractedIds.length > 0) {
+              productSku = matchingProduct.extractedIds[0]!;
+            } else if (matchingProduct.skus.length > 0) {
+              productSku = matchingProduct.skus[0]!;
+            }
+          }
+
+          expectedMatches.push({
+            cartItemName: prediction.cartItemName,
+            productSku,
+            confidence: prediction.confidence,
+            reason: prediction.rationale,
+          });
+        }
+
+        const fixtureCode = generateFixtureCode({
+          fixtureName,
+          description,
+          storeId: sessionReport.storeMetadata.storeId,
+          storeName: sessionReport.storeMetadata.storeName,
+          expectedMatches,
+          productViews,
+          cartEvents,
+          uniqueProducts,
+        });
+
+        response += `**Fixture Name:** ${fixtureName}\n`;
+        response += `**File Path:** \`packages/cart-enricher/src/__fixtures__/${fixtureName}.ts\`\n\n`;
+
+        response += `### Expected Matches Summary\n`;
+        for (const match of expectedMatches) {
+          const icon =
+            match.confidence === 'high' ? '✓' : match.confidence === 'medium' ? '◐' : '○';
+          response += `- ${icon} ${match.cartItemName} → \`${match.productSku}\`\n`;
+        }
+        response += '\n';
+
+        response += `### Fixture Code\n\n`;
+        response += '```typescript\n';
+        response += fixtureCode;
+        response += '\n```\n\n';
+      }
+
+      // ========================================================================
+      // Next Steps
+      // ========================================================================
+      response += `---\n## Next Steps\n\n`;
+      response += `1. Review the generated fixture code above\n`;
+      response += `2. Save to \`packages/cart-enricher/src/__fixtures__/\`\n`;
+      response += `3. Update \`packages/cart-enricher/src/__fixtures__/index.ts\` to export\n`;
+      response += `4. Run \`pnpm --filter @rr/cart-enricher test\` to validate\n`;
+
+      if (overallScore < 80) {
+        response += `5. Consider running individual analysis tools for deeper investigation:\n`;
+        response += `   - \`cart_check_store_registry\` for store config details\n`;
+        response += `   - \`cart_validate_id_extraction\` for URL pattern analysis\n`;
+      }
+
+      return {
+        content: [{ type: 'text', text: response }],
+      };
+    },
+  );
 }
