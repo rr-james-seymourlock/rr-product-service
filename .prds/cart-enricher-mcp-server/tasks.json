@@ -136,7 +136,7 @@
       "id": "4",
       "title": "Implement cart_check_store_registry MCP tool",
       "description": "Create MCP tool that verifies store is configured in store-registry for ID extraction",
-      "status": "pending",
+      "status": "done",
       "priority": "high",
       "dependencies": ["1"],
       "details": "Tool should: (1) Check if storeId exists in store-registry config, (2) Check if domain has test fixtures, (3) Report current ID extraction patterns, (4) Flag if store needs onboarding, (5) Integrate with store_check_exists from onboarding MCP",
@@ -144,9 +144,10 @@
       "subtasks": [],
       "userStoryId": "US010",
       "createdAt": "2025-12-18T18:39:52.963Z",
-      "updatedAt": "2025-12-18T18:40:10.602Z",
+      "updatedAt": "2025-12-18T19:04:36.415Z",
       "complexity": 4,
-      "recommendedSubtasks": 3
+      "recommendedSubtasks": 3,
+      "completedAt": "2025-12-18T19:04:36.415Z"
     },
     {
       "id": "5",
@@ -297,9 +298,9 @@
   "metadata": {
     "version": "1.0",
     "created": "2025-12-18T18:39:52.690Z",
-    "lastUpdated": "2025-12-18T19:02:38.815Z",
+    "lastUpdated": "2025-12-18T19:04:36.415Z",
     "totalTasks": 20,
-    "completedTasks": 9,
+    "completedTasks": 10,
     "blockedTasks": 0
   }
 }

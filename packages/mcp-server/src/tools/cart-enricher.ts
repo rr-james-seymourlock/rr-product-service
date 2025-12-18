@@ -722,6 +722,7 @@ function predictMatchForCartItem(
 export function registerCartEnricherTools(server: McpServer) {
   createAnalyzeSessionTool(server);
   createPredictMatchesTool(server);
+  createCheckStoreRegistryTool(server);
 }
 
 function createAnalyzeSessionTool(server: McpServer) {
@@ -963,6 +964,147 @@ function createPredictMatchesTool(server: McpServer) {
         for (const item of noViewItems) {
           response += `- ${item.cartItemName}\n`;
         }
+      }
+
+      return {
+        content: [{ type: 'text', text: response }],
+      };
+    },
+  );
+}
+
+function createCheckStoreRegistryTool(server: McpServer) {
+  return server.tool(
+    'cart_check_store_registry',
+    'Verify store is configured in store-registry for ID extraction, using session data to auto-detect store',
+    {
+      state: z.object({
+        productViews: z
+          .array(RawProductViewEventSchema)
+          .describe('Array of raw product view events'),
+        cartEvents: z.array(RawCartEventSchema).describe('Array of raw cart events'),
+      }),
+    },
+    async ({ state }) => {
+      if (state.productViews.length === 0 && state.cartEvents.length === 0) {
+        return {
+          content: [{ type: 'text', text: 'Error: No session data provided.' }],
+        };
+      }
+
+      // Extract store metadata from session data
+      const storeMetadata = CartEnricherManager.extractStoreMetadata(
+        state.productViews as RawProductViewEvent[],
+        state.cartEvents as RawCartEvent[],
+      );
+
+      const { storeId, storeName, domain } = storeMetadata;
+
+      if (!storeId && !domain) {
+        return {
+          content: [
+            {
+              type: 'text',
+              text: 'Error: Could not extract store ID or domain from session data.',
+            },
+          ],
+        };
+      }
+
+      // Check store registry using existing store onboarding manager
+      const storeCheck = await StoreOnboardingManager.checkStoreExists(storeId, domain);
+      const fixtureExists = domain ? await StoreOnboardingManager.fixtureExists(domain) : false;
+
+      // Test ID extraction on sample URLs
+      const sampleUrls = (state.productViews as RawProductViewEvent[])
+        .slice(0, 5)
+        .map((pv) => pv.url);
+
+      const extractionResults = sampleUrls.map((url) => ({
+        url,
+        extractedIds: CartEnricherManager.extractProductId(url),
+      }));
+
+      const successfulExtractions = extractionResults.filter((r) => r.extractedIds.length > 0);
+      const extractionRate =
+        sampleUrls.length > 0 ? (successfulExtractions.length / sampleUrls.length) * 100 : 0;
+
+      // Generate response
+      let response = `## Store Registry Check\n\n`;
+
+      // Store metadata
+      response += `### Detected Store\n`;
+      response += `- **Store ID:** ${storeId || 'Not found'}\n`;
+      response += `- **Store Name:** ${storeName || 'Not found'}\n`;
+      response += `- **Domain:** ${domain || 'Not found'}\n\n`;
+
+      // Config status
+      response += `### Store Registry Status\n`;
+      if (storeCheck.exists) {
+        response += `✓ **Store config exists** in store-registry\n`;
+        if (storeCheck.existingById) {
+          response += `  - Found by ID: ${storeCheck.existingStoreId}\n`;
+        }
+        if (storeCheck.existingByDomain) {
+          response += `  - Found by domain: ${storeCheck.existingDomain}\n`;
+        }
+      } else {
+        response += `✗ **No store config found** in store-registry\n`;
+      }
+
+      // Fixture status
+      response += `\n### Test Fixture Status\n`;
+      if (fixtureExists) {
+        response += `✓ **Fixture exists** for ${domain}\n`;
+        response += `  - Path: ${StoreOnboardingManager.getFixturePath(domain!)}\n`;
+      } else {
+        response += `✗ **No fixture found** for ${domain}\n`;
+      }
+
+      // ID extraction test
+      response += `\n### ID Extraction Test\n`;
+      response += `Tested ${sampleUrls.length} URLs from product views:\n`;
+      response += `- **Successful extractions:** ${successfulExtractions.length}/${sampleUrls.length} (${extractionRate.toFixed(0)}%)\n\n`;
+
+      if (extractionResults.length > 0) {
+        response += `**Sample Results:**\n`;
+        for (const result of extractionResults.slice(0, 3)) {
+          const shortUrl =
+            result.url.length > 60 ? result.url.substring(0, 60) + '...' : result.url;
+          if (result.extractedIds.length > 0) {
+            response += `- ✓ \`${shortUrl}\`\n`;
+            response += `  → IDs: ${result.extractedIds.join(', ')}\n`;
+          } else {
+            response += `- ✗ \`${shortUrl}\`\n`;
+            response += `  → No IDs extracted\n`;
+          }
+        }
+      }
+
+      // Recommendations
+      response += `\n### Recommendations\n`;
+
+      if (storeCheck.exists && fixtureExists && extractionRate >= 80) {
+        response += `✓ **Store is fully configured** - ID extraction working well\n`;
+        response += `- Proceed with \`cart_predict_matches\` and fixture creation\n`;
+      } else if (storeCheck.exists && !fixtureExists) {
+        response += `⚠️ **Store config exists but no fixture**\n`;
+        response += `- Run \`store_generate_fixture\` with session URLs to create test coverage\n`;
+      } else if (!storeCheck.exists && fixtureExists) {
+        response += `⚠️ **Fixture exists but no store config**\n`;
+        response += `- Generic rules may work! Run \`store_run_tests\` to verify\n`;
+        response += `- If tests pass, no store-specific config needed\n`;
+      } else if (!storeCheck.exists && extractionRate >= 80) {
+        response += `⚠️ **Generic extraction working** (${extractionRate.toFixed(0)}% success)\n`;
+        response += `- Consider creating a fixture with \`store_generate_fixture\` for test coverage\n`;
+        response += `- Store-specific config may not be needed\n`;
+      } else {
+        response += `❌ **Store needs onboarding**\n`;
+        response += `1. Run \`store_validate_metadata\` with storeId="${storeId}" domain="${domain}"\n`;
+        response += `2. Run \`store_filter_urls\` to prepare product URLs\n`;
+        response += `3. Run \`store_generate_fixture\` to create test fixture\n`;
+        response += `4. Run \`store_run_tests\` - if generic rules work, you're done!\n`;
+        response += `5. If tests fail, run \`store_insert_config\` to add store-specific patterns\n`;
       }
 
       return {
