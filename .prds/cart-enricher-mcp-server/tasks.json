@@ -5,7 +5,7 @@
       "id": "1",
       "title": "Create MCP server scaffold for cart-enricher",
       "description": "Set up the base MCP server structure in the existing mcp-server package to host cart-enricher analysis tools",
-      "status": "pending",
+      "status": "done",
       "priority": "high",
       "dependencies": [],
       "details": "Extend existing mcp-server package with cart-enricher tool namespace. Follow patterns from store onboarding MCP tools.",
@@ -13,9 +13,10 @@
       "subtasks": [],
       "userStoryId": "US009",
       "createdAt": "2025-12-18T18:39:52.690Z",
-      "updatedAt": "2025-12-18T18:40:10.602Z",
+      "updatedAt": "2025-12-18T18:47:39.029Z",
       "complexity": 3,
-      "recommendedSubtasks": 2
+      "recommendedSubtasks": 2,
+      "completedAt": "2025-12-18T18:47:39.029Z"
     },
     {
       "id": "2",
@@ -288,9 +289,9 @@
   "metadata": {
     "version": "1.0",
     "created": "2025-12-18T18:39:52.690Z",
-    "lastUpdated": "2025-12-18T18:40:15.376Z",
+    "lastUpdated": "2025-12-18T18:47:39.029Z",
     "totalTasks": 20,
-    "completedTasks": 0,
+    "completedTasks": 1,
     "blockedTasks": 0
   }
 }

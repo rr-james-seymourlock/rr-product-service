@@ -2,6 +2,7 @@
 export { registerPRDTools } from './prd-manager';
 export { registerTaskTools, TaskManager } from './task-manager';
 export { registerStoreOnboardingTools, StoreOnboardingManager } from './store-onboarding';
+export { registerCartEnricherTools, CartEnricherManager } from './cart-enricher';
 
 // Task Manager types
 export type {
@@ -25,3 +26,17 @@ export type {
   GeneratedPattern,
   FixtureTestCase,
 } from './store-onboarding';
+
+// Cart Enricher types
+export type {
+  RawProductViewEvent,
+  RawCartProduct,
+  RawCartEvent,
+  ExtractedStoreMetadata,
+  UniqueProduct,
+  CartSnapshot,
+  SessionAnalysisReport,
+  MatchingStrategy,
+  PredictionConfidence,
+  MatchPrediction,
+} from './cart-enricher';
