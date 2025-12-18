@@ -15,6 +15,7 @@ import {
   columbiaSession001,
   gymsharkSession001,
   kohlsSession001,
+  macysSession001,
   nflshopSession001,
   nordstromrackSession001,
   oldnavySession001,
@@ -1765,6 +1766,237 @@ describe('Fixture Tests', () => {
       const lubricant = result.items.find((item) => item.title?.includes('Chain Lubricant'));
       expect(lubricant?.description).toContain('EGO POWER+');
       expect(lubricant?.description).toContain('bio-based');
+    });
+  });
+
+  /**
+   * Macy's Session 001 - URL and extracted_id matching
+   *
+   * Tests URL-based matching for Macy's where:
+   * - Product URLs contain ?ID={productId} query param
+   * - Product views have relative URLs (/shop/product/...)
+   * - Cart URLs have absolute URLs (https://www.macys.com/shop/product/...)
+   * - Both extract the same ID from ?ID= param
+   * - Rich SKU data with multiple variants
+   * - Cart prices in cents, product prices in dollar strings
+   */
+  describe('macys-session-001', () => {
+    const fixture = macysSession001;
+
+    /**
+     * Extract product ID from Macy's URL
+     * Pattern: ?ID={productId} query param
+     */
+    function extractMacysProductId(url: string | undefined): string[] {
+      if (!url) return [];
+      const match = url.match(/[?&]ID=(\d+)/i);
+      const id = match?.[1];
+      return id ? [id] : [];
+    }
+
+    /**
+     * Convert Macy's raw product view to normalized product format
+     */
+    function normalizeMacysProductView(
+      raw: (typeof macysSession001.productViews)[0],
+    ): NormalizedProduct {
+      const extractedIds = extractMacysProductId(raw.url);
+
+      return {
+        title: raw.name,
+        url: raw.url,
+        imageUrl: raw.image_url_list?.[0],
+        storeId: raw.store_id,
+        brand: undefined,
+        description: raw.description,
+        category: undefined,
+        rating: raw.rating?.[0] ? parseFloat(raw.rating[0]) : undefined,
+        price: raw.amount ? Math.round(parseFloat(raw.amount) * 100) : undefined,
+        currency: raw.currency,
+        ids: {
+          productIds: raw.productid_list ?? [],
+          extractedIds: extractedIds,
+          skus: raw.sku_list ?? [],
+          gtins: raw.gtin_list ?? [],
+          mpns: raw.mpn_list ?? [],
+        },
+        variants: [],
+        variantCount: 0,
+        hasVariants: false,
+      };
+    }
+
+    /**
+     * Convert Macy's raw cart product to normalized cart product format
+     */
+    function normalizeMacysCartProduct(
+      raw: (typeof macysSession001.cartEvents)[0]['product_list'][0],
+      storeId: string,
+    ): CartProduct {
+      const extractedIds = extractMacysProductId(raw.url);
+
+      return {
+        title: raw.name,
+        url: raw.url,
+        imageUrl: raw.image_url,
+        storeId,
+        price: raw.item_price,
+        quantity: raw.quantity,
+        lineTotal: raw.line_total,
+        ids: {
+          productIds: [],
+          extractedIds: extractedIds,
+        },
+      };
+    }
+
+    // Normalize the fixture data
+    const normalizedProducts = fixture.productViews.map(normalizeMacysProductView);
+    const normalizedCart =
+      fixture.cartEvents[0]?.product_list.map((item) =>
+        normalizeMacysCartProduct(item, fixture.storeId),
+      ) ?? [];
+
+    it('should have 3 cart items and 13 product views', () => {
+      expect(normalizedCart).toHaveLength(3);
+      expect(normalizedProducts).toHaveLength(13);
+    });
+
+    it("should extract product IDs from Macy's URLs correctly", () => {
+      // Verify product IDs are extracted from product view URLs (relative)
+      const embroideredPuffer = normalizedProducts.find((p) =>
+        p.title?.includes('Embroidered Puffer'),
+      );
+      expect(embroideredPuffer?.ids.extractedIds).toContain('22015374');
+      expect(embroideredPuffer?.ids.productIds).toContain('22015374');
+
+      const fauxFurHooded = normalizedProducts.find(
+        (p) => p.title === "Women's Faux-Fur Hooded Puffer Coat",
+      );
+      expect(fauxFurHooded?.ids.extractedIds).toContain('18241267');
+
+      const tahariPuffer = normalizedProducts.find(
+        (p) => p.title?.includes('Tahari') || p.title?.includes('Faux-Fur-Collar Hooded'),
+      );
+      expect(tahariPuffer?.ids.extractedIds).toContain('22107035');
+
+      // Verify cart IDs are extracted from cart URLs (absolute)
+      const cartEmbroidered = normalizedCart.find((c) => c.title?.includes('Embroidered Puffer'));
+      expect(cartEmbroidered?.ids.extractedIds).toContain('22015374');
+
+      const cartFauxFur = normalizedCart.find((c) => c.title?.includes('Faux-Fur Hooded'));
+      expect(cartFauxFur?.ids.extractedIds).toContain('18241267');
+
+      const cartTahari = normalizedCart.find((c) => c.title?.includes('Tahari'));
+      expect(cartTahari?.ids.extractedIds).toContain('22107035');
+    });
+
+    it('should achieve 100% match rate via extracted_id', () => {
+      const result = enrichCart(normalizedCart, normalizedProducts, { minConfidence: 'medium' });
+
+      console.log("\n=== Macy's Session 001 Matching Results ===\n");
+      console.log(`Total cart items: ${result.summary.totalItems}`);
+      console.log(`Matched items: ${result.summary.matchedItems}`);
+      console.log(`Match rate: ${result.summary.matchRate.toFixed(1)}%`);
+      console.log('\nBy confidence:', result.summary.byConfidence);
+      console.log('By method:', result.summary.byMethod);
+
+      console.log('\n--- Cart Item Details ---');
+      for (const item of result.items) {
+        console.log(`\n${item.title?.slice(0, 55)}...`);
+        console.log(`  wasViewed: ${item.wasViewed}`);
+        console.log(`  matchConfidence: ${item.matchConfidence}`);
+        console.log(`  matchMethod: ${item.matchMethod}`);
+        if (item.matchedSignals.length > 0) {
+          console.log(
+            `  matchedSignals: ${item.matchedSignals.map((s) => `${s.method}(${s.confidence})`).join(', ')}`,
+          );
+        }
+      }
+
+      // All 3 items should match
+      expect(result.summary.totalItems).toBe(3);
+      expect(result.summary.matchedItems).toBe(3);
+      expect(result.summary.unmatchedItems).toBe(0);
+      expect(result.summary.matchRate).toBe(100);
+    });
+
+    it('should match all items via extracted_id with multiple signals', () => {
+      const result = enrichCart(normalizedCart, normalizedProducts, { minConfidence: 'medium' });
+
+      // All items should match with medium confidence via extracted_id
+      // (cart extractedIds '22015374' match product extractedIds '22015374')
+      // Note: Product SKUs are UPC codes like '199153038593USA' - different format
+      for (const item of result.items) {
+        expect(item.wasViewed).toBe(true);
+        expect(item.matchConfidence).toBe('medium');
+        expect(item.matchMethod).toBe('extracted_id');
+
+        // Should have multiple signals
+        expect(item.matchedSignals.length).toBeGreaterThanOrEqual(2);
+
+        // Should have extracted_id signal
+        const idSignal = item.matchedSignals.find((s) => s.method === 'extracted_id');
+        expect(idSignal).toBeDefined();
+        expect(idSignal?.confidence).toBe('medium');
+        expect(idSignal?.exact).toBe(true);
+
+        // Should have title signal as supporting
+        const titleSignal = item.matchedSignals.find((s) => s.method === 'title');
+        expect(titleSignal).toBeDefined();
+        expect(titleSignal?.confidence).toBe('low');
+      }
+
+      // Verify extracted_id method was used for all 3
+      expect(result.summary.byMethod.extracted_id).toBe(3);
+    });
+
+    it('should enrich cart items with product data', () => {
+      const result = enrichCart(normalizedCart, normalizedProducts, { minConfidence: 'medium' });
+
+      // Embroidered Puffer should have description and rating from product
+      const embroideredPuffer = result.items.find((item) =>
+        item.title?.includes('Embroidered Puffer'),
+      );
+      expect(embroideredPuffer?.description).toContain('diamond-quilted');
+      expect(embroideredPuffer?.description).toContain('LRL');
+      expect(embroideredPuffer?.rating).toBe(4.5);
+
+      // Faux-Fur Hooded should have description and rating
+      const fauxFurHooded = result.items.find((item) => item.title?.includes('Faux-Fur Hooded'));
+      expect(fauxFurHooded?.description).toContain('faux fur');
+      expect(fauxFurHooded?.description).toContain('500-fill-power');
+      expect(fauxFurHooded?.rating).toBe(4.5);
+
+      // Tahari Puffer should have description and rating
+      const tahariPuffer = result.items.find((item) => item.title?.includes('Tahari'));
+      expect(tahariPuffer?.description).toContain('faux-fur stand collar');
+      expect(tahariPuffer?.description).toContain('thumbhole cuffs');
+      expect(tahariPuffer?.rating).toBe(5);
+    });
+
+    it('should preserve cart-specific fields (price, quantity, lineTotal)', () => {
+      const result = enrichCart(normalizedCart, normalizedProducts, { minConfidence: 'medium' });
+
+      // Embroidered Puffer - price in cents
+      const embroideredPuffer = result.items.find((item) =>
+        item.title?.includes('Embroidered Puffer'),
+      );
+      expect(embroideredPuffer?.price).toBe(17499);
+      expect(embroideredPuffer?.quantity).toBe(1);
+      expect(embroideredPuffer?.lineTotal).toBe(17499);
+
+      // Faux-Fur Hooded - price in cents
+      const fauxFurHooded = result.items.find((item) => item.title?.includes('Faux-Fur Hooded'));
+      expect(fauxFurHooded?.price).toBe(12599);
+      expect(fauxFurHooded?.quantity).toBe(1);
+      expect(fauxFurHooded?.lineTotal).toBe(12599);
+
+      // Tahari Puffer - price in cents
+      const tahariPuffer = result.items.find((item) => item.title?.includes('Tahari'));
+      expect(tahariPuffer?.price).toBe(10399);
+      expect(tahariPuffer?.quantity).toBe(1);
+      expect(tahariPuffer?.lineTotal).toBe(10399);
     });
   });
 });
