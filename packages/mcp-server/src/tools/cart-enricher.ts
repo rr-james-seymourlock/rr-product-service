@@ -727,6 +727,7 @@ export function registerCartEnricherTools(server: McpServer) {
   createCreateFixtureTool(server);
   createRunFullAnalysisTool(server);
   createReviewMatchingLogicTool(server);
+  createSuggestImprovementsTool(server);
 }
 
 function createAnalyzeSessionTool(server: McpServer) {
@@ -2327,4 +2328,408 @@ function createReviewMatchingLogicTool(server: McpServer) {
       };
     },
   );
+}
+
+function createSuggestImprovementsTool(server: McpServer) {
+  return server.tool(
+    'cart_suggest_improvements',
+    'Recommend matching logic improvements based on data patterns, including new strategies, confidence adjustments, and implementation guidance',
+    {
+      state: z.object({
+        productViews: z
+          .array(RawProductViewEventSchema)
+          .describe('Array of raw product view events'),
+        cartEvents: z.array(RawCartEventSchema).describe('Array of raw cart events'),
+      }),
+    },
+    async ({ state }) => {
+      if (state.productViews.length === 0 && state.cartEvents.length === 0) {
+        return {
+          content: [{ type: 'text', text: 'Error: No session data provided.' }],
+        };
+      }
+
+      const productViews = state.productViews as RawProductViewEvent[];
+      const cartEvents = state.cartEvents as RawCartEvent[];
+
+      // Get unique products and cart items
+      const uniqueProducts = CartEnricherManager.identifyUniqueProducts(productViews);
+      const finalCartEvent = cartEvents.length > 0 ? cartEvents[cartEvents.length - 1] : null;
+      const cartItems = finalCartEvent ? finalCartEvent.product_list : [];
+
+      let response = `## Improvement Suggestions\n\n`;
+      response += `Based on analysis of ${uniqueProducts.length} products and ${cartItems.length} cart items.\n\n`;
+
+      const suggestions: Array<{
+        category: string;
+        title: string;
+        description: string;
+        implementation: string;
+        impact: string;
+        priority: 'high' | 'medium' | 'low';
+      }> = [];
+
+      // ========================================================================
+      // Analyze patterns for suggestions
+      // ========================================================================
+
+      // 1. Check for new ID patterns in URLs
+      const allUrls = [
+        ...productViews.map((p) => p.url),
+        ...cartItems.filter((c) => c.url).map((c) => c.url!),
+      ];
+
+      const urlPatterns = analyzeUrlPatterns(allUrls);
+
+      if (urlPatterns.queryParams.length > 0) {
+        const unusedParams = urlPatterns.queryParams.filter(
+          (p) => !['id', 'productid', 'sku', 'pid', 'product_id'].includes(p.toLowerCase()),
+        );
+        if (unusedParams.length > 0) {
+          suggestions.push({
+            category: 'ID Extraction',
+            title: 'Potential new query parameters for ID extraction',
+            description: `Found query parameters that may contain product IDs: ${unusedParams.slice(0, 5).join(', ')}`,
+            implementation: `Add pattern to store-registry config:\n\`\`\`typescript\nsearchPatterns: [buildRegex(namedCapture(oneOrMore(digit), 'id'), { searchParams: ['${unusedParams[0]}'] })]\n\`\`\``,
+            impact: `Could improve ID extraction for ${urlPatterns.urlsWithParams} URLs`,
+            priority: 'medium',
+          });
+        }
+      }
+
+      // 2. Check for SKU patterns in image URLs
+      const imageUrls = cartItems.filter((c) => c.image_url).map((c) => c.image_url!);
+      const imageSkuPatterns = analyzeImageSkuPatterns(imageUrls);
+
+      if (imageSkuPatterns.potentialPatterns.length > 0) {
+        suggestions.push({
+          category: 'Image SKU Extraction',
+          title: 'New image URL SKU patterns detected',
+          description: `Found potential SKU patterns in image URLs: ${imageSkuPatterns.potentialPatterns.join(', ')}`,
+          implementation: `Update extractSkusFromImageUrl() in enricher.ts to handle pattern:\n\`\`\`typescript\n// Add new pattern for ${imageSkuPatterns.potentialPatterns[0]}\nconst newPattern = /${imageSkuPatterns.suggestedRegex}/g;\n\`\`\``,
+          impact: `Could enable image_sku matching for ${imageSkuPatterns.matchingUrls} cart items`,
+          priority: imageSkuPatterns.matchingUrls > 0 ? 'high' : 'low',
+        });
+      }
+
+      // 3. Check for title normalization improvements
+      const titleAnalysis = analyzeTitlePatterns(
+        cartItems.map((c) => c.name),
+        uniqueProducts.map((p) => p.name),
+      );
+
+      if (titleAnalysis.commonPrefixes.length > 0) {
+        suggestions.push({
+          category: 'Title Matching',
+          title: 'Brand prefix normalization opportunity',
+          description: `Cart titles have brand prefixes that product titles don't: ${titleAnalysis.commonPrefixes.slice(0, 3).join(', ')}`,
+          implementation: `Add brand prefix stripping to title normalization:\n\`\`\`typescript\nfunction normalizeTitle(title: string): string {\n  // Strip common brand prefixes\n  const prefixes = [${titleAnalysis.commonPrefixes.map((p) => `'${p}'`).join(', ')}];\n  for (const prefix of prefixes) {\n    if (title.startsWith(prefix)) {\n      return title.slice(prefix.length).trim();\n    }\n  }\n  return title;\n}\n\`\`\``,
+          impact: `Could improve title matching for ${titleAnalysis.affectedItems} items`,
+          priority: titleAnalysis.affectedItems > 1 ? 'medium' : 'low',
+        });
+      }
+
+      if (titleAnalysis.commonSuffixes.length > 0) {
+        suggestions.push({
+          category: 'Title Matching',
+          title: 'Size/variant suffix normalization',
+          description: `Titles have size/variant suffixes that could be stripped: ${titleAnalysis.commonSuffixes.slice(0, 3).join(', ')}`,
+          implementation: `Strip variant suffixes before comparison:\n\`\`\`typescript\n// Remove size/variant suffixes like "- S", "- Medium", etc.\nconst suffixPattern = /\\s*[-–]\\s*(XS|S|M|L|XL|XXL|\\d+)$/i;\ntitle = title.replace(suffixPattern, '');\n\`\`\``,
+          impact: 'Could improve title similarity scores',
+          priority: 'low',
+        });
+      }
+
+      // 4. Check for price format issues
+      const priceAnalysis = analyzePricePatterns(
+        cartItems.map((c) => c.item_price),
+        uniqueProducts.map((p) => p.priceRange),
+      );
+
+      if (priceAnalysis.formatMismatch) {
+        suggestions.push({
+          category: 'Price Matching',
+          title: 'Price format normalization needed',
+          description: `Cart prices appear to be in ${priceAnalysis.cartFormat}, products in ${priceAnalysis.productFormat}`,
+          implementation: `Ensure consistent price normalization in both normalizers:\n\`\`\`typescript\n// Convert all prices to cents for comparison\nconst priceInCents = priceFormat === 'dollars' ? Math.round(price * 100) : price;\n\`\`\``,
+          impact: 'Ensures accurate price matching',
+          priority: 'medium',
+        });
+      }
+
+      // 5. Check for color matching improvements
+      const productsWithColors = uniqueProducts.filter((p) => p.colors.length > 0);
+      const colorAnalysis = analyzeColorPatterns(cartItems, productsWithColors);
+
+      if (colorAnalysis.unmatchedColors.length > 0) {
+        suggestions.push({
+          category: 'Title + Color Matching',
+          title: 'Color synonym mapping opportunity',
+          description: `Found color variations that may not match: ${colorAnalysis.unmatchedColors.slice(0, 5).join(', ')}`,
+          implementation: `Add color synonym mapping:\n\`\`\`typescript\nconst COLOR_SYNONYMS: Record<string, string[]> = {\n  'black': ['noir', 'onyx', 'jet'],\n  'white': ['ivory', 'cream', 'snow'],\n  'gray': ['grey', 'charcoal', 'slate'],\n  // Add store-specific mappings\n};\n\`\`\``,
+          impact: `Could improve matching for ${colorAnalysis.unmatchedColors.length} items`,
+          priority: colorAnalysis.unmatchedColors.length > 2 ? 'medium' : 'low',
+        });
+      }
+
+      // 6. General confidence tuning suggestions
+      const confidenceAnalysis = analyzeConfidenceTuning(uniqueProducts, cartItems);
+
+      if (confidenceAnalysis.extractedIdReliability > 0.9) {
+        suggestions.push({
+          category: 'Confidence Tuning',
+          title: 'Consider upgrading extracted_id to high confidence',
+          description: `Extracted ID matching shows ${(confidenceAnalysis.extractedIdReliability * 100).toFixed(0)}% reliability for this store`,
+          implementation: `For stores with reliable ID extraction, consider:\n\`\`\`typescript\n// In matchCartItem, for specific stores with reliable ID extraction\nif (storeHasReliableIdExtraction(storeId)) {\n  extractedIdMatch.confidence = 'high';\n}\n\`\`\``,
+          impact: 'Higher confidence scores for well-matched items',
+          priority: 'low',
+        });
+      }
+
+      // ========================================================================
+      // Generate response
+      // ========================================================================
+
+      if (suggestions.length === 0) {
+        response += `### No Improvements Needed\n\n`;
+        response += `Current matching strategies appear well-suited for this store's data patterns.\n`;
+        response += `All standard strategies should work effectively.\n`;
+      } else {
+        // Group by priority
+        const highPriority = suggestions.filter((s) => s.priority === 'high');
+        const mediumPriority = suggestions.filter((s) => s.priority === 'medium');
+        const lowPriority = suggestions.filter((s) => s.priority === 'low');
+
+        response += `### Summary\n`;
+        response += `Found ${suggestions.length} potential improvement(s):\n`;
+        response += `- High priority: ${highPriority.length}\n`;
+        response += `- Medium priority: ${mediumPriority.length}\n`;
+        response += `- Low priority: ${lowPriority.length}\n\n`;
+
+        // Output suggestions by priority
+        const outputSuggestions = (
+          items: typeof suggestions,
+          priorityLabel: string,
+          icon: string,
+        ) => {
+          if (items.length === 0) return;
+          response += `---\n### ${icon} ${priorityLabel} Priority\n\n`;
+          for (const s of items) {
+            response += `#### ${s.title}\n`;
+            response += `**Category:** ${s.category}\n\n`;
+            response += `${s.description}\n\n`;
+            response += `**Implementation:**\n${s.implementation}\n\n`;
+            response += `**Expected Impact:** ${s.impact}\n\n`;
+          }
+        };
+
+        outputSuggestions(highPriority, 'High', '🔴');
+        outputSuggestions(mediumPriority, 'Medium', '🟡');
+        outputSuggestions(lowPriority, 'Low', '🟢');
+      }
+
+      // Add cross-store pattern analysis
+      response += `---\n### Cross-Store Pattern Notes\n\n`;
+      response += `When implementing improvements, consider:\n`;
+      response += `1. Test changes against existing fixtures to prevent regression\n`;
+      response += `2. Generic patterns benefit multiple stores vs store-specific logic\n`;
+      response += `3. Higher confidence strategies should be preferred over lower ones\n`;
+      response += `4. Document any store-specific handling with comments\n`;
+
+      return {
+        content: [{ type: 'text', text: response }],
+      };
+    },
+  );
+}
+
+// ============================================================================
+// Helper functions for improvement suggestions
+// ============================================================================
+
+function analyzeUrlPatterns(urls: string[]): {
+  queryParams: string[];
+  urlsWithParams: number;
+  pathPatterns: string[];
+} {
+  const paramCounts = new Map<string, number>();
+  let urlsWithParams = 0;
+
+  for (const url of urls) {
+    try {
+      const parsed = new URL(url, 'https://example.com');
+      if (parsed.search) {
+        urlsWithParams++;
+        for (const key of parsed.searchParams.keys()) {
+          paramCounts.set(key, (paramCounts.get(key) ?? 0) + 1);
+        }
+      }
+    } catch {
+      // Skip malformed URLs
+    }
+  }
+
+  // Sort by frequency
+  const queryParams = [...paramCounts.entries()].sort((a, b) => b[1] - a[1]).map(([key]) => key);
+
+  return { queryParams, urlsWithParams, pathPatterns: [] };
+}
+
+function analyzeImageSkuPatterns(imageUrls: string[]): {
+  potentialPatterns: string[];
+  suggestedRegex: string;
+  matchingUrls: number;
+} {
+  const patterns: string[] = [];
+  let matchingUrls = 0;
+
+  for (const url of imageUrls) {
+    const filename = url.split('/').pop() ?? '';
+
+    // Look for patterns not caught by current regex
+    // Current: /([A-Z][A-Z0-9]{3,9})(?=[-_.])/g
+
+    // Check for numeric IDs
+    const numericMatch = filename.match(/(\d{6,12})/);
+    if (numericMatch) {
+      patterns.push(`numeric-${numericMatch[1]?.slice(0, 4)}...`);
+      matchingUrls++;
+    }
+
+    // Check for mixed case patterns
+    const mixedMatch = filename.match(/([a-zA-Z0-9]{8,})/);
+    if (mixedMatch && !mixedMatch[1]?.match(/^[A-Z]/)) {
+      patterns.push(`mixed-${mixedMatch[1]?.slice(0, 6)}...`);
+    }
+  }
+
+  return {
+    potentialPatterns: [...new Set(patterns)].slice(0, 3),
+    suggestedRegex: '(\\d{6,12})',
+    matchingUrls,
+  };
+}
+
+function analyzeTitlePatterns(
+  cartTitles: string[],
+  productTitles: string[],
+): {
+  commonPrefixes: string[];
+  commonSuffixes: string[];
+  affectedItems: number;
+} {
+  const prefixes: string[] = [];
+  const suffixes: string[] = [];
+  let affectedItems = 0;
+
+  for (const cartTitle of cartTitles) {
+    // Check for brand prefixes not in product titles
+    const words = cartTitle.split(/\s+/);
+    if (words.length >= 2) {
+      const potentialBrand = words[0];
+      const hasMatchWithoutBrand = productTitles.some(
+        (pt) =>
+          !pt.toLowerCase().startsWith(potentialBrand!.toLowerCase()) &&
+          pt.toLowerCase().includes(words.slice(1).join(' ').toLowerCase()),
+      );
+      if (hasMatchWithoutBrand && potentialBrand) {
+        prefixes.push(potentialBrand);
+        affectedItems++;
+      }
+    }
+
+    // Check for size/variant suffixes
+    const suffixMatch = cartTitle.match(/\s*[-–]\s*([A-Z]{1,3}|Small|Medium|Large|\d+)$/i);
+    if (suffixMatch?.[1]) {
+      suffixes.push(suffixMatch[1]);
+    }
+  }
+
+  return {
+    commonPrefixes: [...new Set(prefixes)],
+    commonSuffixes: [...new Set(suffixes)],
+    affectedItems,
+  };
+}
+
+function analyzePricePatterns(
+  cartPrices: number[],
+  productPrices: Array<{ min: number; max: number }>,
+): {
+  formatMismatch: boolean;
+  cartFormat: string;
+  productFormat: string;
+} {
+  const avgCartPrice =
+    cartPrices.length > 0 ? cartPrices.reduce((a, b) => a + b, 0) / cartPrices.length : 0;
+  const avgProductPrice =
+    productPrices.length > 0
+      ? productPrices.reduce((a, b) => a + b.min, 0) / productPrices.length
+      : 0;
+
+  const cartFormat = avgCartPrice > 1000 ? 'cents' : 'dollars';
+  const productFormat = avgProductPrice < 1000 ? 'dollars' : 'cents';
+
+  return {
+    formatMismatch: cartFormat !== productFormat,
+    cartFormat,
+    productFormat,
+  };
+}
+
+function analyzeColorPatterns(
+  cartItems: RawCartProduct[],
+  productsWithColors: UniqueProduct[],
+): {
+  unmatchedColors: string[];
+} {
+  const cartColors: string[] = [];
+  const productColors = new Set<string>();
+
+  // Extract colors from cart item titles
+  for (const item of cartItems) {
+    const { color } = parseCartTitle(item.name);
+    if (color) {
+      cartColors.push(color.toLowerCase());
+    }
+  }
+
+  // Collect all product colors
+  for (const p of productsWithColors) {
+    for (const c of p.colors) {
+      productColors.add(c.toLowerCase());
+    }
+  }
+
+  // Find cart colors not in products
+  const unmatchedColors = cartColors.filter((c) => !productColors.has(c));
+
+  return { unmatchedColors: [...new Set(unmatchedColors)] };
+}
+
+function analyzeConfidenceTuning(
+  products: UniqueProduct[],
+  cartItems: RawCartProduct[],
+): {
+  extractedIdReliability: number;
+} {
+  // Check how reliably extracted IDs match
+  let matches = 0;
+  let attempts = 0;
+
+  const productIds = new Set(products.flatMap((p) => p.extractedIds));
+
+  for (const item of cartItems) {
+    if (item.url) {
+      attempts++;
+      const ids = CartEnricherManager.extractProductId(item.url);
+      if (ids.some((id) => productIds.has(id))) {
+        matches++;
+      }
+    }
+  }
+
+  return {
+    extractedIdReliability: attempts > 0 ? matches / attempts : 0,
+  };
 }

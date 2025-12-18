@@ -187,7 +187,7 @@
       "id": "7",
       "title": "Implement cart_suggest_improvements MCP tool",
       "description": "Create MCP tool that recommends matching logic improvements based on data patterns",
-      "status": "pending",
+      "status": "done",
       "priority": "medium",
       "dependencies": ["6"],
       "details": "Tool should: (1) Identify new matching strategies, (2) Suggest confidence adjustments, (3) Highlight generalizable patterns, (4) Provide implementation guidance, (5) Estimate impact",
@@ -195,9 +195,10 @@
       "subtasks": [],
       "userStoryId": "US004",
       "createdAt": "2025-12-18T18:39:53.226Z",
-      "updatedAt": "2025-12-18T18:40:10.602Z",
+      "updatedAt": "2025-12-18T20:11:46.080Z",
       "complexity": 2,
-      "recommendedSubtasks": 2
+      "recommendedSubtasks": 2,
+      "completedAt": "2025-12-18T20:11:46.080Z"
     },
     {
       "id": "8",
@@ -306,9 +307,9 @@
   "metadata": {
     "version": "1.0",
     "created": "2025-12-18T18:39:52.690Z",
-    "lastUpdated": "2025-12-18T20:07:27.784Z",
+    "lastUpdated": "2025-12-18T20:11:46.080Z",
     "totalTasks": 20,
-    "completedTasks": 18,
+    "completedTasks": 19,
     "blockedTasks": 0
   }
 }
