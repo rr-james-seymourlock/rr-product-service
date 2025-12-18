@@ -728,6 +728,7 @@ export function registerCartEnricherTools(server: McpServer) {
   createRunFullAnalysisTool(server);
   createReviewMatchingLogicTool(server);
   createSuggestImprovementsTool(server);
+  createAppendStoreUrlsTool(server);
 }
 
 function createAnalyzeSessionTool(server: McpServer) {
@@ -2732,4 +2733,188 @@ function analyzeConfidenceTuning(
   return {
     extractedIdReliability: attempts > 0 ? matches / attempts : 0,
   };
+}
+
+function createAppendStoreUrlsTool(server: McpServer) {
+  return server.tool(
+    'cart_append_store_urls',
+    'Add new URL test cases from session data to existing store-registry fixtures',
+    {
+      state: z.object({
+        productViews: z
+          .array(RawProductViewEventSchema)
+          .describe('Array of raw product view events'),
+        cartEvents: z.array(RawCartEventSchema).describe('Array of raw cart events'),
+        dryRun: z
+          .boolean()
+          .default(true)
+          .describe('If true, only analyze URLs without modifying fixtures (default: true)'),
+      }),
+    },
+    async ({ state }) => {
+      if (state.productViews.length === 0 && state.cartEvents.length === 0) {
+        return {
+          content: [{ type: 'text', text: 'Error: No session data provided.' }],
+        };
+      }
+
+      const productViews = state.productViews as RawProductViewEvent[];
+      const cartEvents = state.cartEvents as RawCartEvent[];
+
+      // Extract store metadata
+      const storeMetadata = CartEnricherManager.extractStoreMetadata(productViews, cartEvents);
+
+      let response = `## Append Store URLs Analysis\n\n`;
+      response += `**Store:** ${storeMetadata.storeName} (ID: ${storeMetadata.storeId})\n`;
+      response += `**Domain:** ${storeMetadata.domain}\n`;
+      response += `**Mode:** ${state.dryRun ? 'Dry Run (analysis only)' : 'Live (will modify fixtures)'}\n\n`;
+
+      // Collect all URLs from session
+      const allUrls = new Set<string>();
+
+      // Product view URLs
+      for (const pv of productViews) {
+        if (pv.url) allUrls.add(pv.url);
+      }
+
+      // Cart item URLs
+      const finalCartEvent = cartEvents.length > 0 ? cartEvents[cartEvents.length - 1] : null;
+      if (finalCartEvent) {
+        for (const item of finalCartEvent.product_list) {
+          if (item.url) allUrls.add(item.url);
+        }
+      }
+
+      response += `---\n### URL Collection\n\n`;
+      response += `**Total unique URLs:** ${allUrls.size}\n\n`;
+
+      if (allUrls.size === 0) {
+        response += `No URLs found in session data.\n`;
+        return { content: [{ type: 'text', text: response }] };
+      }
+
+      // Filter to product pages only using store onboarding filter
+      const urlArray = [...allUrls];
+      const filterResult = StoreOnboardingManager.filterUrls(urlArray, storeMetadata.domain);
+
+      response += `### URL Filtering\n\n`;
+      response += `| Category | Count |\n`;
+      response += `|----------|-------|\n`;
+      response += `| Product URLs | ${filterResult.productUrls.length} |\n`;
+      response += `| Filtered Out | ${filterResult.filteredUrls.length} |\n\n`;
+
+      if (filterResult.filteredUrls.length > 0) {
+        response += `**Filtered out (non-product pages):**\n`;
+        for (const filtered of filterResult.filteredUrls.slice(0, 5)) {
+          response += `- ${filtered.url} (${filtered.reason})\n`;
+        }
+        if (filterResult.filteredUrls.length > 5) {
+          response += `- ... and ${filterResult.filteredUrls.length - 5} more\n`;
+        }
+        response += '\n';
+      }
+
+      if (filterResult.productUrls.length === 0) {
+        response += `No product URLs to process after filtering.\n`;
+        return { content: [{ type: 'text', text: response }] };
+      }
+
+      // Check if fixture exists for this store
+      const fixtureExists = await StoreOnboardingManager.fixtureExists(storeMetadata.domain);
+
+      response += `---\n### Store Registry Status\n\n`;
+      response += `**Fixture exists:** ${fixtureExists ? '✓ Yes' : '✗ No'}\n\n`;
+
+      // Validate ID extraction for each URL
+      response += `---\n### ID Extraction Validation\n\n`;
+
+      const extractionResults = filterResult.productUrls.map((url) => ({
+        url,
+        ids: CartEnricherManager.extractProductId(url),
+      }));
+
+      const successfulExtractions = extractionResults.filter((r) => r.ids.length > 0);
+      const failedExtractions = extractionResults.filter((r) => r.ids.length === 0);
+
+      response += `| Status | Count | Percentage |\n`;
+      response += `|--------|-------|------------|\n`;
+      response += `| Successful | ${successfulExtractions.length} | ${((successfulExtractions.length / extractionResults.length) * 100).toFixed(0)}% |\n`;
+      response += `| Failed | ${failedExtractions.length} | ${((failedExtractions.length / extractionResults.length) * 100).toFixed(0)}% |\n\n`;
+
+      if (successfulExtractions.length > 0) {
+        response += `**Sample successful extractions:**\n`;
+        for (const r of successfulExtractions.slice(0, 3)) {
+          response += `- \`${r.ids.join(', ')}\` ← ${r.url.slice(0, 60)}...\n`;
+        }
+        response += '\n';
+      }
+
+      if (failedExtractions.length > 0) {
+        response += `**Failed extractions (need pattern update):**\n`;
+        for (const r of failedExtractions.slice(0, 5)) {
+          response += `- ⚠️ ${r.url}\n`;
+        }
+        if (failedExtractions.length > 5) {
+          response += `- ... and ${failedExtractions.length - 5} more\n`;
+        }
+        response += '\n';
+      }
+
+      // Determine action
+      response += `---\n### Recommendations\n\n`;
+
+      if (!fixtureExists) {
+        response += `**Store not yet onboarded.** Use store onboarding MCP tools first:\n`;
+        response += `1. \`store_validate_metadata\` with storeId: "${storeMetadata.storeId}", domain: "${storeMetadata.domain}"\n`;
+        response += `2. \`store_generate_fixture\` with the product URLs\n`;
+        response += `3. \`store_run_tests\` to verify extraction\n\n`;
+
+        response += `**Product URLs for onboarding:**\n`;
+        response += '```json\n';
+        response += JSON.stringify(filterResult.productUrls.slice(0, 10), null, 2);
+        response += '\n```\n';
+      } else if (state.dryRun) {
+        response += `**Fixture exists.** To append URLs, call this tool again with \`dryRun: false\`\n\n`;
+        response += `URLs to append: ${successfulExtractions.length} (with successful ID extraction)\n\n`;
+
+        if (failedExtractions.length > 0) {
+          response += `⚠️ ${failedExtractions.length} URLs failed extraction and won't be added.\n`;
+          response += `Consider updating store-registry patterns to handle these URLs.\n`;
+        }
+      } else {
+        // Actually append URLs
+        if (successfulExtractions.length > 0) {
+          // Build test cases in the format expected by appendToFixture
+          const testCases = successfulExtractions.map((r) => ({
+            url: r.url,
+            expectedSkus: r.ids.map((id) => id.toLowerCase()),
+          }));
+
+          const appendResult = await StoreOnboardingManager.appendToFixture(
+            storeMetadata.domain,
+            testCases,
+          );
+
+          response += `### Append Results\n\n`;
+          if (appendResult.success) {
+            response += `✓ Successfully appended ${appendResult.added} new URL(s) to fixture\n`;
+            response += `- File: ${appendResult.filePath}\n`;
+            response += `- Duplicates skipped: ${appendResult.duplicates}\n\n`;
+
+            response += `**Next steps:**\n`;
+            response += `1. Run tests: \`pnpm --filter @rr/product-id-extractor test\`\n`;
+            response += `2. Review changes and commit if tests pass\n`;
+          } else {
+            response += `✗ Failed to append URLs: ${appendResult.error}\n`;
+          }
+        } else {
+          response += `No URLs with successful ID extraction to append.\n`;
+        }
+      }
+
+      return {
+        content: [{ type: 'text', text: response }],
+      };
+    },
+  );
 }

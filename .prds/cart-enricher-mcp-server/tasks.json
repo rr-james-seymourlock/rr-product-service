@@ -221,7 +221,7 @@
       "id": "9",
       "title": "Implement cart_append_store_urls MCP tool",
       "description": "Create MCP tool that adds new URL test cases to existing store-registry fixtures",
-      "status": "pending",
+      "status": "done",
       "priority": "medium",
       "dependencies": ["5"],
       "details": "Tool should: (1) Filter URLs to product pages only, (2) Call store_append_fixture from onboarding MCP, (3) Verify URLs extract correctly, (4) Flag non-matching URLs, (5) Run regression tests",
@@ -229,9 +229,10 @@
       "subtasks": [],
       "userStoryId": "US013",
       "createdAt": "2025-12-18T18:39:53.423Z",
-      "updatedAt": "2025-12-18T18:40:10.602Z",
+      "updatedAt": "2025-12-18T20:24:07.465Z",
       "complexity": 2,
-      "recommendedSubtasks": 2
+      "recommendedSubtasks": 2,
+      "completedAt": "2025-12-18T20:24:07.465Z"
     },
     {
       "id": "10",
@@ -307,9 +308,9 @@
   "metadata": {
     "version": "1.0",
     "created": "2025-12-18T18:39:52.690Z",
-    "lastUpdated": "2025-12-18T20:11:46.080Z",
+    "lastUpdated": "2025-12-18T20:24:07.465Z",
     "totalTasks": 20,
-    "completedTasks": 19,
+    "completedTasks": 20,
     "blockedTasks": 0
   }
 }
