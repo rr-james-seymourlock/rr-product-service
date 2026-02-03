@@ -492,7 +492,7 @@ export class CartEnricherManager {
     const dataQuality = this.analyzeDataQuality(productViews, cartEvents);
 
     // Get final cart items for match potential calculation
-    const finalCart = cartSnapshots.length > 0 ? cartSnapshots[cartSnapshots.length - 1] : null;
+    const finalCart = cartSnapshots.at(-1) ?? null;
     const finalCartItems =
       cartEvents.length > 0 ? cartEvents[cartEvents.length - 1]!.product_list : [];
 
