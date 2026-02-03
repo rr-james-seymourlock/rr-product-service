@@ -210,6 +210,52 @@ claude mcp add qmd qmd mcp
 }
 ```
 
+### Context7 MCP Server (Optional)
+
+[Context7](https://context7.com) fetches up-to-date, version-specific documentation for libraries directly into your prompts. This helps avoid outdated code examples and hallucinated APIs when working with dependencies like Zod, Vitest, AWS SAM, Middy, etc.
+
+**Get an API key:** Sign up at [context7.com](https://context7.com) to get your API key.
+
+**Add to Claude Code:**
+
+```bash
+# Remote connection (recommended)
+claude mcp add --header "CONTEXT7_API_KEY: YOUR_API_KEY" --transport http context7 https://mcp.context7.com/mcp
+
+# Or local connection
+claude mcp add context7 -- npx -y @upstash/context7-mcp --api-key YOUR_API_KEY
+```
+
+**Add to Claude Desktop** (in `claude_desktop_config.json`):
+
+```json
+{
+  "mcpServers": {
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp", "--api-key", "YOUR_API_KEY"]
+    }
+  }
+}
+```
+
+**Add to Cursor** (in `mcp.json`):
+
+```json
+{
+  "mcpServers": {
+    "context7": {
+      "url": "https://mcp.context7.com/mcp",
+      "headers": {
+        "CONTEXT7_API_KEY": "YOUR_API_KEY"
+      }
+    }
+  }
+}
+```
+
+**Usage:** Add "use context7" to your prompts, or specify a library directly: "use context7 /zod/zod for validation docs".
+
 ### QMD Setup (Semantic Documentation Search)
 
 [QMD](https://github.com/tobi/qmd) is a local semantic search engine that indexes markdown documentation for fast searching. It combines BM25 full-text search, vector semantic search, and LLM re-ranking for high-quality results.

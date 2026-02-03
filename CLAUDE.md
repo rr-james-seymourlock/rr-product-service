@@ -286,6 +286,54 @@ qmd embed
 ### QMD Collection Details
 
 The `provo` collection indexes all markdown files in this repository:
+
 - Pattern: `**/*.md`
 - Excludes: `node_modules/`, `.git/`, `dist/`, `build/`
 - Context: "Rakuten Product Service - microservice for extracting product IDs from e-commerce URLs across 4000+ merchant stores"
+
+## Using Context7 for Library Documentation
+
+This project uses [Context7](https://context7.com) to fetch up-to-date, version-specific documentation for external libraries. Use Context7 when you need current API references for dependencies.
+
+### When to Use Context7
+
+Use Context7 for:
+
+- **API references**: Getting current Zod schema methods and options
+- **Configuration help**: AWS SAM template syntax, Vitest config options
+- **Library patterns**: Middy middleware patterns, Pino logger configuration
+- **Version-specific docs**: Ensuring code matches the exact library version in use
+
+### How to Invoke Context7
+
+Add "use context7" to your prompt, or specify a library directly:
+
+```
+# General invocation
+"How do I validate nested objects? use context7"
+
+# Specific library
+"use context7 /zod/zod for schema validation"
+"use context7 /vitest-dev/vitest for test configuration"
+"use context7 /middy/middy for middleware patterns"
+```
+
+### Common Libraries in This Project
+
+When working with this codebase, these Context7 library references are most useful:
+
+| Library | Context7 ID | Use Case |
+|---------|-------------|----------|
+| Zod | `/zod/zod` | Schema validation, type inference |
+| Vitest | `/vitest-dev/vitest` | Testing, mocking, coverage |
+| AWS SAM | `/aws/aws-sam-cli` | Lambda deployment, template syntax |
+| Middy | `/middy/middy` | Lambda middleware patterns |
+| Pino | `/pinojs/pino` | Structured logging |
+| esbuild | `/evanw/esbuild` | Bundling configuration |
+
+### Best Practices for AI Agents
+
+1. **Use Context7 for external libraries**, use QMD for project-specific documentation
+2. **Specify the library** when you know which one you need to avoid resolution overhead
+3. **Include version context** in your prompt if you need version-specific docs (e.g., "Zod 3.x")
+4. **Combine with QMD**: Use QMD to find how the project uses a library, then Context7 for the library's full API
