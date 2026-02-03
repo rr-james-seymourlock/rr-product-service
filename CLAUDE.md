@@ -210,3 +210,82 @@ The `parseDomain()` function extracts base domain while preserving whitelisted s
 - **Linting**: ESLint with TypeScript, import, regexp, sonarjs, and unicorn plugins
 - **Commits**: Conventional commits enforced via commitlint and husky hooks
 - run typecheck, lint and build after every major change to make sure everything works
+
+## Using QMD for Codebase Search
+
+This project uses [qmd](https://github.com/tobi/qmd) - a local semantic search engine for markdown documents. Use qmd when you need to find relevant documentation, understand patterns, or locate implementation details.
+
+### When to Use QMD
+
+Use qmd for:
+- **Finding documentation**: "How does URL normalization work?"
+- **Understanding patterns**: "What store configuration patterns exist?"
+- **Locating implementation details**: "Where is product ID extraction defined?"
+- **Discovering related files**: "What packages handle cart events?"
+
+### QMD Commands (via Bash)
+
+```bash
+# Fast keyword search (BM25) - best for specific terms
+qmd search "store configuration" -n 5
+
+# Semantic search - best for concepts/questions
+qmd vsearch "how to add a new store" -n 5
+
+# Hybrid search with LLM re-ranking - best quality results
+qmd query "URL parsing and normalization" -n 5
+
+# Get specific file content
+qmd get packages/url-parser/README.md
+
+# List all indexed files
+qmd ls provo
+
+# Search within specific collection
+qmd search "regex patterns" -c provo
+```
+
+### Search Output Options
+
+```bash
+# JSON output for programmatic use
+qmd search "validation" --json -n 10
+
+# Full document content instead of snippets
+qmd search "API endpoints" --full
+
+# Files only (paths without content)
+qmd search "testing" --files
+
+# Markdown formatted output
+qmd query "error handling" --md
+```
+
+### Best Practices for AI Agents
+
+1. **Start with `qmd search`** for exact terms or keywords you know exist
+2. **Use `qmd vsearch`** when searching for concepts or asking questions
+3. **Use `qmd query`** for complex queries where you need the best results
+4. **Limit results** with `-n` flag to avoid overwhelming context
+5. **Use `--files`** when you just need file paths, not content
+6. **Chain with `qmd get`** to retrieve full file content after finding relevant docs
+
+### Keeping Index Updated
+
+```bash
+# Re-index after adding new documentation
+qmd update
+
+# Re-index and pull git changes first
+qmd update --pull
+
+# Regenerate embeddings (after update)
+qmd embed
+```
+
+### QMD Collection Details
+
+The `provo` collection indexes all markdown files in this repository:
+- Pattern: `**/*.md`
+- Excludes: `node_modules/`, `.git/`, `dist/`, `build/`
+- Context: "Rakuten Product Service - microservice for extracting product IDs from e-commerce URLs across 4000+ merchant stores"

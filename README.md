@@ -98,6 +98,7 @@ rr-product-service/
 
 - **Node.js** 22.21.0+ (use `nvm use` or `nvm install` - `.nvmrc` provided)
 - **pnpm** 9.x (`npm install -g pnpm@latest`)
+- **Bun** (for qmd installation): [Install Guide](https://bun.sh)
 - **AWS SAM CLI** (for local Lambda testing): [Install Guide](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/install-sam-cli.html)
 - **AWS CLI** configured with credentials (for deployment)
 - **OAK** (Rakuten AWS auth - for deployment to Rakuten AWS)
@@ -172,6 +173,101 @@ args = ["<full-path-to>/packages/mcp-server/build/index.js"]
 ```
 
 See [packages/mcp-server/README.md](packages/mcp-server/README.md) for full documentation and available tools.
+
+### QMD MCP Server (Optional)
+
+QMD can also run as an MCP server for AI tool integration, providing semantic search capabilities directly to AI agents.
+
+**Add to Claude Code:**
+
+```bash
+claude mcp add qmd qmd mcp
+```
+
+**Add to Claude Desktop** (in `claude_desktop_config.json`):
+
+```json
+{
+  "mcpServers": {
+    "qmd": {
+      "command": "qmd",
+      "args": ["mcp"]
+    }
+  }
+}
+```
+
+**Add to Cursor** (in `mcp.json`):
+
+```json
+{
+  "mcpServers": {
+    "qmd": {
+      "command": "qmd",
+      "args": ["mcp"]
+    }
+  }
+}
+```
+
+### QMD Setup (Semantic Documentation Search)
+
+[QMD](https://github.com/tobi/qmd) is a local semantic search engine that indexes markdown documentation for fast searching. It combines BM25 full-text search, vector semantic search, and LLM re-ranking for high-quality results.
+
+**Install Bun (required for qmd):**
+
+```bash
+curl -fsSL https://bun.sh/install | bash
+# Add to PATH (restart terminal or run):
+export PATH="$HOME/.bun/bin:$PATH"
+```
+
+**Install QMD:**
+
+```bash
+bun install -g github:tobi/qmd
+```
+
+**Set up the project collection:**
+
+```bash
+# Create collection for this project
+qmd collection add . --name provo
+
+# Add context for better search results
+qmd context add qmd://provo "Rakuten Product Service - microservice for extracting product IDs from e-commerce URLs across 4000+ merchant stores"
+
+# Create vector embeddings (downloads models on first run)
+qmd embed
+```
+
+**Using QMD:**
+
+```bash
+# Fast keyword search
+qmd search "store configuration" -n 5
+
+# Semantic search (finds conceptually similar content)
+qmd vsearch "how to add a new store" -n 5
+
+# Hybrid search with LLM re-ranking (best quality)
+qmd query "URL parsing patterns" -n 5
+
+# Get specific file
+qmd get packages/url-parser/README.md
+
+# List indexed files
+qmd ls provo
+```
+
+**Keeping index updated:**
+
+```bash
+qmd update    # Re-index after changes
+qmd embed     # Regenerate embeddings
+```
+
+See [CLAUDE.md](CLAUDE.md) for detailed AI agent usage guidelines.
 
 ## Running Locally
 
