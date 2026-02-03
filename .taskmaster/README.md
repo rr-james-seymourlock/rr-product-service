@@ -10,17 +10,23 @@ Learn more at [task-master.dev](https://www.task-master.dev/)
 
 ## Quick Start
 
-### 1. Setup Environment
+### 1. API Keys
 
-Task Master uses API keys from your environment. Add your API keys to `.env`:
+**When using Task Master within Claude Code or Codex:**
+- API keys are automatically inherited from your IDE configuration
+- No additional setup required
 
-```bash
-# Anthropic (for Claude models)
-ANTHROPIC_API_KEY=your_key_here
+**When using Task Master standalone:**
+- Add API keys to `.env` in the project root:
+  ```bash
+  # Anthropic (for Claude models)
+  ANTHROPIC_API_KEY=your_key_here
 
-# Perplexity (for research)
-PERPLEXITY_API_KEY=your_key_here
-```
+  # Perplexity (for research)
+  PERPLEXITY_API_KEY=your_key_here
+  ```
+
+For more details, see the [Task Master API Keys documentation](https://docs.task-master.dev/getting-started/api-keys.md).
 
 ### 2. Create a PRD
 
