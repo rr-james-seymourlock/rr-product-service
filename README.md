@@ -315,6 +315,114 @@ qmd embed     # Regenerate embeddings
 
 See [CLAUDE.md](CLAUDE.md) for detailed AI agent usage guidelines.
 
+### Task Master Setup
+
+[Task Master](https://github.com/task-master-ai/task-master) provides AI-powered task management that integrates with PRDs. It can parse PRDs into tasks, track complexity, and manage dependencies.
+
+**Add to Claude Code:**
+
+```bash
+claude mcp add task-master -- npx -y task-master-ai
+```
+
+**Add to Cursor** (in `mcp.json`):
+
+```json
+{
+  "mcpServers": {
+    "task-master": {
+      "command": "npx",
+      "args": ["-y", "task-master-ai"]
+    }
+  }
+}
+```
+
+## PRD → Task Master Workflow
+
+This project follows a structured workflow for feature development:
+
+```
+PRD (Requirements) → Task Master (Execution) → Implementation
+```
+
+### 1. Create a PRD
+
+Use the `rr-product-service` MCP to create structured PRDs:
+
+```bash
+# AI tools can use these PRD MCP tools:
+- create_prd          # Create new PRD with problem/solution
+- add_user_story      # Add user stories with acceptance criteria
+- get_project_status  # Check progress and blockers
+```
+
+PRDs are stored in `.prds/` as JSON with auto-generated markdown exports.
+
+### 2. Parse PRD to Tasks
+
+Use Task Master to convert PRD user stories into actionable tasks:
+
+```bash
+# Task Master parses PRD and creates tasks with:
+- Descriptions from user stories
+- Dependencies from story dependencies
+- Complexity estimates
+```
+
+### 3. Complexity Management
+
+**Rule: Maximum task complexity is M (Medium)**
+
+| Complexity | Criteria Count | Action |
+|------------|----------------|--------|
+| XS | 1-2 | Execute directly |
+| S | 3 | Execute directly |
+| M | 4-5 | Execute directly |
+| L | 6-8 | **Must break down** |
+| XL | 9+ | **Must break down into multiple tasks** |
+
+AI agents automatically break down L/XL tasks using `expand_task` before implementation.
+
+### 4. Model Selection
+
+Different AI models are suited for different task complexities:
+
+| Task Complexity | Model | Reasoning |
+|-----------------|-------|-----------|
+| XS-S | Haiku | Fast, cost-effective for simple changes |
+| M | Sonnet | Balanced for moderate complexity |
+| L (after breakdown) | Sonnet | Complex features split into manageable pieces |
+| Research/Architecture | Opus | Deep analysis, design decisions |
+
+### 5. Execution Workflow
+
+```bash
+# Typical task execution flow:
+1. next_task       # Get highest priority available task
+2. get_task        # Read full task details
+3. set_task_status # Mark as in_progress
+4. [Implement]     # Use appropriate model
+5. set_task_status # Mark as done
+6. [Repeat]        # Continue with next task
+```
+
+### Example Usage
+
+```
+Developer: "I want to add caching to the URL parser"
+
+AI Agent:
+1. Creates PRD with create_prd (problem: performance, solution: caching)
+2. Adds user stories with add_user_story (cache hits, invalidation, etc.)
+3. Uses Task Master parse_prd to create tasks
+4. Checks complexity - breaks down any L/XL tasks
+5. Executes tasks in priority order with appropriate models
+6. Updates status as tasks complete
+```
+
+See [CLAUDE.md](CLAUDE.md) for detailed AI agent instructions.
+
 ## Running Locally
 
 ### Option 1: Local Dev Server (Recommended for Development)

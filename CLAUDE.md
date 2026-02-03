@@ -337,3 +337,192 @@ When working with this codebase, these Context7 library references are most usef
 2. **Specify the library** when you know which one you need to avoid resolution overhead
 3. **Include version context** in your prompt if you need version-specific docs (e.g., "Zod 3.x")
 4. **Combine with QMD**: Use QMD to find how the project uses a library, then Context7 for the library's full API
+
+## PRD to Task Master Workflow
+
+This project uses a structured workflow for managing features: **PRD MCP** for requirements → **Task Master** for execution. This ensures proper planning before implementation.
+
+### Workflow Overview
+
+```
+1. Create PRD (PRD MCP)
+   └─> Define problem, solution, user stories
+
+2. Parse PRD to Tasks (Task Master)
+   └─> parse_prd converts user stories to tasks
+
+3. Analyze Complexity
+   └─> Break down any task with complexity > M
+
+4. Execute Tasks (Task Master)
+   └─> Use appropriate model for task complexity
+
+5. Track Progress
+   └─> Update task status, sync back to PRD
+```
+
+### Step 1: Create PRD with User Stories
+
+Use the PRD MCP tools to create structured requirements:
+
+```
+# Create a new PRD
+Use create_prd with:
+- title, overview, problemStatement
+- marketOpportunity, targetUsers
+- solutionDescription, keyFeatures, successMetrics
+
+# Add user stories with complexity estimates
+Use add_user_story with:
+- userType, action, benefit
+- acceptanceCriteria (determines complexity)
+- priority (P0-P3)
+```
+
+**Complexity is auto-calculated from acceptance criteria:**
+| Criteria Count | Complexity | Breakdown Required |
+|----------------|------------|-------------------|
+| 1-2 | XS | No |
+| 3 | S | No |
+| 4-5 | M | No |
+| 6-8 | L | **Yes** |
+| 9+ | XL | **Yes - into multiple tasks** |
+
+### Step 2: Parse PRD to Task Master
+
+Use Task Master's `parse_prd` tool to convert PRD user stories into actionable tasks:
+
+```
+# Parse the PRD to create tasks
+Use mcp__task-master__parse_prd with the PRD content
+
+# This creates tasks with:
+- Descriptions from user stories
+- Dependencies from story dependencies
+- Initial complexity estimates
+```
+
+### Step 3: Complexity Analysis and Breakdown
+
+**CRITICAL RULE: No task should have complexity > M (5 acceptance criteria)**
+
+For any L or XL complexity task:
+
+1. Use `mcp__task-master__expand_task` to break it into subtasks
+2. Each subtask should be independently completable
+3. Subtasks should have clear dependencies
+
+**Breakdown Guidelines:**
+| Original Complexity | Target Subtasks | Subtask Max Complexity |
+|---------------------|-----------------|------------------------|
+| L (6-8 criteria) | 3-4 subtasks | S-M |
+| XL (9+ criteria) | 5-8 subtasks | XS-S |
+
+### Step 4: Model Selection for Task Execution
+
+Select the appropriate model based on task complexity:
+
+| Task Complexity | Recommended Model | Use Case |
+|-----------------|-------------------|----------|
+| XS | `haiku` | Simple fixes, typos, small updates |
+| S | `haiku` | Single-file changes, straightforward implementations |
+| M | `sonnet` | Multi-file changes, moderate logic |
+| L (broken down) | `sonnet` | Complex features (after breakdown) |
+| Research/Planning | `opus` | Architecture decisions, complex analysis |
+
+**How to specify model in Task tool:**
+```
+Use Task tool with model: "haiku" for simple tasks
+Use Task tool with model: "sonnet" for medium tasks
+Use Task tool with model: "opus" for research/planning
+```
+
+### Step 5: Task Execution Workflow
+
+When working on tasks:
+
+```bash
+# 1. Get next available task
+Use mcp__task-master__next_task
+
+# 2. Read task details
+Use mcp__task-master__get_task with task ID
+
+# 3. Set status to in_progress
+Use mcp__task-master__set_task_status
+
+# 4. Implement the task
+# (Use appropriate model based on complexity)
+
+# 5. Update subtasks if applicable
+Use mcp__task-master__update_subtask
+
+# 6. Mark task complete
+Use mcp__task-master__set_task_status with status: "done"
+```
+
+### PRD MCP Tools Reference
+
+| Tool | Purpose |
+|------|---------|
+| `list_prds` | List all PRDs in `.prds/` directory |
+| `get_prd` | Get PRD JSON content |
+| `create_prd` | Create new structured PRD |
+| `add_user_story` | Add user story with auto-complexity |
+| `update_story_status` | Update story progress |
+| `export_prd_markdown` | Export for review/sharing |
+| `get_implementation_prompts` | Generate implementation prompts |
+| `get_improvement_suggestions` | Get PRD quality suggestions |
+| `get_project_status` | Overview of progress/blockers |
+
+### Task Master Tools Reference
+
+| Tool | Purpose |
+|------|---------|
+| `parse_prd` | Convert PRD to tasks |
+| `get_tasks` | List all tasks |
+| `get_task` | Get specific task details |
+| `next_task` | Get next actionable task |
+| `set_task_status` | Update task status |
+| `expand_task` | Break down complex task |
+| `update_subtask` | Update subtask details |
+
+### Best Practices for AI Agents
+
+1. **Always check PRD first** - Before implementing, verify a PRD exists or create one
+2. **Never skip complexity analysis** - Break down L/XL tasks before starting
+3. **Use the right model** - Don't use opus for simple tasks (wasteful), don't use haiku for complex tasks (insufficient)
+4. **Update status promptly** - Mark tasks in_progress when starting, done when complete
+5. **Sync PRD and Task Master** - Keep both systems updated for accurate tracking
+6. **Research before implementing** - For unfamiliar areas, use research tasks first
+
+### Example: Full Workflow
+
+```
+User: "Add caching to the URL parser"
+
+AI Agent workflow:
+1. Check if PRD exists for caching feature
+   → Use list_prds, get_prd if exists
+
+2. If no PRD, create one:
+   → Use create_prd with problem/solution
+   → Use add_user_story for cache scenarios
+
+3. Parse to tasks:
+   → Use mcp__task-master__parse_prd
+
+4. Check complexity:
+   → If L/XL tasks exist, use expand_task
+
+5. Get first task:
+   → Use mcp__task-master__next_task
+
+6. Implement with appropriate model:
+   → XS/S task: Task tool with model: "haiku"
+   → M task: Task tool with model: "sonnet"
+
+7. Complete and continue:
+   → set_task_status to "done"
+   → next_task for next item
+```
