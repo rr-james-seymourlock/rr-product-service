@@ -28,7 +28,14 @@
     "syncpack:list": "pnpm dlx syncpack list-mismatches",
     "syncpack:fix": "pnpm dlx syncpack fix-mismatches",
     "prepare": "husky",
-    "postinstall": "manypkg fix"
+    "postinstall": "manypkg fix",
+    "tm": "task-master",
+    "tm:parse": "task-master parse-prd --input .taskmaster/docs/prd.txt",
+    "tm:analyze": "task-master analyze-complexity --research",
+    "tm:expand": "task-master expand --all --research",
+    "tm:next": "task-master next",
+    "tm:status": "task-master status",
+    "tm:list": "task-master list"
   },
   "devDependencies": {
     "@commitlint/cli": "^20.1.0",
@@ -39,6 +46,7 @@
     "husky": "^9.1.7",
     "lint-staged": "^16.2.6",
     "prettier": "^3.6.2",
+    "task-master-ai": "^0.42.0",
     "tsx": "^4.20.6",
     "turbo": "^2.6.1",
     "typescript": "^5.9.3"

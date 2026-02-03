@@ -210,3 +210,319 @@ The `parseDomain()` function extracts base domain while preserving whitelisted s
 - **Linting**: ESLint with TypeScript, import, regexp, sonarjs, and unicorn plugins
 - **Commits**: Conventional commits enforced via commitlint and husky hooks
 - run typecheck, lint and build after every major change to make sure everything works
+
+## Using QMD for Codebase Search
+
+This project uses [qmd](https://github.com/tobi/qmd) - a local semantic search engine for markdown documents. Use qmd when you need to find relevant documentation, understand patterns, or locate implementation details.
+
+### When to Use QMD
+
+Use qmd for:
+- **Finding documentation**: "How does URL normalization work?"
+- **Understanding patterns**: "What store configuration patterns exist?"
+- **Locating implementation details**: "Where is product ID extraction defined?"
+- **Discovering related files**: "What packages handle cart events?"
+
+### QMD Commands (via Bash)
+
+```bash
+# Fast keyword search (BM25) - best for specific terms
+qmd search "store configuration" -n 5
+
+# Semantic search - best for concepts/questions
+qmd vsearch "how to add a new store" -n 5
+
+# Hybrid search with LLM re-ranking - best quality results
+qmd query "URL parsing and normalization" -n 5
+
+# Get specific file content
+qmd get packages/url-parser/README.md
+
+# List all indexed files
+qmd ls provo
+
+# Search within specific collection
+qmd search "regex patterns" -c provo
+```
+
+### Search Output Options
+
+```bash
+# JSON output for programmatic use
+qmd search "validation" --json -n 10
+
+# Full document content instead of snippets
+qmd search "API endpoints" --full
+
+# Files only (paths without content)
+qmd search "testing" --files
+
+# Markdown formatted output
+qmd query "error handling" --md
+```
+
+### Best Practices for AI Agents
+
+1. **Start with `qmd search`** for exact terms or keywords you know exist
+2. **Use `qmd vsearch`** when searching for concepts or asking questions
+3. **Use `qmd query`** for complex queries where you need the best results
+4. **Limit results** with `-n` flag to avoid overwhelming context
+5. **Use `--files`** when you just need file paths, not content
+6. **Chain with `qmd get`** to retrieve full file content after finding relevant docs
+
+### Keeping Index Updated
+
+```bash
+# Re-index after adding new documentation
+qmd update
+
+# Re-index and pull git changes first
+qmd update --pull
+
+# Regenerate embeddings (after update)
+qmd embed
+```
+
+### QMD Collection Details
+
+The `provo` collection indexes all markdown files in this repository:
+
+- Pattern: `**/*.md`
+- Excludes: `node_modules/`, `.git/`, `dist/`, `build/`
+- Context: "Rakuten Product Service - microservice for extracting product IDs from e-commerce URLs across 4000+ merchant stores"
+
+## Using Context7 for Library Documentation
+
+This project uses [Context7](https://context7.com) to fetch up-to-date, version-specific documentation for external libraries. Use Context7 when you need current API references for dependencies.
+
+### When to Use Context7
+
+Use Context7 for:
+
+- **API references**: Getting current Zod schema methods and options
+- **Configuration help**: AWS SAM template syntax, Vitest config options
+- **Library patterns**: Middy middleware patterns, Pino logger configuration
+- **Version-specific docs**: Ensuring code matches the exact library version in use
+
+### How to Invoke Context7
+
+Add "use context7" to your prompt, or specify a library directly:
+
+```
+# General invocation
+"How do I validate nested objects? use context7"
+
+# Specific library
+"use context7 /zod/zod for schema validation"
+"use context7 /vitest-dev/vitest for test configuration"
+"use context7 /middy/middy for middleware patterns"
+```
+
+### Common Libraries in This Project
+
+When working with this codebase, these Context7 library references are most useful:
+
+| Library | Context7 ID | Use Case |
+|---------|-------------|----------|
+| Zod | `/zod/zod` | Schema validation, type inference |
+| Vitest | `/vitest-dev/vitest` | Testing, mocking, coverage |
+| AWS SAM | `/aws/aws-sam-cli` | Lambda deployment, template syntax |
+| Middy | `/middy/middy` | Lambda middleware patterns |
+| Pino | `/pinojs/pino` | Structured logging |
+| esbuild | `/evanw/esbuild` | Bundling configuration |
+
+### Best Practices for AI Agents
+
+1. **Use Context7 for external libraries**, use QMD for project-specific documentation
+2. **Specify the library** when you know which one you need to avoid resolution overhead
+3. **Include version context** in your prompt if you need version-specific docs (e.g., "Zod 3.x")
+4. **Combine with QMD**: Use QMD to find how the project uses a library, then Context7 for the library's full API
+
+## PRD to Task Master Workflow
+
+This project uses a structured workflow for managing features: **PRD MCP** for requirements → **Task Master** for execution. This ensures proper planning before implementation.
+
+### Workflow Overview
+
+```
+1. Create PRD (PRD MCP)
+   └─> Define problem, solution, user stories
+
+2. Parse PRD to Tasks (Task Master)
+   └─> parse_prd converts user stories to tasks
+
+3. Analyze Complexity
+   └─> Break down any task with complexity > M
+
+4. Execute Tasks (Task Master)
+   └─> Use appropriate model for task complexity
+
+5. Track Progress
+   └─> Update task status, sync back to PRD
+```
+
+### Step 1: Create PRD with User Stories
+
+Use the PRD MCP tools to create structured requirements:
+
+```
+# Create a new PRD
+Use create_prd with:
+- title, overview, problemStatement
+- marketOpportunity, targetUsers
+- solutionDescription, keyFeatures, successMetrics
+
+# Add user stories with complexity estimates
+Use add_user_story with:
+- userType, action, benefit
+- acceptanceCriteria (determines complexity)
+- priority (P0-P3)
+```
+
+**Complexity is auto-calculated from acceptance criteria:**
+| Criteria Count | Complexity | Breakdown Required |
+|----------------|------------|-------------------|
+| 1-2 | XS | No |
+| 3 | S | No |
+| 4-5 | M | No |
+| 6-8 | L | **Yes** |
+| 9+ | XL | **Yes - into multiple tasks** |
+
+### Step 2: Parse PRD to Task Master
+
+Use Task Master's `parse_prd` tool to convert PRD user stories into actionable tasks:
+
+```
+# Parse the PRD to create tasks
+Use mcp__task-master__parse_prd with the PRD content
+
+# This creates tasks with:
+- Descriptions from user stories
+- Dependencies from story dependencies
+- Initial complexity estimates
+```
+
+### Step 3: Complexity Analysis and Breakdown
+
+**CRITICAL RULE: No task should have complexity > M (5 acceptance criteria)**
+
+For any L or XL complexity task:
+
+1. Use `mcp__task-master__expand_task` to break it into subtasks
+2. Each subtask should be independently completable
+3. Subtasks should have clear dependencies
+
+**Breakdown Guidelines:**
+| Original Complexity | Target Subtasks | Subtask Max Complexity |
+|---------------------|-----------------|------------------------|
+| L (6-8 criteria) | 3-4 subtasks | S-M |
+| XL (9+ criteria) | 5-8 subtasks | XS-S |
+
+### Step 4: Model Selection for Task Execution
+
+Select the appropriate model based on task complexity:
+
+| Task Complexity | Recommended Model | Use Case |
+|-----------------|-------------------|----------|
+| XS | `haiku` | Simple fixes, typos, small updates |
+| S | `haiku` | Single-file changes, straightforward implementations |
+| M | `sonnet` | Multi-file changes, moderate logic |
+| L (broken down) | `sonnet` | Complex features (after breakdown) |
+| Research/Planning | `opus` | Architecture decisions, complex analysis |
+
+**How to specify model in Task tool:**
+```
+Use Task tool with model: "haiku" for simple tasks
+Use Task tool with model: "sonnet" for medium tasks
+Use Task tool with model: "opus" for research/planning
+```
+
+### Step 5: Task Execution Workflow
+
+When working on tasks:
+
+```bash
+# 1. Get next available task
+Use mcp__task-master__next_task
+
+# 2. Read task details
+Use mcp__task-master__get_task with task ID
+
+# 3. Set status to in_progress
+Use mcp__task-master__set_task_status
+
+# 4. Implement the task
+# (Use appropriate model based on complexity)
+
+# 5. Update subtasks if applicable
+Use mcp__task-master__update_subtask
+
+# 6. Mark task complete
+Use mcp__task-master__set_task_status with status: "done"
+```
+
+### PRD MCP Tools Reference
+
+| Tool | Purpose |
+|------|---------|
+| `list_prds` | List all PRDs in `.prds/` directory |
+| `get_prd` | Get PRD JSON content |
+| `create_prd` | Create new structured PRD |
+| `add_user_story` | Add user story with auto-complexity |
+| `update_story_status` | Update story progress |
+| `export_prd_markdown` | Export for review/sharing |
+| `get_implementation_prompts` | Generate implementation prompts |
+| `get_improvement_suggestions` | Get PRD quality suggestions |
+| `get_project_status` | Overview of progress/blockers |
+
+### Task Master Tools Reference
+
+| Tool | Purpose |
+|------|---------|
+| `parse_prd` | Convert PRD to tasks |
+| `get_tasks` | List all tasks |
+| `get_task` | Get specific task details |
+| `next_task` | Get next actionable task |
+| `set_task_status` | Update task status |
+| `expand_task` | Break down complex task |
+| `update_subtask` | Update subtask details |
+
+### Best Practices for AI Agents
+
+1. **Always check PRD first** - Before implementing, verify a PRD exists or create one
+2. **Never skip complexity analysis** - Break down L/XL tasks before starting
+3. **Use the right model** - Don't use opus for simple tasks (wasteful), don't use haiku for complex tasks (insufficient)
+4. **Update status promptly** - Mark tasks in_progress when starting, done when complete
+5. **Sync PRD and Task Master** - Keep both systems updated for accurate tracking
+6. **Research before implementing** - For unfamiliar areas, use research tasks first
+
+### Example: Full Workflow
+
+```
+User: "Add caching to the URL parser"
+
+AI Agent workflow:
+1. Check if PRD exists for caching feature
+   → Use list_prds, get_prd if exists
+
+2. If no PRD, create one:
+   → Use create_prd with problem/solution
+   → Use add_user_story for cache scenarios
+
+3. Parse to tasks:
+   → Use mcp__task-master__parse_prd
+
+4. Check complexity:
+   → If L/XL tasks exist, use expand_task
+
+5. Get first task:
+   → Use mcp__task-master__next_task
+
+6. Implement with appropriate model:
+   → XS/S task: Task tool with model: "haiku"
+   → M task: Task tool with model: "sonnet"
+
+7. Complete and continue:
+   → set_task_status to "done"
+   → next_task for next item
+```

@@ -98,6 +98,7 @@ rr-product-service/
 
 - **Node.js** 22.21.0+ (use `nvm use` or `nvm install` - `.nvmrc` provided)
 - **pnpm** 9.x (`npm install -g pnpm@latest`)
+- **Bun** (for qmd installation): [Install Guide](https://bun.sh)
 - **AWS SAM CLI** (for local Lambda testing): [Install Guide](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/install-sam-cli.html)
 - **AWS CLI** configured with credentials (for deployment)
 - **OAK** (Rakuten AWS auth - for deployment to Rakuten AWS)
@@ -172,6 +173,255 @@ args = ["<full-path-to>/packages/mcp-server/build/index.js"]
 ```
 
 See [packages/mcp-server/README.md](packages/mcp-server/README.md) for full documentation and available tools.
+
+### QMD MCP Server (Optional)
+
+QMD can also run as an MCP server for AI tool integration, providing semantic search capabilities directly to AI agents.
+
+**Add to Claude Code:**
+
+```bash
+claude mcp add qmd qmd mcp
+```
+
+**Add to Claude Desktop** (in `claude_desktop_config.json`):
+
+```json
+{
+  "mcpServers": {
+    "qmd": {
+      "command": "qmd",
+      "args": ["mcp"]
+    }
+  }
+}
+```
+
+**Add to Cursor** (in `mcp.json`):
+
+```json
+{
+  "mcpServers": {
+    "qmd": {
+      "command": "qmd",
+      "args": ["mcp"]
+    }
+  }
+}
+```
+
+### Context7 MCP Server (Optional)
+
+[Context7](https://context7.com) fetches up-to-date, version-specific documentation for libraries directly into your prompts. This helps avoid outdated code examples and hallucinated APIs when working with dependencies like Zod, Vitest, AWS SAM, Middy, etc.
+
+**Get an API key:** Sign up at [context7.com](https://context7.com) to get your API key.
+
+**Add to Claude Code:**
+
+```bash
+# Remote connection (recommended)
+claude mcp add --header "CONTEXT7_API_KEY: YOUR_API_KEY" --transport http context7 https://mcp.context7.com/mcp
+
+# Or local connection
+claude mcp add context7 -- npx -y @upstash/context7-mcp --api-key YOUR_API_KEY
+```
+
+**Add to Claude Desktop** (in `claude_desktop_config.json`):
+
+```json
+{
+  "mcpServers": {
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp", "--api-key", "YOUR_API_KEY"]
+    }
+  }
+}
+```
+
+**Add to Cursor** (in `mcp.json`):
+
+```json
+{
+  "mcpServers": {
+    "context7": {
+      "url": "https://mcp.context7.com/mcp",
+      "headers": {
+        "CONTEXT7_API_KEY": "YOUR_API_KEY"
+      }
+    }
+  }
+}
+```
+
+**Usage:** Add "use context7" to your prompts, or specify a library directly: "use context7 /zod/zod for validation docs".
+
+### QMD Setup (Semantic Documentation Search)
+
+[QMD](https://github.com/tobi/qmd) is a local semantic search engine that indexes markdown documentation for fast searching. It combines BM25 full-text search, vector semantic search, and LLM re-ranking for high-quality results.
+
+**Install Bun (required for qmd):**
+
+```bash
+curl -fsSL https://bun.sh/install | bash
+# Add to PATH (restart terminal or run):
+export PATH="$HOME/.bun/bin:$PATH"
+```
+
+**Install QMD:**
+
+```bash
+bun install -g github:tobi/qmd
+```
+
+**Set up the project collection:**
+
+```bash
+# Create collection for this project
+qmd collection add . --name provo
+
+# Add context for better search results
+qmd context add qmd://provo "Rakuten Product Service - microservice for extracting product IDs from e-commerce URLs across 4000+ merchant stores"
+
+# Create vector embeddings (downloads models on first run)
+qmd embed
+```
+
+**Using QMD:**
+
+```bash
+# Fast keyword search
+qmd search "store configuration" -n 5
+
+# Semantic search (finds conceptually similar content)
+qmd vsearch "how to add a new store" -n 5
+
+# Hybrid search with LLM re-ranking (best quality)
+qmd query "URL parsing patterns" -n 5
+
+# Get specific file
+qmd get packages/url-parser/README.md
+
+# List indexed files
+qmd ls provo
+```
+
+**Keeping index updated:**
+
+```bash
+qmd update    # Re-index after changes
+qmd embed     # Regenerate embeddings
+```
+
+See [CLAUDE.md](CLAUDE.md) for detailed AI agent usage guidelines.
+
+### Task Master Setup
+
+[Task Master](https://github.com/task-master-ai/task-master) provides AI-powered task management that integrates with PRDs. It can parse PRDs into tasks, track complexity, and manage dependencies.
+
+**Add to Claude Code:**
+
+```bash
+claude mcp add task-master -- npx -y task-master-ai
+```
+
+**Add to Cursor** (in `mcp.json`):
+
+```json
+{
+  "mcpServers": {
+    "task-master": {
+      "command": "npx",
+      "args": ["-y", "task-master-ai"]
+    }
+  }
+}
+```
+
+## PRD → Task Master Workflow
+
+This project follows a structured workflow for feature development:
+
+```
+PRD (Requirements) → Task Master (Execution) → Implementation
+```
+
+### 1. Create a PRD
+
+Use the `rr-product-service` MCP to create structured PRDs:
+
+```bash
+# AI tools can use these PRD MCP tools:
+- create_prd          # Create new PRD with problem/solution
+- add_user_story      # Add user stories with acceptance criteria
+- get_project_status  # Check progress and blockers
+```
+
+PRDs are stored in `.prds/` as JSON with auto-generated markdown exports.
+
+### 2. Parse PRD to Tasks
+
+Use Task Master to convert PRD user stories into actionable tasks:
+
+```bash
+# Task Master parses PRD and creates tasks with:
+- Descriptions from user stories
+- Dependencies from story dependencies
+- Complexity estimates
+```
+
+### 3. Complexity Management
+
+**Rule: Maximum task complexity is M (Medium)**
+
+| Complexity | Criteria Count | Action |
+|------------|----------------|--------|
+| XS | 1-2 | Execute directly |
+| S | 3 | Execute directly |
+| M | 4-5 | Execute directly |
+| L | 6-8 | **Must break down** |
+| XL | 9+ | **Must break down into multiple tasks** |
+
+AI agents automatically break down L/XL tasks using `expand_task` before implementation.
+
+### 4. Model Selection
+
+Different AI models are suited for different task complexities:
+
+| Task Complexity | Model | Reasoning |
+|-----------------|-------|-----------|
+| XS-S | Haiku | Fast, cost-effective for simple changes |
+| M | Sonnet | Balanced for moderate complexity |
+| L (after breakdown) | Sonnet | Complex features split into manageable pieces |
+| Research/Architecture | Opus | Deep analysis, design decisions |
+
+### 5. Execution Workflow
+
+```bash
+# Typical task execution flow:
+1. next_task       # Get highest priority available task
+2. get_task        # Read full task details
+3. set_task_status # Mark as in_progress
+4. [Implement]     # Use appropriate model
+5. set_task_status # Mark as done
+6. [Repeat]        # Continue with next task
+```
+
+### Example Usage
+
+```
+Developer: "I want to add caching to the URL parser"
+
+AI Agent:
+1. Creates PRD with create_prd (problem: performance, solution: caching)
+2. Adds user stories with add_user_story (cache hits, invalidation, etc.)
+3. Uses Task Master parse_prd to create tasks
+4. Checks complexity - breaks down any L/XL tasks
+5. Executes tasks in priority order with appropriate models
+6. Updates status as tasks complete
+```
+
+See [CLAUDE.md](CLAUDE.md) for detailed AI agent instructions.
 
 ## Running Locally
 
