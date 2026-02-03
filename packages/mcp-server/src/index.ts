@@ -2,6 +2,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 
+import { registerCartEnricherTools } from './tools/cart-enricher';
 import { registerPRDTools } from './tools/prd-manager';
 import { registerStoreOnboardingTools } from './tools/store-onboarding';
 import { registerTaskTools } from './tools/task-manager';
@@ -19,6 +20,7 @@ async function main() {
   registerPRDTools(server);
   registerTaskTools(server);
   registerStoreOnboardingTools(server);
+  registerCartEnricherTools(server);
 
   await server.connect(transport);
 
