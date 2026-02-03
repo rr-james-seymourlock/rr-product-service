@@ -5,7 +5,6 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { registerCartEnricherTools } from './tools/cart-enricher';
 import { registerPRDTools } from './tools/prd-manager';
 import { registerStoreOnboardingTools } from './tools/store-onboarding';
-import { registerTaskTools } from './tools/task-manager';
 
 async function main() {
   // Create server instance
@@ -17,8 +16,8 @@ async function main() {
   const transport = new StdioServerTransport();
 
   // Register all tools
+  // Note: Task management is handled by Task Master MCP - use that instead
   registerPRDTools(server);
-  registerTaskTools(server);
   registerStoreOnboardingTools(server);
   registerCartEnricherTools(server);
 

@@ -1,18 +1,8 @@
 // Export all tool registration functions
+// Note: Task management is handled by Task Master MCP - use that instead
 export { registerPRDTools } from './prd-manager';
-export { registerTaskTools, TaskManager } from './task-manager';
 export { registerStoreOnboardingTools, StoreOnboardingManager } from './store-onboarding';
 export { registerCartEnricherTools, CartEnricherManager } from './cart-enricher';
-
-// Task Manager types
-export type {
-  Task,
-  TaskFile,
-  TaskStatus,
-  TaskPriority,
-  ComplexityScore,
-  ComplexityReport,
-} from './task-manager';
 
 // Store Onboarding types
 export type {
