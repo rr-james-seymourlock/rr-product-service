@@ -214,6 +214,56 @@ describe('parseUrlComponents', () => {
       expect(result.href).toBe('https://example.com/Product/ABC-123');
       expect(result.pathname).toBe('/Product/ABC-123');
     });
+
+    it('should normalize URLs starting with www. by prepending https://', () => {
+      const url = 'www.savagex.com/products/SLEEK-STITCH-JUMPSUIT-NO2500505-1533';
+      const result = parseUrlComponents(url);
+
+      expect(result.href).toBe('https://savagex.com/products/SLEEK-STITCH-JUMPSUIT-NO2500505-1533');
+      expect(result.hostname).toBe('savagex.com');
+      expect(result.pathname).toBe('/products/SLEEK-STITCH-JUMPSUIT-NO2500505-1533');
+      expect(result.domain).toBe('savagex.com');
+      expect(result.original).toBe(url);
+    });
+
+    it('should normalize www. URLs with query parameters', () => {
+      const url = 'www.example.com/product?id=123&color=blue';
+      const result = parseUrlComponents(url);
+
+      expect(result.href).toBe('https://example.com/product?color=blue&id=123');
+      expect(result.hostname).toBe('example.com');
+      expect(result.pathname).toBe('/product');
+      expect(result.search).toBe('?color=blue&id=123');
+    });
+
+    it('should normalize www. URLs with multi-part TLDs', () => {
+      const url = 'www.amazon.co.uk/product/B08N5WRWNW';
+      const result = parseUrlComponents(url);
+
+      expect(result.href).toBe('https://amazon.co.uk/product/B08N5WRWNW');
+      expect(result.domain).toBe('amazon.co.uk');
+      expect(result.hostname).toBe('amazon.co.uk');
+    });
+
+    it('should normalize www. URLs with subdomains preserved', () => {
+      const url = 'www.oldnavy.gap.com/product/123';
+      const result = parseUrlComponents(url);
+
+      expect(result.href).toBe('https://oldnavy.gap.com/product/123');
+      expect(result.domain).toBe('oldnavy.gap.com');
+    });
+
+    it('should create consistent keys for www. and https:// versions of same URL', () => {
+      const wwwUrl = 'www.example.com/product/123';
+      const httpsUrl = 'https://www.example.com/product/123';
+
+      const wwwResult = parseUrlComponents(wwwUrl);
+      const httpsResult = parseUrlComponents(httpsUrl);
+
+      // Both should normalize to the same URL and produce the same key
+      expect(wwwResult.key).toBe(httpsResult.key);
+      expect(wwwResult.href).toBe(httpsResult.href);
+    });
   });
 
   describe('error handling', () => {

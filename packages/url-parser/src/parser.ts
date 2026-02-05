@@ -157,10 +157,19 @@ export const parseUrlComponents = (url: unknown) => {
   logger.debug({ urlType: typeof url }, 'Parsing URL components');
 
   let validatedUrl: string;
+  let originalUrl: string;
 
   if (process.env['NODE_ENV'] === 'development') {
     // Full Zod validation in development
     validatedUrl = urlInputSchema.parse(url);
+    originalUrl = validatedUrl;
+
+    // Normalize URLs starting with 'www.' by prepending 'https://'
+    // This handles cases where URLs are stored without protocol
+    if (validatedUrl.startsWith('www.')) {
+      logger.debug({ originalUrl: validatedUrl }, 'Prepending https:// to www. URL');
+      validatedUrl = `https://${validatedUrl}`;
+    }
   } else {
     // Lightweight validation in production
     if (typeof url !== 'string' || url.length === 0) {
@@ -171,15 +180,26 @@ export const parseUrlComponents = (url: unknown) => {
       );
     }
 
+    // At this point, TypeScript knows url is a string
+    let urlString = url;
+    originalUrl = urlString;
+
+    // Normalize URLs starting with 'www.' by prepending 'https://'
+    // This handles cases where URLs are stored without protocol
+    if (urlString.startsWith('www.')) {
+      logger.debug({ originalUrl: urlString }, 'Prepending https:// to www. URL');
+      urlString = `https://${urlString}`;
+    }
+
     // Native URL constructor validates format (fast, secure)
     try {
-      const testUrl = new URL(url);
+      const testUrl = new URL(urlString);
 
       // Block dangerous protocols
       if (testUrl.protocol !== 'http:' && testUrl.protocol !== 'https:') {
         logger.error({ protocol: testUrl.protocol }, 'Invalid protocol');
         throw new InvalidUrlError(
-          url,
+          urlString,
           `Invalid protocol: ${testUrl.protocol}. Only HTTP(S) protocols are allowed`,
         );
       }
@@ -191,12 +211,12 @@ export const parseUrlComponents = (url: unknown) => {
 
       logger.error(
         error instanceof Error ? error : new Error('Unknown error'),
-        `URL validation failed: ${url}`,
+        `URL validation failed: ${urlString}`,
       );
-      throw new InvalidUrlError(url);
+      throw new InvalidUrlError(urlString);
     }
 
-    validatedUrl = url;
+    validatedUrl = urlString;
   }
 
   try {
@@ -228,7 +248,7 @@ export const parseUrlComponents = (url: unknown) => {
       search,
       domain,
       key,
-      original: validatedUrl,
+      original: originalUrl,
     };
 
     // Validate output in development only
