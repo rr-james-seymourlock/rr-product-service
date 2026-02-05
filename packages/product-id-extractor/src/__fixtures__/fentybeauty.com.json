@@ -1,0 +1,31 @@
+{
+  "name": "Fenty Beauty + Fenty Skin",
+  "id": 18506,
+  "domain": "fentybeauty.com",
+  "testCases": [
+    {
+      "url": "https://fentybeauty.com/products/gloss-bomb-stix-high-shine-gloss-stick-how-many-carats?variant=43962646134829",
+      "expectedSkus": ["43962646134829"]
+    },
+    {
+      "url": "https://fentybeauty.com/products/gloss-bomb-universal-lip-luminizer-gimme-space?variant=43818693689389",
+      "expectedSkus": ["43818693689389"]
+    },
+    {
+      "url": "https://fentybeauty.com/products/gloss-bomb-stix-high-shine-gloss-stick-shimmering-hot-chocolit?variant=43097735954477",
+      "expectedSkus": ["43097735954477"]
+    },
+    {
+      "url": "https://fentybeauty.com/products/traced-out-longwear-waterproof-pencil-lip-liner-pnut-butta?variant=42128109797421",
+      "expectedSkus": ["42128109797421"]
+    },
+    {
+      "url": "https://fentybeauty.com/products/gloss-bomb-stix-high-shine-gloss-stick-how-many-carats?variant=43962646134829&utm_source=google",
+      "expectedSkus": ["43962646134829"]
+    },
+    {
+      "url": "https://www.fentybeauty.com/products/gloss-bomb-universal-lip-luminizer-gimme-space?variant=43818693689389",
+      "expectedSkus": ["43818693689389"]
+    }
+  ]
+}

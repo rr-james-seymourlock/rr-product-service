@@ -776,6 +776,42 @@ const mutableStoreConfigs: StoreConfigInterface[] = [
       ),
     ],
   },
+  // Savage X Fenty (ID: 20040)
+  // URL pattern: /products/{PRODUCT-NAME-SKU}
+  // Product ID formats:
+  //   1. Letter prefix + digits + dash + digits (e.g., NO2500505-1533, SQ2500721-1533)
+  //   2. Letter prefix + digits (e.g., SXFSP260143, SXFFA250928)
+  // URLs are normalized to lowercase before matching
+  {
+    id: '20040',
+    domain: 'savagex.com',
+    pathnamePatterns: [
+      // Pattern 1: no2500505-1533 (2-3 letters + 7-10 digits + dash + 3-5 digits)
+      buildRegExp(
+        [
+          capture([
+            repeat(charClass(charRange('a', 'z')), { min: 2, max: 3 }),
+            repeat(digit, { min: 7, max: 10 }),
+            '-',
+            repeat(digit, { min: 3, max: 5 }),
+          ]),
+          wordBoundary,
+        ],
+        { global: true },
+      ),
+      // Pattern 2: sxfsp260143 (4-6 letters + 6-10 digits)
+      buildRegExp(
+        [
+          capture([
+            repeat(charClass(charRange('a', 'z')), { min: 4, max: 6 }),
+            repeat(digit, { min: 6, max: 10 }),
+          ]),
+          wordBoundary,
+        ],
+        { global: true },
+      ),
+    ],
+  },
   {
     id: '10802',
     domain: 'wayfair.com',

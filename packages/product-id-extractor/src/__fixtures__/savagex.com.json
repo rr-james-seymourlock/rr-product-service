@@ -1,0 +1,67 @@
+{
+  "name": "Savage X Fenty",
+  "id": 20040,
+  "domain": "savagex.com",
+  "testCases": [
+    {
+      "url": "https://www.savagex.com/products/SLEEK-STITCH-JUMPSUIT-NO2500505-1533",
+      "expectedSkus": ["no2500505-1533"]
+    },
+    {
+      "url": "https://www.savagex.com/products/ROMANTIC-CORDED-LACE-BRAZILIAN-2-PIECE-SET-SXFSP260143",
+      "expectedSkus": ["sxfsp260143"]
+    },
+    {
+      "url": "https://www.savagex.com/products/FOR-DREAMERS-2-PIECE-SET-SXFFA250928",
+      "expectedSkus": ["sxffa250928"]
+    },
+    {
+      "url": "https://www.savagex.com/products/SAVAGE-CLASSICS-BOXER-BRIEFS-3-PACK-UD2458993-0651",
+      "expectedSkus": ["ud2458993-0651"]
+    },
+    {
+      "url": "https://www.savagex.com/products/NITE-SHADE-LACE-SLEEP-SLIP-SQ2500721-1533",
+      "expectedSkus": ["sq2500721-1533"]
+    },
+    {
+      "url": "https://www.savagex.com/products/FOREVER-SAVAGE-WIDE-LEG-ONESIE-SQ2500680-14685",
+      "expectedSkus": ["sq2500680-14685"]
+    },
+    {
+      "url": "https://www.savagex.com/products/SAVAGE-X-BOXER-BRIEFS-3-PACK-UD2500555-14726",
+      "expectedSkus": ["ud2500555-14726"]
+    },
+    {
+      "url": "https://www.savagex.com/products/ROSELACE-CHEEKY-PANTY-UD2500782-11528",
+      "expectedSkus": ["ud2500782-11528"]
+    },
+    {
+      "url": "https://www.savagex.com/products/SAVAGE-NOT-SORRY-BALCONETTE-2-PIECE-SET-SXFHO251130",
+      "expectedSkus": ["sxfho251130"]
+    },
+    {
+      "url": "https://www.savagex.com/products/ROSELACE-UNLINED-BALCONETTE-BRA-BA2500734-1533",
+      "expectedSkus": ["ba2500734-1533"]
+    },
+    {
+      "url": "https://www.savagex.com/products/ROMANTIC-CORDED-LACE-UNLINED-BALCONETTE-BRA-BA2458464-0687",
+      "expectedSkus": ["ba2458464-0687"]
+    },
+    {
+      "url": "https://www.savagex.com/products/SINFUL-ROSE-PRINTED-LACE-HIGH-LEG-BRAZILIAN-PANTY-UD2500793-14717",
+      "expectedSkus": ["ud2500793-14717"]
+    },
+    {
+      "url": "https://www.savagex.com/products/ROMANTIC-CORDED-LACE-BRAZILIAN-PANTY-UD2148529-11528",
+      "expectedSkus": ["ud2148529-11528"]
+    },
+    {
+      "url": "https://www.savagex.com/products/ROSELACE-CHEEKY-PANTY-UD2500782-11528?color=blue",
+      "expectedSkus": ["ud2500782-11528"]
+    },
+    {
+      "url": "www.savagex.com/products/SLEEK-STITCH-JUMPSUIT-NO2500505-1533",
+      "expectedSkus": ["no2500505-1533"]
+    }
+  ]
+}
