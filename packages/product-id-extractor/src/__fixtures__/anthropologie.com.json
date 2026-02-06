@@ -1,0 +1,11 @@
+{
+  "name": "Anthropologie",
+  "id": 12028,
+  "domain": "anthropologie.com",
+  "testCases": [
+    {
+      "url": "https://www.anthropologie.com/shop/product/AN-4139880890483-000",
+      "expectedSkus": ["4139880890483-000"]
+    }
+  ]
+}

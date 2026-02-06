@@ -1,0 +1,47 @@
+{
+  "name": "Zazzle",
+  "id": 9350,
+  "domain": "zazzle.com",
+  "testCases": [
+    {
+      "url": "https://www.zazzle.com/pd/spp/pt-casemate_case?pd=256994238483435165&get_started_dialog=false&formfactor=apple_iphone16&style=tough&media=hardplastic&color=white&design.areas=%5Bapple_iphone16_tough_front2%5D&context=114812617505318534&view=11352061223742",
+      "expectedSkus": ["256994238483435165"]
+    },
+    {
+      "url": "https://www.zazzle.com/cute_green_t_rex_dinosaur_boys_dry_erase_board-256825980116619284?context=114257594945807688",
+      "expectedSkus": ["256825980116619284"]
+    },
+    {
+      "url": "https://www.zazzle.com/two_page_mediumcalendar_white_calendar-256763609316329110",
+      "expectedSkus": ["256763609316329110"]
+    },
+    {
+      "url": "https://www.zazzle.com/pd/spp/pt-zazzle_paperornament?pd=256264013185423683&get_started_dialog=false&style=scalloped&media=120lbeggshell&envelopes=white&design.areas=%5Bzazzle_paperornament_scalloped_front%2Czazzle_paperornament_scalloped_back_back%5D&con",
+      "expectedSkus": ["256264013185423683"]
+    },
+    {
+      "url": "https://www.zazzle.com/pd/spp/pt-zazzle_ornament?pd=256610970354160860&get_started_dialog=false&style=square&giftwrap=none&design.areas=%5Bzazzle_ornament_square_front%2Czazzle_ornament_square_back_back%5D&context=114714990326056473&view=11341031096249921",
+      "expectedSkus": ["256610970354160860"]
+    },
+    {
+      "url": "https://www.zazzle.com/pd/spp/pt-zazzle_shirt?pd=256562063642980809&get_started_dialog=false&style=bella_mens_zipfull_hoodie_3739&color=navy&size=a_l&design.areas=%5Bfront_pckt%2Czazzle_shirt_10x12_back%5D&context=114371345059141108&view=11311490271403198",
+      "expectedSkus": ["256562063642980809"]
+    },
+    {
+      "url": "https://www.zazzle.com/pd/spp/pt-zazzle_flatthankyoucard?pd=256602995204367905&get_started_dialog=false&style=5x7&cornerstyle=normal&media=semigloss&printquality=4color&envelopes=none&design.areas=%5B5x7_front_full_vert%2C5x7_back_full_vert%5D&context=114",
+      "expectedSkus": ["256602995204367905"]
+    },
+    {
+      "url": "https://www.zazzle.com/pd/spp/pt-zazzle_tie?pd=256244945948171028&get_started_dialog=false&style=standard_tie&design.areas=%5Bfront_vert%2Cback_vert%5D&context=114207540705796597&view=113054760991432759&customize_it=true",
+      "expectedSkus": ["256244945948171028"]
+    },
+    {
+      "url": "https://www.zazzle.com/pd/spp/pt-zazzle_flatholidaycard?pd=256772296439444231&get_started_dialog=false&style=5x7&cornerstyle=normal&media=semigloss&printquality=4color&envelopes=white&zattribution=none&design.areas=%5B5x7_front_full_vert%2C5x7_back_full_v",
+      "expectedSkus": ["256772296439444231"]
+    },
+    {
+      "url": "https://www.zazzle.com/notes-256820176426236122",
+      "expectedSkus": ["256820176426236122"]
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "name": "Coach Outlet",
+  "id": 18916,
+  "domain": "coachoutlet.com",
+  "testCases": [
+    {
+      "url": "https://www.coachoutlet.com/on/demandware.store/Sites-coh_us_out-Site/en_US/Cart-GetProduct?uuid=df80e023e29953ea73e31e767a&pid=CCF99%20GRM",
+      "expectedSkus": ["ccf99"]
+    },
+    {
+      "url": "https://www.coachoutlet.com/on/demandware.store/Sites-coh_us_out-Site/en_US/Cart-GetProduct?uuid=239f338f5deb141ee939d8e2e2&pid=CV940%20IMXAQ",
+      "expectedSkus": ["cv940"]
+    },
+    {
+      "url": "https://www.coachoutlet.com/on/demandware.store/Sites-coh_us_out-Site/en_US/Cart-GetProduct?uuid=55f3ed8ba9149bff7558c815eb&pid=CV965%20IMXAQ",
+      "expectedSkus": ["cv965"]
+    },
+    {
+      "url": "https://www.coachoutlet.com/on/demandware.store/Sites-coh_us_out-Site/en_US/Cart-GetProduct?uuid=1a83c6aee04286c13c933021f9&pid=CW426%20IMXDM",
+      "expectedSkus": ["cw426"]
+    },
+    {
+      "url": "https://www.coachoutlet.com/on/demandware.store/Sites-coh_us_out-Site/en_US/Cart-GetProduct?uuid=53a8d0eab7e9371df2467a1f7a&pid=CAR26%20SV%2fDE",
+      "expectedSkus": ["car26"]
+    },
+    {
+      "url": "https://www.coachoutlet.com/on/demandware.store/Sites-coh_us_out-Site/en_US/Cart-GetProduct?uuid=adaf51023e6d26979d0dfe4e44&pid=CY752%20IMXAQ",
+      "expectedSkus": ["cy752"]
+    },
+    {
+      "url": "https://www.coachoutlet.com/on/demandware.store/Sites-coh_us_out-Site/en_US/Cart-GetProduct?uuid=e9c7a8c2129f2bbb374c9552fc&pid=CCS50%20IMYGQ",
+      "expectedSkus": ["ccs50"]
+    },
+    {
+      "url": "https://www.coachoutlet.com/on/demandware.store/Sites-coh_us_out-Site/en_US/Cart-GetProduct?uuid=aa31971f20bd377b7aa0586be0&pid=CCK96%20SVAKG",
+      "expectedSkus": ["cck96"]
+    },
+    {
+      "url": "https://www.coachoutlet.com/on/demandware.store/Sites-coh_us_out-Site/en_US/Cart-GetProduct?uuid=a56d1462eb053625a0797d0655&pid=CCD66%20IMXAQ",
+      "expectedSkus": ["ccd66"]
+    },
+    {
+      "url": "https://www.coachoutlet.com/on/demandware.store/Sites-coh_us_out-Site/en_US/Cart-GetProduct?uuid=afff3f2c8381e2f973e3166edc&pid=CR111%20IMBLK",
+      "expectedSkus": ["cr111"]
+    }
+  ]
+}
