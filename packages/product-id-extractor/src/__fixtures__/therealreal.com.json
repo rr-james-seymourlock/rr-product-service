@@ -1,0 +1,47 @@
+{
+  "name": "TheRealReal",
+  "id": 11433,
+  "domain": "therealreal.com",
+  "testCases": [
+    {
+      "url": "https://www.therealreal.com/products/maison-margiela-2018-silk-shirt-sb6jh",
+      "expectedSkus": ["sb6jh"]
+    },
+    {
+      "url": "https://www.therealreal.com/products/2-07ctw-lab-grown-diamond-pendant-rm4mn",
+      "expectedSkus": ["rm4mn"]
+    },
+    {
+      "url": "https://www.therealreal.com/products/david-yurman-black-orchid-diamond-petite-albion-earrings-sexv8",
+      "expectedSkus": ["sexv8"]
+    },
+    {
+      "url": "https://www.therealreal.com/products/rebecca-taylor-silk-mini-dress-q8786",
+      "expectedSkus": ["q8786"]
+    },
+    {
+      "url": "https://www.therealreal.com/products/house-of-sunny-plaid-print-mini-skirt-rid8e",
+      "expectedSkus": ["rid8e"]
+    },
+    {
+      "url": "https://www.therealreal.com/products/balenciaga-2018-blazer-rttst",
+      "expectedSkus": ["rttst"]
+    },
+    {
+      "url": "https://www.therealreal.com/products/weekend-max-mara-knee-length-skirt-qqhar",
+      "expectedSkus": ["qqhar"]
+    },
+    {
+      "url": "https://www.therealreal.com/products/st-john-evening-wide-leg-pants-qwogr",
+      "expectedSkus": ["qwogr"]
+    },
+    {
+      "url": "https://www.therealreal.com/products/louis-vuitton-urs-fischer-neverfull-pouch-sbvaj",
+      "expectedSkus": ["sbvaj"]
+    },
+    {
+      "url": "https://www.therealreal.com/products/louis-vuitton-lv-monogram-boite-chapeaux-mini-sloeq",
+      "expectedSkus": ["sloeq"]
+    }
+  ]
+}

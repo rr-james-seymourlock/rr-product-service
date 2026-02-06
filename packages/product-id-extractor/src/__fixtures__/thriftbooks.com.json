@@ -1,0 +1,47 @@
+{
+  "name": "ThriftBooks",
+  "id": 21288,
+  "domain": "thriftbooks.com",
+  "testCases": [
+    {
+      "url": "https://www.thriftbooks.com/w/cathedral-basilica-of-st-louis/55932354/#isbn=1681066025",
+      "expectedSkus": ["55932354"]
+    },
+    {
+      "url": "https://www.thriftbooks.com/w/whole-beauty-daily-rituals-and-natural-recipes-for-lifelong-beauty-and-wellness_shiva-rose/19571393/#isbn=1579657729",
+      "expectedSkus": ["19571393"]
+    },
+    {
+      "url": "https://www.thriftbooks.com/w/a-cold-heart-by-jonathan-kellerman/348111/#isbn=0345452550",
+      "expectedSkus": ["348111"]
+    },
+    {
+      "url": "https://www.thriftbooks.com/w/the-drummond-girls-a-story-of-fierce-friendship-beyond-time-and-chance/9186750/#isbn=145555474X",
+      "expectedSkus": ["9186750"]
+    },
+    {
+      "url": "https://www.thriftbooks.com/w/awakening-self-compassion-cards-52-practices-for-self-care-healing-and-growth/28732258/#isbn=1611809584",
+      "expectedSkus": ["28732258"]
+    },
+    {
+      "url": "https://www.thriftbooks.com/w/empire-of-the-risen-son-two-volumes-combined-a-treatise-on-the-kingdom-of-god/29280965/#isbn=1662824971",
+      "expectedSkus": ["29280965"]
+    },
+    {
+      "url": "https://www.thriftbooks.com/w/the-heart-healthy-cookbook-for-two-125-perfectly-portioned-low-sodium-low-fat-recipes/19409647/#isbn=1939754119",
+      "expectedSkus": ["19409647"]
+    },
+    {
+      "url": "https://www.thriftbooks.com/w/dog-man-a-tale-of-two-kitties-from-the-creator-of-captain-underpants-dog-man-3_dav-pilkey/13868614/#isbn=0545935210",
+      "expectedSkus": ["13868614"]
+    },
+    {
+      "url": "https://www.thriftbooks.com/w/through-gates-of-splendor_elisabeth-elliot/248469/#isbn=1619706059",
+      "expectedSkus": ["248469"]
+    },
+    {
+      "url": "https://www.thriftbooks.com/w/looking-for-alaska-by-john-green/248032/#isbn=0142402516",
+      "expectedSkus": ["248032"]
+    }
+  ]
+}

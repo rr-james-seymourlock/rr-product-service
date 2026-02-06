@@ -1,0 +1,47 @@
+{
+  "name": "LOFT",
+  "id": 9142,
+  "domain": "loft.com",
+  "testCases": [
+    {
+      "url": "https://www.loft.com/clothing/tops/catl000011/metallic-asymmetrical-ruched-off-shoulder-top/39845917.html",
+      "expectedSkus": ["39845917"]
+    },
+    {
+      "url": "https://www.loft.com/petites/petite-tops/catl000034/petite-sequin-tie-back-halter-top/39873200.html",
+      "expectedSkus": ["39873200"]
+    },
+    {
+      "url": "https://www.loft.com/clothing/sweaters/catl000012/shimmer-mixed-ribbed-sweater/39860736.html",
+      "expectedSkus": ["39860736"]
+    },
+    {
+      "url": "https://www.loft.com/clothing/sleepwear/cat2950003/lou-grey-brushed-waffle-pajama-set/39269485.html",
+      "expectedSkus": ["39269485"]
+    },
+    {
+      "url": "https://www.loft.com/petites/petite-tops/catl000034/petite-lou-grey-scubasoft-mock-neck-drawstring-top/39816054.html",
+      "expectedSkus": ["39816054"]
+    },
+    {
+      "url": "https://www.loft.com/sale/sale-dresses/catl000054/dotted-satin-shoulder-tie-maxi-dress/39407634.html",
+      "expectedSkus": ["39407634"]
+    },
+    {
+      "url": "https://www.loft.com/sfcc-103-loft-promo-bucket-%2439-sel-112025/cat5190047/petite-embossed-faux-leather-mini-skirt/39787910.html",
+      "expectedSkus": ["39787910"]
+    },
+    {
+      "url": "https://www.loft.com/clothing/haven-well-within/intimates/cat4300028/haven-well-embrace-lightly-lined-perfect-coverage-bra/36987719.html",
+      "expectedSkus": ["36987719"]
+    },
+    {
+      "url": "https://www.loft.com/clothing/tops/catl000011/haven-well-cloud-fleece-crewneck-sweatshirt/40217062.html",
+      "expectedSkus": ["40217062"]
+    },
+    {
+      "url": "https://www.loft.com/clothing/sleepwear/cat2950003/lou-grey-heathered-softened-modal-pajama-set/39889065.html",
+      "expectedSkus": ["39889065"]
+    }
+  ]
+}

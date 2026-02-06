@@ -1,0 +1,43 @@
+{
+  "name": "Talbots",
+  "id": 12514,
+  "domain": "talbots.com",
+  "testCases": [
+    {
+      "url": "https://www.talbots.com/ribbed-turtleneck-sweater---stripe/58409152.html",
+      "expectedSkus": ["58409152"]
+    },
+    {
+      "url": "https://www.talbots.com/straight-crop-jeans---alessia-wash/57888095.html",
+      "expectedSkus": ["57888095"]
+    },
+    {
+      "url": "https://www.talbots.com/ribbed-funnel-neck-pullover/58190661.html",
+      "expectedSkus": ["58190661"]
+    },
+    {
+      "url": "https://www.talbots.com/out-and-about-joggers/57611587.html",
+      "expectedSkus": ["57611587"]
+    },
+    {
+      "url": "https://www.talbots.com/classic-shetland-blazer/58305140.html",
+      "expectedSkus": ["58305140"]
+    },
+    {
+      "url": "https://www.talbots.com/long-sleeve-crewneck-tee---falling-leaves/58205174.html",
+      "expectedSkus": ["58205174"]
+    },
+    {
+      "url": "https://www.talbots.com/cozy-french-terry-half-zip-pullover---tonal-cheetah/58193631.html",
+      "expectedSkus": ["58193631"]
+    },
+    {
+      "url": "https://www.talbots.com/textured-stretch-linen-blazer/57800578.html",
+      "expectedSkus": ["57800578"]
+    },
+    {
+      "url": "https://www.talbots.com/lightweight-flannel-frosted-plaid-pajama-pants/58446614.html",
+      "expectedSkus": ["58446614"]
+    }
+  ]
+}
