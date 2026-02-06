@@ -1,0 +1,107 @@
+{
+  "name": "L.L.Bean",
+  "id": 3186,
+  "domain": "llbean.com",
+  "testCases": [
+    {
+      "url": "https://www.llbean.com/llb/shop/5827855?sku=1000302055&pos=6",
+      "expectedSkus": ["1000302055", "5827855"]
+    },
+    {
+      "url": "https://www.llbean.com/llb/shop/70362?csp=a&attrValue_0=Antique%20Dress%20Stewart&sku=1000197714&pos=1",
+      "expectedSkus": ["1000197714"]
+    },
+    {
+      "url": "https://www.llbean.com/llb/shop/32863?csp=a&attrValue_0=Dark%20Khaki&sku=1000239160&pos=2",
+      "expectedSkus": ["1000239160"]
+    },
+    {
+      "url": "https://www.llbean.com/llb/shop/124602?sku=1000046736&pos=3",
+      "expectedSkus": ["1000046736", "124602"]
+    },
+    {
+      "url": "https://www.llbean.com/llb/shop/118005?sku=1000122987&pos=6",
+      "expectedSkus": ["1000122987", "118005"]
+    },
+    {
+      "url": "https://www.llbean.com/llb/shop/91480?sku=0RGT210006&pos=4",
+      "expectedSkus": ["0rgt210006"]
+    },
+    {
+      "url": "https://www.llbean.com/llb/shop/129070?csp=a&attrValue_0=Coyote&sku=1000206602&pos=2",
+      "expectedSkus": ["1000206602", "129070"]
+    },
+    {
+      "url": "https://www.llbean.com/llb/shop/5834439?sku=1000290739&pos=2",
+      "expectedSkus": ["1000290739", "5834439"]
+    },
+    {
+      "url": "https://www.llbean.com/llb/shop/125455?sku=1000228363&pos=8",
+      "expectedSkus": ["1000228363", "125455"]
+    },
+    {
+      "url": "https://www.llbean.com/llb/shop/129427?sku=1000215361&pos=9",
+      "expectedSkus": ["1000215361", "129427"]
+    },
+    {
+      "url": "https://www.llbean.com/llb/shop/127499?csp=a&attrValue_0=Classic%20Navy&sku=1000265802&pos=2",
+      "expectedSkus": ["1000265802", "127499"]
+    },
+    {
+      "url": "https://www.llbean.com/llb/shop/125793?sku=1000142620&pos=3",
+      "expectedSkus": ["1000142620", "125793"]
+    },
+    {
+      "url": "https://www.llbean.com/llb/shop/128947?csp=a&attrValue_0=Deep%20Rosewood%20Heather&sku=1000283384&pos=1",
+      "expectedSkus": ["1000283384", "128947"]
+    },
+    {
+      "url": "https://www.llbean.com/llb/shop/124859?csp=a&attrValue_0=Dark%20Charcoal%20Heather&sku=1000061563&pos=2",
+      "expectedSkus": ["1000061563", "124859"]
+    },
+    {
+      "url": "https://www.llbean.com/llb/shop/51558?csp=a&attrValue_0=Silver%20Pine&sku=1000290822&pos=4",
+      "expectedSkus": ["1000290822"]
+    },
+    {
+      "url": "https://www.llbean.com/llb/shop/129931?csp=a&attrValue_0=Burgundy%20Brown&sku=1000306737&pos=9",
+      "expectedSkus": ["1000306737", "129931"]
+    },
+    {
+      "url": "https://www.llbean.com/llb/shop/129247?csp=a&attrValue_0=Jadeite&sku=1000263432&pos=1",
+      "expectedSkus": ["1000263432", "129247"]
+    },
+    {
+      "url": "https://www.llbean.com/llb/shop/128534?sku=1000288778&pos=5",
+      "expectedSkus": ["1000288778", "128534"]
+    },
+    {
+      "url": "https://www.llbean.com/llb/shop/35079?csp=a&attrValue_0=Blue&sku=0WU1920002&pos=4",
+      "expectedSkus": ["0wu1920002"]
+    },
+    {
+      "url": "https://www.llbean.com/llb/shop/130208?sku=1000254128&pos=16",
+      "expectedSkus": ["1000254128", "130208"]
+    },
+    {
+      "url": "https://www.llbean.com/llb/shop/129902?csp=a&attrValue_0=Burgundy%20Brown&sku=1000284109&pos=3",
+      "expectedSkus": ["1000284109", "129902"]
+    },
+    {
+      "url": "https://www.llbean.com/llb/shop/5812420?sku=1000272560&pos=1",
+      "expectedSkus": ["1000272560", "5812420"]
+    },
+    {
+      "url": "https://www.llbean.com/llb/shop/70362?csp=a&attrValue_0=Antique%20Dress%20Stewart&sku=1000197815&pos=1",
+      "expectedSkus": ["1000197815"]
+    },
+    {
+      "url": "https://www.llbean.com/llb/shop/56777?csp=a&attrValue_0=Dark%20Taupe&sku=1000210934&pos=1",
+      "expectedSkus": ["1000210934"]
+    },
+    {
+      "url": "https://www.llbean.com/llb/shop/129193?sku=1000212628&pos=6",
+      "expectedSkus": ["1000212628", "129193"]
+    }
+  ]
+}

@@ -1,0 +1,107 @@
+{
+  "name": "AliExpress",
+  "id": 10644,
+  "domain": "aliexpress.com",
+  "testCases": [
+    {
+      "url": "https://www.aliexpress.us/item/1005010070248006.html?utparam-url=scene%3Aimage_search%7Cquery_from%3Acart_normal_item%7Cx_object_id%3A1005010070248006%7C_p_origin_prod%3A&algo_pvid=a1e1ae43-51d7-4a50-a45e-83b2f04ad264&algo_exp_id=a1e1ae43-51d7-4a50-a45e-8",
+      "expectedSkus": ["1005010070248006"]
+    },
+    {
+      "url": "https://www.aliexpress.com/item/3256805949334730.html",
+      "expectedSkus": ["3256805949334730"]
+    },
+    {
+      "url": "https://www.aliexpress.com/store/1100395780",
+      "expectedSkus": ["1100395780"]
+    },
+    {
+      "url": "https://www.aliexpress.com/item/3256809600204377.html?mp=1&pdp_npi=5%40dis%21USD%21USD%207.44%21USD%200.99%21%21USD%200.99%21%21%21%402101e07217646389321741227e2715%2112000050152469847%21ct%21US%21-1%21%211%210",
+      "expectedSkus": ["3256809600204377"]
+    },
+    {
+      "url": "https://www.aliexpress.com/item/3256810110559708.html",
+      "expectedSkus": ["3256810110559708"]
+    },
+    {
+      "url": "https://www.aliexpress.com/item/3256809785759650.html",
+      "expectedSkus": ["3256809785759650"]
+    },
+    {
+      "url": "https://www.aliexpress.com/item/3256810098337844.html",
+      "expectedSkus": ["3256810098337844"]
+    },
+    {
+      "url": "https://www.aliexpress.us/item/3256809119916322.html?gps-id=pcOrderListRecommend&scm=1007.38956.373968.0&scm_id=1007.38956.373968.0&scm-url=1007.38956.373968.0&pvid=4492fc34-664d-40b5-b2bd-d4da8c7c8498&_t=gps-id:pcOrderListRecommend,scm-url:1007.38956.373",
+      "expectedSkus": ["3256809119916322"]
+    },
+    {
+      "url": "https://www.aliexpress.com/item/3256809584237788.html?mp=1&pdp_npi=5%40dis%21USD%21USD%2063.95%21USD%2022.64%21%21USD%2022.64%21%21%21%402101d6ff17646380816798942ea191%2112000050107154547%21ct%21US%211889687029%21%211%210",
+      "expectedSkus": ["3256809584237788"]
+    },
+    {
+      "url": "https://www.aliexpress.com/item/3256808440451254.html?mp=1&pdp_npi=5%40dis%21USD%21USD%20343.77%21USD%20277.83%21%21USD%20247.83%21%21%21%402101eee917646334636138058e09c9%2112000046008211542%21ct%21US%212695976779%21%211%210",
+      "expectedSkus": ["3256808440451254"]
+    },
+    {
+      "url": "https://www.aliexpress.us/item/2251832640570528.html?gps-id=shoppingCartRecommend&scm=1007.13440.426876.0&scm_id=1007.13440.426876.0&scm-url=1007.13440.426876.0&pvid=42a625a5-7dec-43b8-a1e1-b9103b698351&_t=gps-id:shoppingCartRecommend,scm-url:1007.13440.4",
+      "expectedSkus": ["2251832640570528"]
+    },
+    {
+      "url": "https://www.aliexpress.com/item/3256806530469837.html?mp=1&pdp_npi=5%40dis%21USD%21USD%201059.00%21USD%20423.60%21%21USD%20423.60%21%21%21%400b5dcc3217646525311908377eb19f%2112000038080847279%21ct%21US%216849298469%21%211%210",
+      "expectedSkus": ["3256806530469837"]
+    },
+    {
+      "url": "https://www.aliexpress.com/item/3256807670737064.html?mp=1&pdp_npi=5%40dis%21USD%21USD%202.97%21USD%201.48%21%21USD%201.48%21%21%21%402101eecd17646411381041632e2735%2112000042560622362%21ct%21US%21-1%21%212%210",
+      "expectedSkus": ["3256807670737064"]
+    },
+    {
+      "url": "https://www.aliexpress.us/item/3256810192731438.html?gps-id=shoppingCartRecommend&scm=1007.13440.426876.0&scm_id=1007.13440.426876.0&scm-url=1007.13440.426876.0&pvid=2fd511c9-3bdc-4ccc-9684-75781128c11f&_t=gps-id:shoppingCartRecommend,scm-url:1007.13440.4",
+      "expectedSkus": ["3256810192731438"]
+    },
+    {
+      "url": "https://www.aliexpress.us/item/3256809647951378.html?gps-id=pcOrderListRecommend&scm=1007.38956.373968.0&scm_id=1007.38956.373968.0&scm-url=1007.38956.373968.0&pvid=114dc460-7e15-45bc-8c4b-26d23db92512&_t=gps-id:pcOrderListRecommend,scm-url:1007.38956.373",
+      "expectedSkus": ["3256809647951378"]
+    },
+    {
+      "url": "https://www.aliexpress.com/item/3256810021577558.html?mp=1&pdp_npi=5%40dis%21USD%21USD%20114.48%21USD%2067.54%21%21USD%2057.54%21%21%21%402103129017646382844371146e5f4d%2112000051522102478%21ct%21US%213227436283%21%211%210",
+      "expectedSkus": ["3256810021577558"]
+    },
+    {
+      "url": "https://www.aliexpress.us/item/3256810033959479.html?gps-id=shoppingCartRecommend&scm=1007.38724.466299.0&scm_id=1007.38724.466299.0&scm-url=1007.38724.466299.0&pvid=ad590933-f5d4-4cc9-b127-d51206613e64&_t=gps-id:shoppingCartRecommend,scm-url:1007.38724.4",
+      "expectedSkus": ["3256810033959479"]
+    },
+    {
+      "url": "https://www.aliexpress.com/item/3256808919475972.html",
+      "expectedSkus": ["3256808919475972"]
+    },
+    {
+      "url": "https://www.aliexpress.us/item/3256810177135395.html?gps-id=shoppingCartRecommend&scm=1007.13440.426876.0&scm_id=1007.13440.426876.0&scm-url=1007.13440.426876.0&pvid=5c373fb3-b58d-4b8c-a567-04a62d8539c8&_t=gps-id:shoppingCartRecommend,scm-url:1007.13440.4",
+      "expectedSkus": ["3256810177135395"]
+    },
+    {
+      "url": "https://www.aliexpress.us/item/3256807932687820.html?gps-id=shoppingCartRecommend&scm=1007.13440.426876.0&scm_id=1007.13440.426876.0&scm-url=1007.13440.426876.0&pvid=457044b1-bef0-4183-a708-b9ab9004e90f&_t=gps-id:shoppingCartRecommend,scm-url:1007.13440.4",
+      "expectedSkus": ["3256807932687820"]
+    },
+    {
+      "url": "https://www.aliexpress.com/item/3256807730122364.html?mp=1&pdp_npi=5%40dis%21USD%21USD%2026.13%21USD%2018.29%21%21USD%2018.29%21%21%21%402101eede17646534650954466e92b9%2112000042829096915%21ct%21US%21-1%21%211%210",
+      "expectedSkus": ["3256807730122364"]
+    },
+    {
+      "url": "https://www.aliexpress.com/item/3256807009100788.html",
+      "expectedSkus": ["3256807009100788"]
+    },
+    {
+      "url": "https://www.aliexpress.us/item/3256804103719586.html?gps-id=shoppingCartRecommend&scm=1007.13440.426876.0&scm_id=1007.13440.426876.0&scm-url=1007.13440.426876.0&pvid=511cc921-b541-4857-baa0-bfeaeec8f2d2&_t=gps-id:shoppingCartRecommend,scm-url:1007.13440.4",
+      "expectedSkus": ["3256804103719586"]
+    },
+    {
+      "url": "https://www.aliexpress.us/item/3256807932687820.html?gps-id=shoppingCartRecommend&scm=1007.13440.426876.0&scm_id=1007.13440.426876.0&scm-url=1007.13440.426876.0&pvid=c4d89624-420c-488c-a608-972d1523bb6e&_t=gps-id:shoppingCartRecommend,scm-url:1007.13440.4",
+      "expectedSkus": ["3256807932687820"]
+    },
+    {
+      "url": "https://www.aliexpress.us/item/3256809576799587.html?gps-id=pcOrderListRecommend&scm=1007.38956.373968.0&scm_id=1007.38956.373968.0&scm-url=1007.38956.373968.0&pvid=81ca1895-d729-4326-ad6a-8c64815a9975&_t=gps-id:pcOrderListRecommend,scm-url:1007.38956.373",
+      "expectedSkus": ["3256809576799587"]
+    }
+  ]
+}

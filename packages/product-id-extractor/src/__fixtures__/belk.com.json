@@ -1,0 +1,99 @@
+{
+  "name": "Belk",
+  "id": 10764,
+  "domain": "belk.com",
+  "testCases": [
+    {
+      "url": "https://www.belk.com/p/polo-ralph-lauren-custom-slim-fit-mesh-polo-shirt/0480039950482.html",
+      "expectedSkus": ["0480039950482"]
+    },
+    {
+      "url": "https://www.belk.com/p/cutter-buck-ncaa-south-carolina-gamecocks-vault-charter-eco-recycled-half-zip-anorak-jacket/0480039341839.html",
+      "expectedSkus": ["0480039341839"]
+    },
+    {
+      "url": "https://www.belk.com/p/nearly-natural-13-inch-boho-chic-basket-planter-natural-cotton-handwoven-black-and-white-stripe-with-handles/0438747740741.html",
+      "expectedSkus": ["0438747740741"]
+    },
+    {
+      "url": "https://www.belk.com/p/isotoner-womens-microsuede-marisol-closed-back-slippers/0480054234024.html",
+      "expectedSkus": ["0480054234024"]
+    },
+    {
+      "url": "https://www.belk.com/p/smeg-2-slice-toaster/0438583986617.html",
+      "expectedSkus": ["0438583986617"]
+    },
+    {
+      "url": "https://www.belk.com/p/southern-tide-mens-broughton-plaid-charlestone-sportshirt/0480038049323.html",
+      "expectedSkus": ["0480038049323"]
+    },
+    {
+      "url": "https://www.belk.com/p/tom-ford-oud-minerale-eau-de-parfum-gift-set/0480057499789.html",
+      "expectedSkus": ["0480057499789"]
+    },
+    {
+      "url": "https://www.belk.com/p/burberry-free-pouch-with-3.3oz-burberry-mens-fragrance-purchase/0480053960702.html",
+      "expectedSkus": ["0480053960702"]
+    },
+    {
+      "url": "https://www.belk.com/p/izod-boys-8-20-long-sleeve-durham-twill-plaid-stretch-shirt/0438764824752.html",
+      "expectedSkus": ["0438764824752"]
+    },
+    {
+      "url": "https://www.belk.com/p/vince-camuto-womens-long-sleeve-button-front-crew-neck-sweater/0480057903118.html",
+      "expectedSkus": ["0480057903118"]
+    },
+    {
+      "url": "https://www.belk.com/p/gloria-vanderbilt-petite-amanda-capri-pants-with-slit/0480048813129.html",
+      "expectedSkus": ["0480048813129"]
+    },
+    {
+      "url": "https://www.belk.com/p/draper-james-womens-claire-top/0438752287293.html",
+      "expectedSkus": ["0438752287293"]
+    },
+    {
+      "url": "https://www.belk.com/p/yogalicious-girls-7-16-long-sleeve-top-and-pants-set/0480043548378.html",
+      "expectedSkus": ["0480043548378"]
+    },
+    {
+      "url": "https://www.belk.com/p/adidas-woven-logo-pants/0480040534381.html",
+      "expectedSkus": ["0480040534381"]
+    },
+    {
+      "url": "https://www.belk.com/p/ocean-coast-mens-hunting-season-short-sleeve-shirt/0480051461621.html",
+      "expectedSkus": ["0480051461621"]
+    },
+    {
+      "url": "https://www.belk.com/p/french-toast-boys-short-sleeve-stretch-moisture-wicking-polo-shirt/0438649144890.html",
+      "expectedSkus": ["0438649144890"]
+    },
+    {
+      "url": "https://www.belk.com/p/pfaltzgraff-venice-12-pc-melamine-dinnerware-set-service-for-4/0438747381449.html",
+      "expectedSkus": ["0438747381449"]
+    },
+    {
+      "url": "https://www.belk.com/p/polo-ralph-lauren-classic-fit-mesh-polo-shirt/0438585476871.html",
+      "expectedSkus": ["0438585476871"]
+    },
+    {
+      "url": "https://www.belk.com/p/ralph-lauren-childrenswear-boys-4-7-plaid-cotton-oxford-shirt/0480057414805.html",
+      "expectedSkus": ["0480057414805"]
+    },
+    {
+      "url": "https://www.belk.com/p/dkny-crissa-logo-webbing/0480049275506.html",
+      "expectedSkus": ["0480049275506"]
+    },
+    {
+      "url": "https://www.belk.com/p/heat-holders-mira-microplush-pajama-set/0480050645763.html",
+      "expectedSkus": ["0480050645763"]
+    },
+    {
+      "url": "https://www.belk.com/p/sharagano-petite-flutter-sleeve-midi-dress/0480048632225.html?cgid=women-petite-clothing-dresses",
+      "expectedSkus": ["0480048632225"]
+    },
+    {
+      "url": "https://www.belk.com/p/kim-rogers-womens-3-4-sleeve-printed-henley-top/0480049640205.html",
+      "expectedSkus": ["0480049640205"]
+    }
+  ]
+}
