@@ -1,0 +1,107 @@
+{
+  "name": "TEMU",
+  "id": 21176,
+  "domain": "temu.com",
+  "testCases": [
+    {
+      "url": "https://www.temu.com/goods.html?_bg_fs=1&goods_id=601099669336349&sku_id=17592791110628&_oak_page_source=501",
+      "expectedSkus": ["17592791110628", "601099669336349"]
+    },
+    {
+      "url": "https://www.temu.com/goods.html?_bg_fs=1&goods_id=601099533779659&sku_id=17592289549229&_oak_page_source=501",
+      "expectedSkus": ["17592289549229", "601099533779659"]
+    },
+    {
+      "url": "https://www.temu.com/goods.html?_bg_fs=1&goods_id=601101485607058&sku_id=17600070849029&_oak_page_source=501",
+      "expectedSkus": ["17600070849029", "601101485607058"]
+    },
+    {
+      "url": "https://www.temu.com/goods.html?_bg_fs=1&goods_id=601100609372499&sku_id=17596604272913&_oak_page_source=501",
+      "expectedSkus": ["17596604272913", "601100609372499"]
+    },
+    {
+      "url": "https://www.temu.com/goods.html?_bg_fs=1&goods_id=601100800294571&sku_id=17597196920799&_oak_page_source=501",
+      "expectedSkus": ["17597196920799", "601100800294571"]
+    },
+    {
+      "url": "https://www.temu.com/goods.html?_bg_fs=1&goods_id=601102124769256&sku_id=17603137275050&_oak_page_source=501",
+      "expectedSkus": ["17603137275050", "601102124769256"]
+    },
+    {
+      "url": "https://www.temu.com/-pack-large--kitchen-cleaning-cloths-absorbent-reusable-dish-towels-in-multiple-colors-red-blue-yellow-orange-for-sink-table-and-outdoor-use-multipurpose-napkins--pattern-polyester-cloth-kitchen-towels-car-wash-towels-g-60110069085160",
+      "expectedSkus": ["60110069085160"]
+    },
+    {
+      "url": "https://www.temu.com/goods.html?_bg_fs=1&goods_id=601102335483389&sku_id=17604201006243&_oak_page_source=501",
+      "expectedSkus": ["17604201006243", "601102335483389"]
+    },
+    {
+      "url": "https://www.temu.com/goods.html?_bg_fs=1&goods_id=601099697792583&sku_id=17592902161768&_oak_page_source=501",
+      "expectedSkus": ["17592902161768", "601099697792583"]
+    },
+    {
+      "url": "https://www.temu.com/goods.html?_bg_fs=1&goods_id=601099729487255&sku_id=17593036711574&_oak_page_source=501",
+      "expectedSkus": ["17593036711574", "601099729487255"]
+    },
+    {
+      "url": "https://www.temu.com/goods.html?_bg_fs=1&goods_id=601103231820724&sku_id=17608699673610&_oak_page_source=501",
+      "expectedSkus": ["17608699673610", "601103231820724"]
+    },
+    {
+      "url": "https://www.temu.com/goods.html?_bg_fs=1&goods_id=601102266744052&sku_id=17603862529698&_oak_page_source=501",
+      "expectedSkus": ["17603862529698", "601102266744052"]
+    },
+    {
+      "url": "https://www.temu.com/goods.html?_bg_fs=1&goods_id=601099570993362&sku_id=17592431353725&_oak_page_source=501",
+      "expectedSkus": ["17592431353725", "601099570993362"]
+    },
+    {
+      "url": "https://www.temu.com/goods.html?_bg_fs=1&goods_id=601102106573548&sku_id=17603046004421&_oak_page_source=501",
+      "expectedSkus": ["17603046004421", "601102106573548"]
+    },
+    {
+      "url": "https://www.temu.com/goods.html?_bg_fs=1&goods_id=601104708459895&sku_id=17616077806283&_oak_page_source=501",
+      "expectedSkus": ["17616077806283", "601104708459895"]
+    },
+    {
+      "url": "https://www.temu.com/goods.html?_bg_fs=1&goods_id=601101649553853&sku_id=17600847373222&_oak_page_source=501",
+      "expectedSkus": ["17600847373222", "601101649553853"]
+    },
+    {
+      "url": "https://www.temu.com/goods.html?_bg_fs=1&goods_id=601099671147510&sku_id=17592798287412&_oak_page_source=501",
+      "expectedSkus": ["17592798287412", "601099671147510"]
+    },
+    {
+      "url": "https://www.temu.com/goods.html?_bg_fs=1&goods_id=601103243700794&sku_id=17608769062584&_oak_page_source=501",
+      "expectedSkus": ["17608769062584", "601103243700794"]
+    },
+    {
+      "url": "https://www.temu.com/goods.html?_bg_fs=1&goods_id=601101801045107&sku_id=17601571957361&_oak_page_source=501",
+      "expectedSkus": ["17601571957361", "601101801045107"]
+    },
+    {
+      "url": "https://www.temu.com/goods.html?_bg_fs=1&goods_id=601101864268993&sku_id=17601863924528&_oak_page_source=501",
+      "expectedSkus": ["17601863924528", "601101864268993"]
+    },
+    {
+      "url": "https://www.temu.com/goods.html?_bg_fs=1&goods_id=601099530421944&sku_id=17592276552384&_oak_page_source=501",
+      "expectedSkus": ["17592276552384", "601099530421944"]
+    },
+    {
+      "url": "https://www.temu.com/goods.html?_bg_fs=1&goods_id=601104896206639&sku_id=17616982210467&_oak_page_source=501",
+      "expectedSkus": ["17616982210467", "601104896206639"]
+    },
+    {
+      "url": "https://www.temu.com/goods.html?_bg_fs=1&goods_id=601100162477350&sku_id=17595007824665&_oak_page_source=501",
+      "expectedSkus": ["17595007824665", "601100162477350"]
+    },
+    {
+      "url": "https://www.temu.com/goods.html?_bg_fs=1&goods_id=601099592551348&sku_id=17592505665251&_oak_page_source=501",
+      "expectedSkus": ["17592505665251", "601099592551348"]
+    },
+    {
+      "url": "https://www.temu.com/goods.html?_bg_fs=1&goods_id=601104755515801&sku_id=17616309801073&_oak_page_source=501",
+      "expectedSkus": ["17616309801073", "601104755515801"]
+    }
+  ]
+}

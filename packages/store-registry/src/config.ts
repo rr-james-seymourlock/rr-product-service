@@ -812,6 +812,34 @@ const mutableStoreConfigs: StoreConfigInterface[] = [
       ),
     ],
   },
+  // TEMU (ID: 21176)
+  // URL patterns:
+  //   /goods.html?goods_id={numeric_id}&sku_id={numeric_id}
+  //   /{product-slug}-g-{numeric_id}
+  // Query parameters contain both goods_id and sku_id
+  {
+    id: '21176',
+    domain: 'temu.com',
+    pathnamePatterns: [
+      // Matches /-g-{numeric_id} at end of path (e.g., /product-name-g-60110069085160)
+      buildRegExp(
+        ['-g-', capture(repeat(digit, { min: 10, max: 20 })), choiceOf(endOfString, '/')],
+        {
+          global: true,
+        },
+      ),
+    ],
+    searchPatterns: [
+      // Matches goods_id query parameter (e.g., ?goods_id=601099669336349)
+      buildRegExp(['goods_id=', capture(repeat(digit, { min: 10, max: 20 })), wordBoundary], {
+        global: true,
+      }),
+      // Matches sku_id query parameter (e.g., &sku_id=17592791110628)
+      buildRegExp(['sku_id=', capture(repeat(digit, { min: 10, max: 20 })), wordBoundary], {
+        global: true,
+      }),
+    ],
+  },
   {
     id: '10802',
     domain: 'wayfair.com',
