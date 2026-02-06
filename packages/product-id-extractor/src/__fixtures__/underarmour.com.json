@@ -1,0 +1,47 @@
+{
+  "name": "Under Armour",
+  "id": 9728,
+  "domain": "underarmour.com",
+  "testCases": [
+    {
+      "url": "https://www.underarmour.com/en-us/p/pants_and_leggings/ua_halo_run_cold_weather_mens_tights/198632726501.html",
+      "expectedSkus": ["198632726501"]
+    },
+    {
+      "url": "https://www.underarmour.com/en-us/p/jackets_and_vests/ua_stormproof_lined_mens_rain_jacket/195252369095.html",
+      "expectedSkus": ["195252369095"]
+    },
+    {
+      "url": "https://www.underarmour.com/en-us/p/running_and_training/ua_assert_11_boys_grade_school_running_shoes/198633816089.html",
+      "expectedSkus": ["198633816089"]
+    },
+    {
+      "url": "https://www.underarmour.com/en-us/p/shorts/ua_tech_woven_wordmark_mens_8.25_shorts/196885605598.html",
+      "expectedSkus": ["196885605598"]
+    },
+    {
+      "url": "https://www.underarmour.com/en-us/p/shirts_and_tops/ua_waffle_mens_crew_long_sleeve/198633503033.html",
+      "expectedSkus": ["198633503033"]
+    },
+    {
+      "url": "https://www.underarmour.com/en-us/p/black_friday/ua_motion_collegiate_mens_1-4_zip/199441123697.html",
+      "expectedSkus": ["199441123697"]
+    },
+    {
+      "url": "https://www.underarmour.com/en-us/p/pants_and_leggings/ua_drive_mens_pants/196040485966.html",
+      "expectedSkus": ["196040485966"]
+    },
+    {
+      "url": "https://www.underarmour.com/en-us/p/one_piece_and_sets/ua_knit_girls_tracksuit/194513756247.html",
+      "expectedSkus": ["194513756247"]
+    },
+    {
+      "url": "https://www.underarmour.com/en-us/p/shirts_and_tops/ua_rival_girls_short_sleeve/197779653114.html",
+      "expectedSkus": ["197779653114"]
+    },
+    {
+      "url": "https://www.underarmour.com/en-us/p/sportswear/ua_ignite_pro_marbella_womens_sandals/196040143644.html",
+      "expectedSkus": ["196040143644"]
+    }
+  ]
+}

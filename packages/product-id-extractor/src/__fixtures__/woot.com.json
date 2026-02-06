@@ -1,0 +1,39 @@
+{
+  "name": "woot!",
+  "id": 12323,
+  "domain": "woot.com",
+  "testCases": [
+    {
+      "url": "https://www.woot.com/offers/lip-smacker-heart-tin-lip-balm-trio-4?ref=w_cnt_sc_is_4_tl",
+      "expectedSkus": ["4"]
+    },
+    {
+      "url": "https://www.woot.com/offers/bior-deep-pore-charcoal-daily-face-wash-6?ref=cnt_sc_so_3_tl",
+      "expectedSkus": ["6"]
+    },
+    {
+      "url": "https://sellout.woot.com/offers/amazon-basics-car-towels-3pk-yellow-2?ref=w_cnt_ryo_oc_2_tl",
+      "expectedSkus": ["2"]
+    },
+    {
+      "url": "https://tools.woot.com/offers/3-in-1-carbon-monoxide-detector-w-temp-humidity-4?ref=w_cnt_sc_is_0_tl",
+      "expectedSkus": ["4"]
+    },
+    {
+      "url": "https://sellout.woot.com/offers/kitty-city-cat-bowls-2pk-modern-1?ref=w_cnt_ryo_oc_3_tl",
+      "expectedSkus": ["1"]
+    },
+    {
+      "url": "https://sellout.woot.com/offers/dmi-shoe-horn-24-white-1?ref=w_cnt_sc_is_5_tl",
+      "expectedSkus": ["1"]
+    },
+    {
+      "url": "https://sport.woot.com/offers/fitness-reality-adjustable-weight-bench-1?ref=w_cnt_ryo_oc_1_tl",
+      "expectedSkus": ["1"]
+    },
+    {
+      "url": "https://www.woot.com/offers/gentleman-boisee-givenchy-set-m-edp-4?ref=w_cnt_sc_is_10_tl",
+      "expectedSkus": ["4"]
+    }
+  ]
+}

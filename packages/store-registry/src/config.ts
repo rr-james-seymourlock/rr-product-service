@@ -812,6 +812,192 @@ const mutableStoreConfigs: StoreConfigInterface[] = [
       ),
     ],
   },
+  // TEMU (ID: 21176)
+  // URL patterns:
+  //   /goods.html?goods_id={numeric_id}&sku_id={numeric_id}
+  //   /{product-slug}-g-{numeric_id}
+  // Query parameters contain both goods_id and sku_id
+  {
+    id: '21176',
+    domain: 'temu.com',
+    pathnamePatterns: [
+      // Matches /-g-{numeric_id} at end of path (e.g., /product-name-g-60110069085160)
+      buildRegExp(
+        ['-g-', capture(repeat(digit, { min: 10, max: 20 })), choiceOf(endOfString, '/')],
+        {
+          global: true,
+        },
+      ),
+    ],
+    searchPatterns: [
+      // Matches goods_id query parameter (e.g., ?goods_id=601099669336349)
+      buildRegExp(['goods_id=', capture(repeat(digit, { min: 10, max: 20 })), wordBoundary], {
+        global: true,
+      }),
+      // Matches sku_id query parameter (e.g., &sku_id=17592791110628)
+      buildRegExp(['sku_id=', capture(repeat(digit, { min: 10, max: 20 })), wordBoundary], {
+        global: true,
+      }),
+    ],
+  },
+  // Under Armour (ID: 9728)
+  // URL pattern: /en-us/p/{category}/{product-name}/{upc}.html
+  // Product ID: UPC code before .html (12-13 digit numbers)
+  {
+    id: '9728',
+    domain: 'underarmour.com',
+    pathnamePatterns: [
+      // Matches 12-13 digit UPC codes before .html
+      buildRegExp([wordBoundary, capture(repeat(digit, { min: 12, max: 13 })), '.html'], {
+        global: true,
+      }),
+    ],
+  },
+  // Talbots (ID: 12514)
+  // URL pattern: /{product-name}/{id}.html
+  // Product ID: 7-8 digit numbers before .html
+  {
+    id: '12514',
+    domain: 'talbots.com',
+    pathnamePatterns: [
+      // Matches 7-8 digit product IDs before .html
+      buildRegExp([wordBoundary, capture(repeat(digit, { min: 7, max: 8 })), '.html'], {
+        global: true,
+      }),
+    ],
+  },
+  // LOFT (ID: 9142)
+  // URL pattern: /{category}/{product-name}/{id}.html
+  // Product ID: 8 digit numbers before .html
+  {
+    id: '9142',
+    domain: 'loft.com',
+    pathnamePatterns: [
+      // Matches 8 digit product IDs before .html
+      buildRegExp([wordBoundary, capture(repeat(digit, { min: 8, max: 8 })), '.html'], {
+        global: true,
+      }),
+    ],
+  },
+  // ThriftBooks (ID: 21288)
+  // URL pattern: /w/{book-name}/{id}/#isbn={isbn}
+  // Product IDs: ISBN codes in hash fragment (10 or 13 digits)
+  // Note: Hash fragments are part of pathname after URL parsing
+  {
+    id: '21288',
+    domain: 'thriftbooks.com',
+    pathnamePatterns: [
+      // Matches ISBN in hash fragment: #isbn=1681066025
+      buildRegExp(['isbn=', capture(repeat(digit, { min: 10, max: 13 }))], { global: true }),
+    ],
+  },
+  // Coach Outlet (ID: 18916)
+  // URL pattern: /on/demandware.store/.../Cart-GetProduct?...&pid={product_id}
+  // Product ID: pid query parameter (e.g., "CCF99%20GRM", "CV940%20IMXAQ")
+  {
+    id: '18916',
+    domain: 'coachoutlet.com',
+    searchPatterns: [
+      // Matches pid parameter values (URL-encoded product codes)
+      // Matches letters, digits, and common URL encoding chars
+      buildRegExp(
+        [
+          'pid=',
+          capture(repeat(choiceOf(word, digit, charRange('A', 'Z')), { min: 3, max: 30 })),
+          choiceOf('&', endOfString),
+        ],
+        { global: true },
+      ),
+    ],
+  },
+  // TheRealReal (ID: 11433)
+  // URL pattern: /products/{product-name}-{id}
+  // Product ID: 5-character alphanumeric code at end (e.g., "sb6jh", "rm4mn")
+  {
+    id: '11433',
+    domain: 'therealreal.com',
+    pathnamePatterns: [
+      // Matches 5-char alphanumeric product codes at end of path
+      buildRegExp(
+        [
+          '-',
+          capture(repeat(charClass(charRange('a', 'z'), digit), { min: 5, max: 5 })),
+          endOfString,
+        ],
+        { global: true },
+      ),
+    ],
+  },
+  // Zazzle (ID: 9350)
+  // URL patterns:
+  //   /{product-name}-{long_numeric_id}
+  //   /pd/spp/...?pd={long_numeric_id}
+  // Product IDs: Very long numeric codes (15-18 digits)
+  {
+    id: '9350',
+    domain: 'zazzle.com',
+    pathnamePatterns: [
+      // Matches long numeric IDs in pathname (e.g., -256994238483435165)
+      buildRegExp(
+        [
+          '-',
+          capture(repeat(digit, { min: 15, max: 20 })),
+          choiceOf(wordBoundary, '?', endOfString),
+        ],
+        { global: true },
+      ),
+    ],
+    searchPatterns: [
+      // Matches pd query parameter
+      buildRegExp(['pd=', capture(repeat(digit, { min: 15, max: 20 })), wordBoundary], {
+        global: true,
+      }),
+    ],
+  },
+  // Anthropologie (ID: 12028)
+  // URL patterns:
+  //   /shop/{product-name}?... (product slug only)
+  //   /shop/product/{product-id} (with an- prefix after normalization)
+  // Product IDs: an-{long_numeric_id}-{suffix} format (lowercase after URL normalization)
+  {
+    id: '12028',
+    domain: 'anthropologie.com',
+    pathnamePatterns: [
+      // Matches an-{numbers}-{numbers} format (e.g., an-4139880890483-000)
+      // Note: URLs are normalized to lowercase, so we match lowercase 'an-'
+      buildRegExp(
+        [
+          'an-',
+          capture([repeat(digit, { min: 10, max: 15 }), '-', repeat(digit, { min: 1, max: 5 })]),
+          choiceOf(wordBoundary, '/', '?', endOfString),
+        ],
+        { global: true },
+      ),
+    ],
+  },
+  // woot! (ID: 12323)
+  // URL pattern: /offers/{product-name}-{number}
+  // Product ID: 1-2 digit number at end of offer slug
+  // Note: These are very short IDs and may not be reliable product identifiers
+  {
+    id: '12323',
+    domain: 'woot.com',
+    aliases: [
+      { id: '12323', domain: 'sellout.woot.com' },
+      { id: '12323', domain: 'tools.woot.com' },
+      { id: '12323', domain: 'sport.woot.com' },
+      { id: '12323', domain: 'shirt.woot.com' },
+      { id: '12323', domain: 'electronics.woot.com' },
+      { id: '12323', domain: 'home.woot.com' },
+      { id: '12323', domain: 'computers.woot.com' },
+    ],
+    pathnamePatterns: [
+      // Matches 1-2 digit numbers after the last dash in the path
+      buildRegExp(['-', capture(repeat(digit, { min: 1, max: 2 })), choiceOf(endOfString, '?')], {
+        global: true,
+      }),
+    ],
+  },
   {
     id: '10802',
     domain: 'wayfair.com',
